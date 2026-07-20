@@ -1,0 +1,96 @@
+# ============================================
+# HOSPITAL MANAGEMENT DOCKER COMPOSE
+# ============================================
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: hm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-hospital}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - hm-network
+
+  # ============================================
+  # Redis Cache
+  # ============================================
+  redis:
+    image: redis:7.4-alpine
+    container_name: hm-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    networks:
+      - hm-network
+
+  # ============================================
+  # NestJS API Service
+  # ============================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-api
+    container_name: hm-api
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      PORT: 8000
+    ports:
+      - '8000:8000'
+    networks:
+      - hm-network
+
+  # ============================================
+  # React Web App
+  # ============================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-web
+    container_name: hm-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - '80:80'
+    networks:
+      - hm-network
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  hm-network:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  redis_data:
+  postgres_data:

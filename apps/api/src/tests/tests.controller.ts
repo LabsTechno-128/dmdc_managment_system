@@ -1,0 +1,33 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { TestsService } from './tests.service';
+import { DiagnosticTest } from '@hospital/database';
+
+@Controller('tests')
+export class TestsController {
+    constructor(private readonly testsService: TestsService) {}
+
+    @Post()
+    create(@Body() data: Partial<DiagnosticTest>) {
+        return this.testsService.create(data);
+    }
+
+    @Get()
+    findAll() {
+        return this.testsService.findAll();
+    }
+
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.testsService.findOne(id);
+    }
+
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() data: Partial<DiagnosticTest>) {
+        return this.testsService.update(id, data);
+    }
+
+    @Delete(':id')
+    remove(@Param('id') id: string) {
+        return this.testsService.remove(id);
+    }
+}

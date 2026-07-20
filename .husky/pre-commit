@@ -1,0 +1,8 @@
+
+#!/usr/bin/env sh
+
+echo "🔍 Running lint-staged..."
+npx lint-staged
+
+echo "📝 Running type check..."
+npm run check-types

@@ -20,10 +20,8 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/database/package.json packages/database/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
-COPY packages/types/package.json packages/types/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY packages/ui/package.json packages/ui/package.json
-COPY packages/utils/package.json packages/utils/package.json
 
 # Install all dependencies using npm
 RUN npm ci --no-audit --no-fund

@@ -39,9 +39,9 @@ services:
       NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
-      PORT: 8000
+      PORT: 8007
     ports:
-      - '8000:8000'
+      - '8007:8007'
     networks:
       - hm-network
 
@@ -59,7 +59,7 @@ services:
       api:
         condition: service_started
     ports:
-      - '8080:80'
+      - '8081:80'
     networks:
       - hm-network
 

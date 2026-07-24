@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,12 +11,12 @@ const billingSchema = z.object({
   patientId: z.string().min(1, 'Patient is required'),
   items: z.array(z.object({
     testId: z.string().min(1, 'Test is required'),
-    price: z.coerce.number().min(0, 'Price must be positive'),
+    price: z.number().min(0, 'Price must be positive'),
   })).min(1, 'At least one item is required'),
-  discount: z.coerce.number().min(0).default(0),
-  additionalCharges: z.coerce.number().min(0).default(0),
-  paymentMethod: z.string().default('Cash'),
-  paymentStatus: z.string().default('Unpaid'),
+  discount: z.number().min(0),
+  additionalCharges: z.number().min(0),
+  paymentMethod: z.string(),
+  paymentStatus: z.string(),
 });
 
 type BillingFormValues = z.infer<typeof billingSchema>;
@@ -168,7 +168,7 @@ export const NewBilling: React.FC = () => {
                     <label className="block text-xs font-medium text-slate-500 mb-1">Price (BDT)</label>
                     <input
                       type="number"
-                      {...register(`items.${index}.price`)}
+                      {...register(`items.${index}.price`, { valueAsNumber: true })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 bg-slate-100"
                       readOnly
                     />
@@ -206,7 +206,7 @@ export const NewBilling: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  {...register('discount')}
+                  {...register('discount', { valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 text-right"
                 />
               </div>
@@ -218,7 +218,7 @@ export const NewBilling: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  {...register('additionalCharges')}
+                  {...register('additionalCharges', { valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 text-right"
                 />
               </div>

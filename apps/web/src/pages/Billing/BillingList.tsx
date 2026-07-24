@@ -2,7 +2,7 @@ import React from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Edit, Plus, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Plus, CheckCircle, Clock } from 'lucide-react';
 
 const fetchBillings = async () => {
   const { data } = await api.get('/billing');

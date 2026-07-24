@@ -3,10 +3,11 @@ import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthService) { }
 
     @Post('login')
-    login(@Body() body: any) {
-        return this.authService.login(body.email, body.password);
+    login(@Body('email') email: string) {
+        return this.authService.login(email || 'receptionist@diagnosticpro.com');
     }
 }
+

@@ -1,5 +1,5 @@
 import { Controller, UseGuards, Get, Patch, Param, Body } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TestCounterService } from './test-counter.service';
 
 @Controller('test-counter')

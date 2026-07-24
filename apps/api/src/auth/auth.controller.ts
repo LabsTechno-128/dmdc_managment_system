@@ -6,7 +6,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('login')
-    login(@Body('email') email: string) {
-        return this.authService.login(email || 'receptionist@diagnosticpro.com');
+    login(@Body() body: any) {
+        return this.authService.login(body.email, body.password);
     }
 }

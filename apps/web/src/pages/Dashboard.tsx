@@ -1,14 +1,34 @@
 import type { FC } from 'react';
 import { UserPlus, FileText, Send, Calendar, Users, CheckCircle, CreditCard, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../lib/api';
+
+const fetchStats = async () => {
+    const { data } = await api.get('/dashboard/stats');
+    return data;
+};
 
 export const Dashboard: FC = () => {
     const navigate = useNavigate();
 
+    const { data: stats, isLoading } = useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: fetchStats,
+        refetchInterval: 60000, // Refetch every minute
+    });
+
+    const displayStats = stats || {
+        totalBooked: 0,
+        waitingRoom: 0,
+        completed: 0,
+        collection: 0,
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back, Riya</h1>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
                 <p className="text-slate-500 mt-1">Here is what's happening at the diagnostic center today.</p>
             </div>
 
@@ -76,6 +96,7 @@ export const Dashboard: FC = () => {
                         <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mr-2">📊</span>
                         Today's Overview
                     </h2>
+                    {isLoading && <span className="text-sm text-slate-500 animate-pulse">Refreshing...</span>}
                     <button className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
                         View Detailed Analytics
                     </button>
@@ -90,7 +111,9 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">42</div>
+                            <div className="text-3xl font-bold text-slate-800">
+                                {String(displayStats.totalBooked).padStart(2, '0')}
+                            </div>
                             <div className="text-sm font-medium text-slate-500 mt-1">Total Booked</div>
                         </div>
                     </div>
@@ -103,7 +126,9 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">08</div>
+                            <div className="text-3xl font-bold text-slate-800">
+                                {String(displayStats.waitingRoom).padStart(2, '0')}
+                            </div>
                             <div className="text-sm font-medium text-slate-500 mt-1">Waiting Room</div>
                         </div>
                     </div>
@@ -116,7 +141,9 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">25</div>
+                            <div className="text-3xl font-bold text-slate-800">
+                                {String(displayStats.completed).padStart(2, '0')}
+                            </div>
                             <div className="text-sm font-medium text-slate-500 mt-1">Completed</div>
                         </div>
                     </div>
@@ -129,7 +156,9 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">32,500 <span className="text-lg font-semibold text-slate-500">BDT</span></div>
+                            <div className="text-3xl font-bold text-slate-800">
+                                {Number(displayStats.collection).toLocaleString()} <span className="text-lg font-semibold text-slate-500">BDT</span>
+                            </div>
                             <div className="text-sm font-medium text-slate-500 mt-1">Collection</div>
                         </div>
                     </div>

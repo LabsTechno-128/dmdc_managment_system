@@ -1,29 +1,48 @@
-import { Routes, Route } from 'react-router-dom';
-import { Layout } from './layout/Layout';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
 import { Dashboard } from './pages/Dashboard';
 
-// Mock empty components for routing structure
-const Placeholder = ({ title }: { title: string }) => (
-    <div className="flex h-full items-center justify-center text-slate-400">
-        <h2 className="text-2xl font-semibold">{title} Implementation Pending</h2>
-    </div>
-);
+import { NewPatient } from './pages/Patients/NewPatient';
+import { DoctorsList } from './pages/Doctors/DoctorsList';
+import { NewDoctor } from './pages/Doctors/NewDoctor';
+import { Login } from './pages/Login';
+import { ProtectedRoute } from './layout/ProtectedRoute';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import Patients from './pages/Patients/Patients';
+import Layout from './layout/Layout';
+
+import { BillingList } from './pages/Billing/BillingList';
+import { NewBilling } from './pages/Billing/NewBilling';
+import { ReportsList } from './pages/Reports/ReportsList';
+import { TestCounter } from './pages/TestCounter/TestCounter';
+import { Settings } from './pages/Settings/Settings';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <Layout>
+    <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/patients" element={<Placeholder title="Patients" />} />
-        <Route path="/patients/new" element={<Placeholder title="New Patient" />} />
-        <Route path="/billing" element={<Placeholder title="Billing" />} />
-        <Route path="/billing/new" element={<Placeholder title="New Billing" />} />
-        <Route path="/test-counter" element={<Placeholder title="Test Counter" />} />
-        <Route path="/reports" element={<Placeholder title="Reports" />} />
-        <Route path="/doctors" element={<Placeholder title="Doctors" />} />
-        <Route path="/settings" element={<Placeholder title="Settings" />} />
+        <Route path="/login" element={<Login />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/patients" element={<Patients />} />
+            <Route path="/patients/new" element={<NewPatient />} />
+            <Route path="/billing" element={<BillingList />} />
+            <Route path="/billing/new" element={<NewBilling />} />
+            <Route path="/test-counter" element={<TestCounter />} />
+            <Route path="/reports" element={<ReportsList />} />
+            <Route path="/doctors" element={<DoctorsList />} />
+            <Route path="/doctors/new" element={<NewDoctor />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Route>
       </Routes>
-    </Layout>
+    </QueryClientProvider>
   );
 }
 

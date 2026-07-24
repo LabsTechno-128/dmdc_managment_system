@@ -21,20 +21,6 @@ services:
       - hm-network
 
   # ============================================
-  # Redis Cache
-  # ============================================
-  redis:
-    image: redis:7.4-alpine
-    container_name: hm-redis
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-    ports:
-      - '6379:6379'
-    networks:
-      - hm-network
-
-  # ============================================
   # NestJS API Service
   # ============================================
   api:
@@ -45,16 +31,12 @@ services:
     container_name: hm-api
     restart: unless-stopped
     depends_on:
-      redis:
-        condition: service_started
       postgres:
         condition: service_started
     env_file:
       - .env
     environment:
       NODE_ENV: production
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
       DB_HOST: postgres
       DB_PORT: 5432
       PORT: 8000
@@ -92,5 +74,4 @@ networks:
 # Volumes
 # ============================================
 volumes:
-  redis_data:
   postgres_data:

@@ -62,7 +62,7 @@ COPY --from=builder-api /app/package.json ./package.json
 
 EXPOSE 8000
 USER node
-CMD ["node", "apps/api/dist/main.js"]
+CMD ["node", "apps/api/dist/apps/api/src/main.js"]
 
 # ==============================================================================
 # WEB RUNNER STAGE

@@ -76,6 +76,7 @@ RUN rm -rf ./*
 # Copy built artifacts from the web app
 COPY --from=builder-web /app/apps/web/dist ./
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 # We expose 80 to match standard web server
 EXPOSE 80
 

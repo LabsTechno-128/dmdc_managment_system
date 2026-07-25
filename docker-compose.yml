@@ -64,6 +64,13 @@ services:
       - '5173:80'
     networks:
       - hm-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=hm-network'
+      - 'traefik.http.routers.hm-web.rule=Host(`dmdc.thinkhive.net`)'
+      - 'traefik.http.routers.hm-web.entrypoints=websecure'
+      - 'traefik.http.routers.hm-web.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.hm-web.loadbalancer.server.port=80'
 
 # ============================================
 # Networks

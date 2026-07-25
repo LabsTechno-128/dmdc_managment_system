@@ -64,12 +64,16 @@ services:
       - '5173:80'
     networks:
       - hm-network
+      - dokploy-network
+
     labels:
       - 'traefik.enable=true'
-      - 'traefik.docker.network=hm-network'
-      - 'traefik.http.routers.hm-web.rule=Host(`dmdc.thinkhive.net`)'
+      - 'traefik.docker.network=dokploy-network'
+
+      - 'traefik.http.routers.hm-web.rule=Host(`thinkhive.net`)'
       - 'traefik.http.routers.hm-web.entrypoints=websecure'
       - 'traefik.http.routers.hm-web.tls.certresolver=letsencrypt'
+
       - 'traefik.http.services.hm-web.loadbalancer.server.port=80'
 
 # ============================================
@@ -78,6 +82,8 @@ services:
 networks:
   hm-network:
     driver: bridge
+  dokploy-network:
+    external: true
 
 # ============================================
 # Volumes

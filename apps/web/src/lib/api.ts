@@ -2,9 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8000/api', // Adjust port if needed
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.thinkhive.net/api',
 });
-
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {

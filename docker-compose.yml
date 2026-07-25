@@ -10,9 +10,9 @@ services:
     container_name: hm-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-hospital}
+      POSTGRES_DB: ${DB_DATABASE:-hospital_managment}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -37,8 +37,10 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/hospital_managment}
       DB_HOST: postgres
       DB_PORT: 5432
+      DB_SYNCHRONIZE: 'true'
       PORT: 8007
     ports:
       - '8007:8007'

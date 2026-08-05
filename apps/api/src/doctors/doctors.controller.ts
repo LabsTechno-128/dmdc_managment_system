@@ -3,10 +3,10 @@ import { DoctorsService } from './doctors.service';
 import { Doctor } from '@hospital/database';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('doctors')
 export class DoctorsController {
-    constructor(private readonly doctorsService: DoctorsService) {}
+    constructor(private readonly doctorsService: DoctorsService) { }
 
     @Post()
     create(@Body() data: Partial<Doctor>) {

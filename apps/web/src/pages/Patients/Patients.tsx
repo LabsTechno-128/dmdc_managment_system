@@ -5,19 +5,23 @@ import { useNavigate } from 'react-router-dom';
 import { UserPlus, Trash2, Edit } from 'lucide-react';
 
 const fetchPatients = async () => {
-  const { data } = await api.get('/patients');
-  return data;
+  const response = await api.get('/patients');
+  return response;
 };
 
 const Patients: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: patients, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['patients'],
     queryFn: fetchPatients,
   });
 
+  let patients = [];
+  if (data) {
+    patients = data.data;
+  }
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/patients/${id}`),
     onSuccess: () => {

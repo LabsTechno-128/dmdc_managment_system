@@ -5,7 +5,9 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import { Appointment } from './Appointment';
 
 @Entity({ name: 'doctors' })
 export class Doctor {
@@ -23,6 +25,9 @@ export class Doctor {
 
     @Column({ length: 255, nullable: true })
     availability?: string;
+
+    @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+    appointments!: Appointment[];
 
     @CreateDateColumn()
     createdAt!: Date;

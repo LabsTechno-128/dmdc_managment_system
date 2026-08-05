@@ -4,19 +4,19 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { Employee } from './employee';
 
 @Entity({ name: 'users' })
 @Index(['email'], { unique: true })
-@Index(['employeeId'], { unique: true })
+
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @Column({ length: 20, unique: true })
-    employeeId!: string;
 
     @Column({ length: 100 })
     firstName!: string;
@@ -47,6 +47,11 @@ export class User {
         nullable: true,
     })
     avatar?: string;
+
+    @OneToOne(() => Employee, (employee) => employee.user, {
+        nullable: true,
+    })
+    employee?: Employee;
 
     @CreateDateColumn()
     createdAt!: Date;

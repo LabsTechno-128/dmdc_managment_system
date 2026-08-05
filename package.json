@@ -29,5 +29,8 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "rxjs": "^7.8.2"
   }
 }

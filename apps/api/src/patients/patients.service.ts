@@ -8,7 +8,15 @@ export class PatientsService {
   constructor(private readonly databaseService: DatabaseService) { }
 
   async create(createPatientDto: CreatePatientDto) {
-    return this.databaseService.repoPatients().save(createPatientDto);
+    try {
+      const repo = this.databaseService.repoPatients();
+      const patient = repo.create(createPatientDto);
+
+      return repo.save(patient);
+    } catch (error: any) {
+
+      throw error;
+    }
   }
 
   async findAll() {

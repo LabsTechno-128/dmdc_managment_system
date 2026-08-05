@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification } from '@hospital/database';
+import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
@@ -26,6 +26,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 console.log('✅ Database schema synchronized');
             }
 
+            // Create the custom sequence for patient IDs since TypeORM synchronize won't automatically create it
+            await this.dataSource.query(`CREATE SEQUENCE IF NOT EXISTS patient_id_seq;`);
+
             return;
         }
 
@@ -42,6 +45,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
             type: 'postgres',
             entities: [
                 User,
+                Employee,
                 Patients,
                 Doctor,
                 DiagnosticTest,
@@ -49,7 +53,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 BillingItem,
                 TestOrder,
                 Report,
-                Notification
+                Notification,
+                Appointment
             ],
             synchronize: true,
             logging: false,
@@ -98,6 +103,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoNotification(): Repository<Notification> {
         return this.getDataSource().getRepository(Notification);
+    }
+    repoAppointment(): Repository<Appointment> {
+        return this.getDataSource().getRepository(Appointment);
     }
 }
 // trigger recompile 2

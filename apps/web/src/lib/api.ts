@@ -11,3 +11,32 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    const res = response.data;
+
+    if (!res.success) {
+      return Promise.reject(res);
+    }
+
+    // Return only the useful part
+    return {
+      ...response,
+      data: res.data,
+      meta: res.meta,
+      message: res.message,
+    };
+  },
+  (error) => {
+    if (error.response?.data) {
+      return Promise.reject(error.response.data);
+    }
+
+    return Promise.reject({
+      success: false,
+      message: error.message,
+      error,
+    });
+  }
+);

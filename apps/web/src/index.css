@@ -5,7 +5,7 @@
   --color-primary-dark: #0284c7;
   --color-secondary: #8b5cf6;
   --color-secondary-dark: #7c3aed;
-  
+
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
@@ -14,3 +14,62 @@
     @apply bg-slate-50 text-slate-900 antialiased;
   }
 }
+
+
+@media print {
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #prescription-print,
+  #prescription-print * {
+    visibility: visible !important;
+  }
+
+  /* #prescription-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+  } */
+
+  #prescription-print {
+    position: fixed;
+    inset: 0;
+    width: 210mm;
+    min-height: 297mm;
+    margin: auto;
+    background: white;
+    overflow: hidden;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+}
+
+/* @media print {
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body {
+    margin: 0;
+    background: white;
+  }
+
+  .no-print {
+    display: none;
+  }
+
+} */

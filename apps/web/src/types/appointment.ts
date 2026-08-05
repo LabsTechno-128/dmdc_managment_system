@@ -32,6 +32,11 @@ export interface Patient {
     lastName?: string;
     phone: string;
     email?: string;
+    age?: number;
+    gender?: string;
+    weight?: number;
+    bloodPresure?: string;
+
 }
 
 export interface Appointment {
@@ -49,6 +54,7 @@ export interface Appointment {
     consultationFee: number;
     createdAt: string;
     updatedAt: string;
+
 }
 
 export interface CreateAppointmentRequest {

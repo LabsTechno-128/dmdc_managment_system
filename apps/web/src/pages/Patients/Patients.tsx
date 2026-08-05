@@ -1,8 +1,8 @@
 import React from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { UserPlus, Trash2, Edit } from 'lucide-react';
+
+import { Trash2, Edit } from 'lucide-react';
 
 const fetchPatients = async () => {
   const response = await api.get('/patients');
@@ -10,7 +10,7 @@ const fetchPatients = async () => {
 };
 
 const Patients: React.FC = () => {
-  const navigate = useNavigate();
+
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({

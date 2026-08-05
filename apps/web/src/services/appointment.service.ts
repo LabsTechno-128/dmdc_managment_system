@@ -18,13 +18,13 @@ export const appointmentService = {
     },
 
     createAppointment: async (data: CreateAppointmentRequest): Promise<Appointment> => {
-        const response = await api.post('/appointments', data);
-        return response as unknown as Appointment;
+        const { data: responseData } = await api.post('/appointments', data);
+        return responseData as Appointment;
     },
 
     updateAppointment: async (id: string, data: UpdateAppointmentRequest): Promise<Appointment> => {
-        const response = await api.patch(`/appointments/${id}`, data);
-        return response as unknown as Appointment;
+        const { data: responseData } = await api.patch(`/appointments/${id}`, data);
+        return responseData as Appointment;
     },
 
     deleteAppointment: async (id: string): Promise<void> => {

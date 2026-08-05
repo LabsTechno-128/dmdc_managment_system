@@ -1,6 +1,6 @@
 
 import { useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { useAppointment } from "../../hooks/useAppointments";
 import type { Appointment } from "../../types/appointment";
@@ -8,7 +8,7 @@ import type { Appointment } from "../../types/appointment";
 function AppointmentAssign() {
     const { id } = useParams<{ id: string }>();
 
-    const { data: appointment, isLoading, isError } = useAppointment(id ?? '');
+    const { data: appointment, isLoading } = useAppointment(id ?? '');
     console.log(appointment, "------")
     const printRef = useRef(null);
 
@@ -19,6 +19,14 @@ function AppointmentAssign() {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
                 <div className="p-8 text-center text-slate-500">Loading appointment details...</div>
+            </div>
+        );
+    }
+
+    if (!appointment) {
+        return (
+            <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
+                <div className="p-8 text-center text-slate-500">Appointment not found.</div>
             </div>
         );
     }
@@ -59,31 +67,11 @@ function MedicalForm({ data }: { data: Appointment }) {
         date: new Date().toISOString().slice(0, 10),
     });
 
-    const [medicines, setMedicines] = useState([
-        { name: "", dose: "", duration: "", instructions: "" },
-    ]);
 
-    const [advice, setAdvice] = useState("");
-    const [followUp, setFollowUp] = useState("");
 
     const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
         setPatient((p) => ({ ...p, [field]: e.target.value }));
 
-    const updateMedicine = (index: number, field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setMedicines((prev) =>
-            prev.map((m, i) => (i === index ? { ...m, [field]: value } : m))
-        );
-    };
-
-    const addMedicine = () =>
-        setMedicines((prev) => [
-            ...prev,
-            { name: "", dose: "", duration: "", instructions: "" },
-        ]);
-
-    const removeMedicine = (index: number) =>
-        setMedicines((prev) => prev.filter((_, i) => i !== index));
 
     return (
         <div className="w-full bg-white font-serif flex flex-col flex-1">
@@ -142,19 +130,19 @@ function MedicalForm({ data }: { data: Appointment }) {
                             </FormRow>
                             <FormRow label="Sex"  >
 
-                                {data.patient.gender}
+                                {data?.patient?.gender ?? "none"}
 
                             </FormRow>
                             <FormRow label="Weight"  >
                                 {
-                                    data.patient.weight
+                                    data?.patient?.weight ?? "none"
                                 }
 
                             </FormRow>
                             <FormRow label="B/P" >
 
                                 {
-                                    data.patient.bloodPresure
+                                    data?.patient?.bloodPresure ?? "none"
                                 }
                             </FormRow>
                         </div>
@@ -162,7 +150,7 @@ function MedicalForm({ data }: { data: Appointment }) {
                         <FormRow label="Phone">
 
                             {
-                                data.patient.phone
+                                data?.patient?.phone ?? "none"
                             }
                         </FormRow>
 
@@ -188,11 +176,11 @@ function MedicalForm({ data }: { data: Appointment }) {
                         <span className="font-semibold text-slate-800 shrink-0">Name</span>
                         <div className="text-slate-800">
                             <p>:  {
-                                data.doctor.firstName + " " + data.doctor.lastName
+                                (data?.doctor?.firstName || "") + " " + (data?.doctor?.lastName || "")
                             }</p>
                             <p>
                                 {
-                                    data.doctor.specialization
+                                    data?.doctor?.specialization ?? "none"
                                 }
                             </p>
                             <p>BCS Health</p>
@@ -211,10 +199,7 @@ function MedicalForm({ data }: { data: Appointment }) {
 
 function FormRow({ label, children }: { label: string, children?: React.ReactNode }) {
     return (
-
         <span className="  text-slate-900 flex flex-wrap flex-1 text-sm items-center">{label} : {children}</span>
-
-
     );
 }
 

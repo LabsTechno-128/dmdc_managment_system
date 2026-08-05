@@ -41,15 +41,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
             return data;
         },
     });
-
-    // const { data: patients } = useQuery({
-    //     queryKey: ['patients'],
-    //     queryFn: async () => {
-    //         const { data } = await api.get('/patients');
-    //         return data;
-    //     },
-    // });
-
     const {
         register,
         handleSubmit,
@@ -72,12 +63,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
         if (initialData) {
             reset({
                 doctorId: initialData.doctorId,
-                // name: initialData.name ?? '',
-                // age: initialData.age,
-                // gender: initialData.gender,
-                // weight: initialData.weight,
-                // bloodPresure: initialData.bloodPresure ?? '',
-                // phone: initialData.phone ?? '',
+
             });
         }
     }, [initialData, reset]);
@@ -98,7 +84,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
             console.log(response);
             console.log(response.id);
 
-            navigate(`/appointments/assign/${response?.data?.id}`);
+            navigate(`/appointments/assign/${response?.id}`);
         }
     };
 

@@ -32,7 +32,7 @@ export class Patients extends BaseEntity {
     @Column({ length: 100, nullable: true })
     name?: string;
 
-    @Column({ unique: true, nullable: true })
+    @Column({ nullable: true })
     phone!: string;
 
     @Column({ nullable: true })

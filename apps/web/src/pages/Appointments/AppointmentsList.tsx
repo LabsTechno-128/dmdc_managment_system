@@ -60,13 +60,15 @@ export const AppointmentsList: React.FC = () => {
         },
     });
     console.log(response, "----------");
-    const { data: patients } = useQuery({
+    const { data: patient } = useQuery({
         queryKey: ['patients'],
         queryFn: async () => {
             const { data } = await api.get('/patients');
             return data;
         },
     });
+
+    let patients = patient?.data || [];
 
     const appointments = response ?? [];
     const meta = response?.meta;

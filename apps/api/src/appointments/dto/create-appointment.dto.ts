@@ -6,8 +6,9 @@ import {
     IsOptional,
     IsString,
     Min,
+    MinLength,
 } from 'class-validator';
-import { AppointmentType, AppointmentStatus } from '@hospital/database';
+import { AppointmentType, AppointmentStatus, Gender } from '@hospital/database';
 
 export class CreateAppointmentDto {
     @IsString()
@@ -15,35 +16,27 @@ export class CreateAppointmentDto {
     doctorId!: string;
 
     @IsString()
-    @IsNotEmpty()
-    patientId!: string;
-
-    @IsDateString()
-    @IsNotEmpty()
-    appointmentDate!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    appointmentTime!: string;
-
-    @IsEnum(AppointmentType)
-    @IsOptional()
-    appointmentType?: AppointmentType;
-
-    @IsEnum(AppointmentStatus)
-    @IsOptional()
-    status?: AppointmentStatus;
-
-    @IsString()
-    @IsOptional()
-    visitReason?: string;
-
-    @IsString()
-    @IsOptional()
-    notes?: string;
+    @MinLength(2)
+    name?: string;
 
     @IsNumber()
-    @Min(0)
     @IsOptional()
-    consultationFee?: number;
+    age?: number;
+
+    @IsEnum(Gender)
+    @IsOptional()
+    gender?: Gender;
+
+
+    @IsNumber()
+    @IsOptional()
+    weight?: number;
+
+    @IsString()
+    @IsOptional()
+    bloodPresure?: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
 }

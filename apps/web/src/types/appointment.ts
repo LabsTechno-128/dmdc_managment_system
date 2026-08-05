@@ -53,14 +53,12 @@ export interface Appointment {
 
 export interface CreateAppointmentRequest {
     doctorId: string;
-    patientId: string;
-    appointmentDate: string;
-    appointmentTime: string;
-    appointmentType?: AppointmentType;
-    status?: AppointmentStatus;
-    visitReason?: string;
-    notes?: string;
-    consultationFee?: number;
+    name: string;
+    age?: number;
+    gender: string;
+    weight?: number;
+    bloodPresure?: string;
+    phone?: string;
 }
 
 export interface UpdateAppointmentRequest {

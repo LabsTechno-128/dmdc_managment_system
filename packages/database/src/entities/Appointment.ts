@@ -44,10 +44,10 @@ export class Appointment {
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'date', nullable: true })
     appointmentDate!: Date;
 
-    @Column({ type: 'time' })
+    @Column({ type: 'time', nullable: true })
     appointmentTime!: string;
 
     @Column({

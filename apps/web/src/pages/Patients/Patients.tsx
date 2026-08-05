@@ -42,13 +42,13 @@ const Patients: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Patients</h1>
           <p className="text-slate-500 mt-1">Manage patient records</p>
         </div>
-        <button
+        {/* <button
           onClick={() => navigate('/patients/new')}
           className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
         >
           <UserPlus size={18} />
           <span>Add Patient</span>
-        </button>
+        </button> */}
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

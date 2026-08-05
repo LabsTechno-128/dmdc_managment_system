@@ -25,6 +25,7 @@ import { AppointmentsList } from './pages/Appointments/AppointmentsList';
 import { NewAppointment } from './pages/Appointments/NewAppointment';
 import { AppointmentDetails } from './pages/Appointments/AppointmentDetails';
 import { EditAppointment } from './pages/Appointments/EditAppointment';
+import AppointmentAssign from './pages/Appointments/AppointmentAssign';
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ function App() {
             <Route path="/appointments/create" element={<NewAppointment />} />
             <Route path="/appointments/:id" element={<AppointmentDetails />} />
             <Route path="/appointments/:id/edit" element={<EditAppointment />} />
+            <Route path="/appointments/assign/:id" element={<AppointmentAssign />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

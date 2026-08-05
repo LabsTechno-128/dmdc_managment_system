@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
-import { Appointment, AppointmentStatus, AppointmentType } from '@hospital/database';
+import { Appointment, AppointmentStatus, AppointmentType, Patients } from '@hospital/database';
 import { Between, MoreThanOrEqual } from 'typeorm';
 
 @Injectable()
@@ -16,51 +16,64 @@ export class AppointmentsService {
     constructor(private readonly databaseService: DatabaseService) { }
 
     async create(createAppointmentDto: CreateAppointmentDto) {
-        const repo = this.databaseService.repoAppointment();
-        const doctorRepo = this.databaseService.repoDoctor();
-        const patientRepo = this.databaseService.repoPatients();
+        try {
+            const repo = this.databaseService.repoAppointment();
+            const doctorRepo = this.databaseService.repoDoctor();
+            const patientRepo = this.databaseService.repoPatients();
 
-        // Validate doctor exists
-        const doctor = await doctorRepo.findOne({ where: { id: createAppointmentDto.doctorId } });
-        if (!doctor) {
-            throw new NotFoundException(`Doctor with ID "${createAppointmentDto.doctorId}" not found`);
-        }
+            // Validate doctor exists
+            const doctor = await doctorRepo.findOne({ where: { id: createAppointmentDto.doctorId } });
+            if (!doctor) {
+                throw new NotFoundException(`Doctor with ID "${createAppointmentDto.doctorId}" not found`);
+            }
 
-        // Validate patient exists
-        const patient = await patientRepo.findOne({ where: { id: createAppointmentDto.patientId } });
-        if (!patient) {
-            throw new NotFoundException(`Patient with ID "${createAppointmentDto.patientId}" not found`);
-        }
+            // Validate patient exists
+            // const patient = await patientRepo.findOne({ where: { id: createAppointmentDto.patientId } });
+            // if (!patient) {
+            //     throw new NotFoundException(`Patient with ID "${createAppointmentDto.patientId}" not found`);
+            // }
 
-        // Validate appointment date is not in the past
-        const appointmentDate = new Date(createAppointmentDto.appointmentDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (appointmentDate < today) {
-            throw new BadRequestException('Appointment date cannot be in the past');
-        }
+            let patient = patientRepo.create({
+                name: createAppointmentDto.name,
+                age: createAppointmentDto.age,
+                gender: createAppointmentDto.gender,
+                weight: createAppointmentDto.weight,
+                bloodPresure: createAppointmentDto.bloodPresure,
+                phone: createAppointmentDto.phone,
+            })
 
-        // Check for duplicate appointment (same doctor, same date, same time)
-        const existing = await repo.findOne({
-            where: {
+            let patientData = await patientRepo.save(patient)
+
+
+            // Validate appointment date is not in the past
+            // const appointmentDate = new Date();
+            // const today = new Date();
+            // today.setHours(0, 0, 0, 0);
+            // if (appointmentDate < today) {
+            //     throw new BadRequestException('Appointment date cannot be in the past');
+            // }
+
+            // Check for duplicate appointment (same doctor, same date, same time)
+            // const existing = await repo.findOne({
+            //     where: {
+            //         doctorId: createAppointmentDto.doctorId,
+            //         appointmentDate: appointmentDate,
+            //         appointmentTime: new Date().toISOString(),
+            //     },
+            // });
+            // if (existing) {
+            //     throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
+            // }
+
+            const appointment = repo.create({
                 doctorId: createAppointmentDto.doctorId,
-                appointmentDate: appointmentDate,
-                appointmentTime: createAppointmentDto.appointmentTime,
-            },
-        });
-        if (existing) {
-            throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
+                patientId: patientData.id,
+            });
+
+            return repo.save(appointment);
+        } catch (error) {
+            console.log(error)
         }
-
-        const appointment = repo.create({
-            ...createAppointmentDto,
-            appointmentDate: appointmentDate,
-            status: createAppointmentDto.status ?? AppointmentStatus.Pending,
-            appointmentType: createAppointmentDto.appointmentType ?? AppointmentType.New,
-            consultationFee: createAppointmentDto.consultationFee ?? 0,
-        });
-
-        return repo.save(appointment);
     }
 
     async findAll(query: QueryAppointmentDto) {
@@ -147,48 +160,48 @@ export class AppointmentsService {
         }
 
         // If updating date/time, check for conflicts (excluding current appointment)
-        if (updateAppointmentDto.appointmentDate || updateAppointmentDto.appointmentTime) {
-            const checkDate = updateAppointmentDto.appointmentDate
-                ? new Date(updateAppointmentDto.appointmentDate)
-                : appointment.appointmentDate;
-            const checkTime = updateAppointmentDto.appointmentTime ?? appointment.appointmentTime;
-            const checkDoctorId = updateAppointmentDto.doctorId ?? appointment.doctorId;
+        // if (updateAppointmentDto.appointmentDate || updateAppointmentDto.appointmentTime) {
+        //     const checkDate = updateAppointmentDto.appointmentDate
+        //         ? new Date(updateAppointmentDto.appointmentDate)
+        //         : appointment.appointmentDate;
+        //     const checkTime = updateAppointmentDto.appointmentTime ?? appointment.appointmentTime;
+        //     const checkDoctorId = updateAppointmentDto.doctorId ?? appointment.doctorId;
 
-            const existing = await repo.findOne({
-                where: {
-                    doctorId: checkDoctorId,
-                    appointmentDate: checkDate,
-                    appointmentTime: checkTime,
-                },
-            });
-            if (existing && existing.id !== id) {
-                throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
-            }
-        }
+        //     const existing = await repo.findOne({
+        //         where: {
+        //             doctorId: checkDoctorId,
+        //             appointmentDate: checkDate,
+        //             appointmentTime: checkTime,
+        //         },
+        //     });
+        //     if (existing && existing.id !== id) {
+        //         throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
+        //     }
+        // }
 
         // Validate doctor exists if being updated
-        if (updateAppointmentDto.doctorId) {
-            const doctor = await this.databaseService.repoDoctor().findOne({ where: { id: updateAppointmentDto.doctorId } });
-            if (!doctor) {
-                throw new NotFoundException(`Doctor with ID "${updateAppointmentDto.doctorId}" not found`);
-            }
-        }
+        // if (updateAppointmentDto.doctorId) {
+        //     const doctor = await this.databaseService.repoDoctor().findOne({ where: { id: updateAppointmentDto.doctorId } });
+        //     if (!doctor) {
+        //         throw new NotFoundException(`Doctor with ID "${updateAppointmentDto.doctorId}" not found`);
+        //     }
+        // }
 
-        // Validate patient exists if being updated
-        if (updateAppointmentDto.patientId) {
-            const patient = await this.databaseService.repoPatients().findOne({ where: { id: updateAppointmentDto.patientId } });
-            if (!patient) {
-                throw new NotFoundException(`Patient with ID "${updateAppointmentDto.patientId}" not found`);
-            }
-        }
+        // // Validate patient exists if being updated
+        // if (updateAppointmentDto.patientId) {
+        //     const patient = await this.databaseService.repoPatients().findOne({ where: { id: updateAppointmentDto.patientId } });
+        //     if (!patient) {
+        //         throw new NotFoundException(`Patient with ID "${updateAppointmentDto.patientId}" not found`);
+        //     }
+        // }
 
-        // Convert date string to Date object if provided
-        const updateData: any = { ...updateAppointmentDto };
-        if (updateAppointmentDto.appointmentDate) {
-            updateData.appointmentDate = new Date(updateAppointmentDto.appointmentDate);
-        }
+        // // Convert date string to Date object if provided
+        // const updateData: any = { ...updateAppointmentDto };
+        // if (updateAppointmentDto.appointmentDate) {
+        //     updateData.appointmentDate = new Date(updateAppointmentDto.appointmentDate);
+        // }
 
-        await repo.update(id, updateData);
+        // await repo.update(id, updateData);
         return repo.findOne({ where: { id }, relations: { doctor: true, patient: true } });
     }
 

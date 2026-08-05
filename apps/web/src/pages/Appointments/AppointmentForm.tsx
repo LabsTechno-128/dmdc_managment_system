@@ -6,19 +6,20 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useCreateAppointment, useUpdateAppointment } from '../../hooks/useAppointments';
-import { AppointmentType, AppointmentStatus } from '../../types/appointment';
+// import { AppointmentType, AppointmentStatus } from '../../types/appointment';
 import type { Appointment } from '../../types/appointment';
+
 
 const appointmentSchema = z.object({
     doctorId: z.string().min(1, 'Doctor is required'),
-    patientId: z.string().min(1, 'Patient is required'),
-    appointmentDate: z.string().min(1, 'Appointment date is required'),
-    appointmentTime: z.string().min(1, 'Appointment time is required'),
-    appointmentType: z.string().min(1, 'Appointment type is required'),
-    status: z.string().min(1, 'Status is required'),
-    visitReason: z.string().optional(),
+    name: z.string().min(2, 'Name must be at least 2 characters long'),
+    age: z.number().min(0, 'Age must be at least 0').optional(),
+    gender: z.string().min(2, 'Name must be at least 2 characters long'),
+    weight: z.number().min(0, 'Weight must be at least 0').optional(),
+    bloodPresure: z.string().optional(),
     notes: z.string().optional(),
-    consultationFee: z.number().min(0, 'Consultation fee must be positive').optional(),
+    // consultationFee: z.number().min(0, 'Consultation fee must be positive').optional(),
+    phone: z.string().optional(),
 });
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
@@ -41,13 +42,13 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
         },
     });
 
-    const { data: patients } = useQuery({
-        queryKey: ['patients'],
-        queryFn: async () => {
-            const { data } = await api.get('/patients');
-            return data;
-        },
-    });
+    // const { data: patients } = useQuery({
+    //     queryKey: ['patients'],
+    //     queryFn: async () => {
+    //         const { data } = await api.get('/patients');
+    //         return data;
+    //     },
+    // });
 
     const {
         register,
@@ -58,52 +59,50 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
         resolver: zodResolver(appointmentSchema),
         defaultValues: {
             doctorId: '',
-            patientId: '',
-            appointmentDate: '',
-            appointmentTime: '',
-            appointmentType: AppointmentType.New,
-            status: AppointmentStatus.Pending,
-            visitReason: '',
-            notes: '',
-            consultationFee: 0,
+            name: '',
+            age: undefined,
+            gender: undefined,
+            weight: undefined,
+            bloodPresure: '',
+            phone: '',
         },
     });
 
     useEffect(() => {
         if (initialData) {
-            const dateStr = initialData.appointmentDate
-                ? new Date(initialData.appointmentDate).toISOString().split('T')[0]
-                : '';
             reset({
                 doctorId: initialData.doctorId,
-                patientId: initialData.patientId,
-                appointmentDate: dateStr,
-                appointmentTime: initialData.appointmentTime,
-                appointmentType: initialData.appointmentType,
-                status: initialData.status,
-                visitReason: initialData.visitReason ?? '',
-                notes: initialData.notes ?? '',
-                consultationFee: Number(initialData.consultationFee) || 0,
+                // name: initialData.name ?? '',
+                // age: initialData.age,
+                // gender: initialData.gender,
+                // weight: initialData.weight,
+                // bloodPresure: initialData.bloodPresure ?? '',
+                // phone: initialData.phone ?? '',
             });
         }
     }, [initialData, reset]);
 
     const mutation = isEdit ? updateMutation : createMutation;
 
-    const onSubmit = (data: AppointmentFormValues) => {
+    const onSubmit = async (data: AppointmentFormValues) => {
         const payload = {
             ...data,
-            appointmentType: data.appointmentType as AppointmentType,
-            status: data.status as AppointmentStatus,
+            // appointmentType: data.appointmentType as AppointmentType,
+            // status: data.status as AppointmentStatus,
         };
         if (isEdit && initialData) {
             updateMutation.mutate({ id: initialData.id, data: payload });
         } else {
-            createMutation.mutate(payload);
+            const response = await createMutation.mutateAsync(payload);
+
+            console.log(response);
+            console.log(response.id);
+
+            navigate(`/appointments/assign/${response?.data?.id}`);
         }
     };
 
-    const isPending = mutation.isPending;
+    // const isPending = mutation.isPending;
     const mutationError = mutation.error as any;
 
     return (
@@ -135,150 +134,98 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ initialData, i
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                    {/* Doctor & Patient Selectors */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Doctor</label>
-                            <select
-                                {...register('doctorId')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.doctorId ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                                    }`}
-                            >
-                                <option value="">-- Select Doctor --</option>
-                                {doctors?.map((doc: any) => (
-                                    <option key={doc.id} value={doc.id}>
-                                        Dr. {doc.firstName} {doc.lastName} - {doc.specialization}
-                                        <img src='https://google.com' alt='loading' />
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.doctorId && <p className="mt-1 text-sm text-red-500">{errors.doctorId.message}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Patient</label>
-                            <select
-                                {...register('patientId')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.patientId ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                                    }`}
-                            >
-                                <option value="">-- Select Patient --</option>
-                                {patients?.map((pat: any) => (
-                                    <option key={pat.id} value={pat.id}>
-                                        {pat.name || `${pat.firstName || ''} ${pat.lastName || ''}`} - {pat.phone}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.patientId && <p className="mt-1 text-sm text-red-500">{errors.patientId.message}</p>}
-                        </div>
-                    </div>
-
-                    {/* Date & Time */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Appointment Date</label>
-                            <input
-                                type="date"
-                                {...register('appointmentDate')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.appointmentDate ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                                    }`}
-                            />
-                            {errors.appointmentDate && <p className="mt-1 text-sm text-red-500">{errors.appointmentDate.message}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Appointment Time</label>
-                            <input
-                                type="time"
-                                {...register('appointmentTime')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.appointmentTime ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                                    }`}
-                            />
-                            {errors.appointmentTime && <p className="mt-1 text-sm text-red-500">{errors.appointmentTime.message}</p>}
-                        </div>
-                    </div>
-
-                    {/* Type & Status */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Appointment Type</label>
-                            <select
-                                {...register('appointmentType')}
-                                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
-                            >
-                                <option value={AppointmentType.New}>New</option>
-                                <option value={AppointmentType.FollowUp}>Follow Up</option>
-                                <option value={AppointmentType.Emergency}>Emergency</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                            <select
-                                {...register('status')}
-                                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
-                            >
-                                <option value={AppointmentStatus.Pending}>Pending</option>
-                                <option value={AppointmentStatus.Confirmed}>Confirmed</option>
-                                <option value={AppointmentStatus.Completed}>Completed</option>
-                                <option value={AppointmentStatus.Cancelled}>Cancelled</option>
-                                <option value={AppointmentStatus.NoShow}>No Show</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Visit Reason */}
+                    {/* Doctor */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Visit Reason</label>
-                        <input
-                            type="text"
-                            {...register('visitReason')}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
-                            placeholder="Reason for visit"
-                        />
-                    </div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Doctor
+                        </label>
 
-                    {/* Notes */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                        <textarea
-                            {...register('notes')}
-                            rows={3}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
-                            placeholder="Additional notes"
-                        />
-                    </div>
-
-                    {/* Consultation Fee */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Consultation Fee (BDT)</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            {...register('consultationFee', { valueAsNumber: true })}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
-                            placeholder="0.00"
-                        />
-                        {errors.consultationFee && <p className="mt-1 text-sm text-red-500">{errors.consultationFee.message}</p>}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex justify-end pt-4">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/appointments')}
-                            className="px-6 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors mr-3"
+                        <select
+                            {...register('doctorId')}
+                            className="w-full px-4 py-2 border border-slate-300 rounded-xl"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isPending}
-                            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-70"
-                        >
-                            {isPending ? 'Saving...' : isEdit ? 'Update Appointment' : 'Create Appointment'}
-                        </button>
+                            <option value="">-- Select Doctor --</option>
+
+                            {doctors?.map((doc: any) => (
+                                <option key={doc.id} value={doc.id}>
+                                    Dr. {doc.firstName} {doc.lastName} - {doc.specialization}
+                                </option>
+                            ))}
+                        </select>
+
+                        {errors.doctorId && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.doctorId.message}
+                            </p>
+                        )}
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                        {/* Name */}
+                        <div>
+                            <label>Name</label>
+                            <input
+                                {...register('name')}
+                                className="w-full px-4 py-2 border rounded-xl"
+                            />
+                        </div>
+
+                        {/* Age */}
+                        <div>
+                            <label>Age</label>
+                            <input
+                                type="number"
+                                {...register('age', { valueAsNumber: true })}
+                                className="w-full px-4 py-2 border rounded-xl"
+                            />
+                        </div>
+
+                        {/* Gender */}
+                        <div>
+                            <label>Gender</label>
+                            <select
+                                {...register('gender')}
+                                className="w-full px-4 py-2 border rounded-xl"
+                            >
+                                <option value="">Select Gender</option>
+                                <option value={"MALE"}>Male</option>
+                                <option value={"FEMALE"}>Female</option>
+                                <option value={"OTHER"}>Other</option>
+                            </select>
+                        </div>
+
+                        {/* Weight */}
+                        <div>
+                            <label>Weight (kg)</label>
+                            <input
+                                type="number"
+                                {...register('weight', { valueAsNumber: true })}
+                                className="w-full px-4 py-2 border rounded-xl"
+                            />
+                        </div>
+
+                        {/* Blood Pressure */}
+                        <div>
+                            <label>Blood Pressure</label>
+                            <input
+                                {...register('bloodPresure')}
+                                placeholder="120/80"
+                                className="w-full px-4 py-2 border rounded-xl"
+                            />
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                            <label>Phone</label>
+                            <input
+                                {...register('phone')}
+                                className="w-full px-4 py-2 border rounded-xl"
+                            />
+                        </div>
+
+                    </div>
+                    <button type="submit" className="px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-70" > Create </button>
                 </form>
             </div>
         </div>

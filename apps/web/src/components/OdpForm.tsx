@@ -47,18 +47,21 @@ export function AppointmentOdpForm({
             <div
                 id="prescription-print"
                 ref={printRef}
-                className="min-w-[210mm] min-h-[297mm] bg-white  mx-auto text-black flex flex-col"
+                className="w-[210mm] min-h-[290mm] bg-white  mx-auto text-black flex flex-col"
             >
                 <MedicalForm data={appointment} />
             </div>
-            <div className="max-w-4xl mx-auto py-4 flex justify-end print:hidden">
-                <button
-                    onClick={handlePrint}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium"
-                >
-                    Print Prescription
-                </button>
-            </div>
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlePrint();
+                }}
+                className="w-[210mm] bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium  text-lg"
+            >
+                Print OPD
+            </button>
+
         </>
     );
 }
@@ -82,7 +85,7 @@ function MedicalForm({ data }: { data: Appointment }) {
 
 
     return (
-        <div className="w-full bg-white font-serif flex flex-col flex-1">
+        <div className="w-full font-serif flex flex-col p-6 flex-1">
             {/* Header */}
             <div className="bg-green-600 text-white px-6 py-4 flex items-center gap-4">
                 {/* Logo */}
@@ -166,6 +169,7 @@ function MedicalForm({ data }: { data: Appointment }) {
                             <input
                                 type="date"
                                 value={patient.date}
+                                readOnly
                                 onChange={handleChange("date")}
                                 className="flex-1 bg-transparent border-b border-slate-400 focus:border-green-600 outline-none px-1 py-0.5 font-sans text-base"
                             />

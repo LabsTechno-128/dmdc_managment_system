@@ -9,53 +9,163 @@ import {
     Settings,
     Stethoscope,
     ScrollText,
-    CalendarClock
+    CalendarClock,
 } from 'lucide-react';
 
-const NAV_ITEMS = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { label: 'Patients', path: '/patients', icon: Users },
-    { label: 'Billing', path: '/billing', icon: FileText },
-    { label: 'Test Counter', path: '/test-counter', icon: Activity },
-    { label: 'Reports', path: '/reports', icon: ClipboardList },
-    { label: 'Doctors', path: '/doctors', icon: Stethoscope },
-    { label: 'Appointments', path: '/appointments', icon: CalendarClock },
-    { label: 'Settings', path: '/settings', icon: Settings },
-    { label: 'Terms & Conditions', path: '/terms-and-conditions', icon: ScrollText },
+import { useAuthStore } from '../store/authStore';
+
+export const UserRole = {
+    ADMIN: 'admin',
+    RECEPTIONIST: 'receptionist',
+    DOCTOR: 'doctor',
+    LAB_TECHNICIAN: 'lab_technician',
+    ACCOUNTANT: 'accountant',
+    PHARMACIST: 'pharmacist',
+} as const;
+
+export type UserRoleType =
+    (typeof UserRole)[keyof typeof UserRole];
+
+const ALL_ROLES: UserRoleType[] = Object.values(UserRole);
+const RECEPTIONIST_ROLE: UserRoleType[] = [UserRole.RECEPTIONIST];
+const DOCTOR_ROLE: UserRoleType[] = [UserRole.DOCTOR];
+const LAB_TECHNICIAN_ROLE: UserRoleType[] = [UserRole.LAB_TECHNICIAN];
+const ACCOUNTANT_ROLE: UserRoleType[] = [UserRole.ACCOUNTANT];
+const PHARMACIST_ROLE: UserRoleType[] = [UserRole.PHARMACIST];
+
+interface NavItem {
+    label: string;
+    path: string;
+    icon: FC<{ className?: string }>;
+    role?: UserRoleType[];
+}
+
+const ITEMS: NavItem[] = [
+    {
+        label: 'Dashboard',
+        path: '/',
+        icon: LayoutDashboard,
+        role: RECEPTIONIST_ROLE,
+    },
+    {
+        label: 'Patients',
+        path: '/patients',
+        icon: Users,
+        role: ALL_ROLES,
+    },
+    {
+        label: 'Billing',
+        path: '/billing',
+        icon: FileText,
+        role: ALL_ROLES,
+    },
+    {
+        label: 'Test Counter',
+        path: '/test-counter',
+        icon: Activity,
+        role: ALL_ROLES,
+    },
+    {
+        label: 'Reports',
+        path: '/reports',
+        icon: ClipboardList,
+        role: ALL_ROLES,
+    },
+    {
+        label: 'Doctors',
+        path: '/doctors',
+        icon: Stethoscope,
+        role: DOCTOR_ROLE,
+    },
+    {
+        label: 'Appointments',
+        path: '/appointments',
+        icon: CalendarClock,
+    },
+    {
+        label: 'Settings',
+        path: '/settings',
+        icon: Settings,
+    },
+    {
+        label: 'Terms & Conditions',
+        path: '/terms-and-conditions',
+        icon: ScrollText,
+    },
 ];
 
 export const Sidebar: FC = () => {
+    const user = useAuthStore((state) => state.user);
+
+    if (!user) {
+        return null;
+    }
+
+    const role = user.role as UserRoleType;
+
+    const NAV_ITEMS =
+        role === UserRole.ADMIN
+            ? ITEMS
+            : ITEMS.filter((item) => {
+                if (!item.role) {
+                    return true;
+                }
+                return item.role.includes(role);
+            });
+
     return (
-        <div className="h-full flex flex-col bg-white">
-            <div className="h-16 flex items-center px-6 border-b border-slate-200">
-                <div className="flex items-center space-x-2 text-primary-dark">
-                    <Activity className="h-6 w-6 text-primary" />
-                    <span className="font-bold text-lg tracking-tight">Diagnostic Pro</span>
+        <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
+            {/* Logo / Brand */}
+            <div className="flex items-center px-6 py-5 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white font-bold">
+                        DP
+                    </div>
+
+                    <div>
+                        <h1 className="text-lg font-bold text-slate-900">
+                            Diagnostic Pro
+                        </h1>
+                        <p className="text-xs text-slate-500">
+                            Diagnostic Center
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
-                {NAV_ITEMS.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={({ isActive }) =>
-                            `flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
-                                ? 'bg-primary/10 text-primary-dark font-semibold'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`
-                        }
-                    >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.label}</span>
-                    </NavLink>
-                ))}
+            {/* Navigation */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-1.5">
+                {NAV_ITEMS.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={({ isActive }) =>
+                                `flex items-center space-x-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${isActive
+                                    ? 'bg-primary/10 text-primary-dark font-semibold'
+                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                                }`
+                            }
+                        >
+                            <Icon className="h-5 w-5" />
+                            <span>{item.label}</span>
+                        </NavLink>
+                    );
+                })}
             </div>
 
-            <div className="p-4 border-t border-slate-200">
-                <div className="bg-gradient-to-r from-primary to-secondary p-4 rounded-xl text-white shadow-md">
-                    <div className="text-xs font-semibold opacity-90 mb-1">PRO PLAN</div>
-                    <div className="text-sm font-medium">All systems operational</div>
+            {/* Bottom Plan Card */}
+            <div className="border-t border-slate-200 p-4">
+                <div className="rounded-xl bg-gradient-to-r from-primary to-secondary p-4 text-white shadow-md">
+                    <div className="mb-1 text-xs font-semibold opacity-90">
+                        PRO PLAN
+                    </div>
+
+                    <div className="text-sm font-medium">
+                        All systems operational
+                    </div>
                 </div>
             </div>
         </div>

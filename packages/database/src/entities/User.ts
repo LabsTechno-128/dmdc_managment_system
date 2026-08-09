@@ -30,7 +30,7 @@ export class User {
     @Column({ length: 20, unique: true })
     phone!: string;
 
-    @Column()
+    @Column({ select: false })
     password!: string;
 
     @Column({

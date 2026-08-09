@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import { Dashboard } from './pages/Dashboard';
@@ -8,8 +9,15 @@ import { NewDoctor } from './pages/Doctors/NewDoctor';
 import { EditDoctor } from './pages/Doctors/EditDoctor';
 import { DoctorDetails } from './pages/Doctors/DoctorDetails';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Profile } from './pages/Profile/Profile';
+import { EditProfile } from './pages/Profile/EditProfile';
+import { ChangePassword } from './pages/Profile/ChangePassword';
+import { UsersList } from './pages/Users/UsersList';
 import { ProtectedRoute } from './layout/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuthStore } from './store/authStore';
+import { api } from './lib/api';
 
 import Patients from './pages/Patients/Patients';
 import Layout from './layout/Layout';
@@ -30,14 +38,47 @@ import AppointmentAssign from './pages/Appointments/AppointmentAssign';
 const queryClient = new QueryClient();
 
 function App() {
+  const { token, setUser, logout } = useAuthStore();
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const response = await api.get('/auth/me');
+          setUser(response.data);
+        } catch (err) {
+          console.error('Failed to fetch user during init:', err);
+          logout();
+        }
+      }
+      setIsInitializing(false);
+    };
+    initAuth();
+  }, []); // Only run once on mount
+
+  if (isInitializing) {
+    return <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500 font-medium">Initializing...</div>;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/register" element={token ? <Navigate to="/" replace /> : <Register />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
+            
+            {/* Profile Routes */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
+            <Route path="/profile/change-password" element={<ChangePassword />} />
+            
+            {/* Users Route */}
+            <Route path="/users" element={<UsersList />} />
+            
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/new" element={<NewPatient />} />
             <Route path="/billing" element={<BillingList />} />
@@ -60,8 +101,6 @@ function App() {
           </Route>
         </Route>
       </Routes>
-
-
     </QueryClientProvider>
   );
 }

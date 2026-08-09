@@ -11,8 +11,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [DatabaseModule, PatientsModule, AuthModule, DoctorsModule, TestsModule, BillingModule, TestCounterModule, ReportsModule, DashboardModule, SettingsModule, NotificationsModule, AppointmentsModule],
+  imports: [DatabaseModule, PatientsModule, AuthModule, DoctorsModule, TestsModule, BillingModule, TestCounterModule, ReportsModule, DashboardModule, SettingsModule, NotificationsModule, AppointmentsModule, UsersModule],
 })
 export class AppModule { }

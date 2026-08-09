@@ -174,7 +174,7 @@ function MedicalForm({ data }: { data: Appointment }) {
                                 className="flex-1 bg-transparent border-b border-slate-400 focus:border-green-600 outline-none px-1 py-0.5 font-sans text-base"
                             />
                         </FormRow>
-                        <Barcode value={data?.patient?.patientId ?? "dmtcn-00000343434343434343434343"} />
+                        {data?.patient?.patientId && <Barcode value={data?.patient?.patientId} />}
 
                     </div>
 

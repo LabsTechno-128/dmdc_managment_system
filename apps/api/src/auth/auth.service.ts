@@ -1,7 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,76 +14,99 @@ export class AuthService {
         private readonly jwtService: JwtService
     ) { }
 
-    async login(email: string, password?: string) {
-        if (!email) email = 'receptionist@diagnosticpro.com';
-
-        let user = await this.databaseService.repoUser().findOne({ where: { email } });
+    async login(loginDto: LoginDto) {
+        const { email, password } = loginDto;
+        const user = await this.databaseService.repoUser().findOne({ 
+            where: { email },
+            select: { id: true, email: true, firstName: true, lastName: true, password: true }
+        });
 
         if (!user) {
-            // Auto-create for demo purposes
-            const hashedPassword = await bcrypt.hash('password123', 10);
-            user = await this.databaseService.repoUser().save({
-                email,
-                firstName: 'Riya',
-                lastName: 'Demo',
-                employeeId: 'EMP001',
-                phone: '1234567890',
-                password: hashedPassword
-            });
+            throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Only check password if provided (for backward compatibility during dev)
-        if (password) {
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                throw new UnauthorizedException('Invalid credentials');
-            }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            throw new UnauthorizedException('Invalid credentials');
         }
 
         const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` };
         return {
             accessToken: this.jwtService.sign(payload),
-            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email }
+            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName }
         };
     }
 
-    async register(email: string, password: string) {
-        try {
-            if (!email) email = 'receptionist@diagnosticpro.com';
+    async register(registerDto: RegisterDto) {
+        const { email, password, firstName, lastName, phone } = registerDto;
 
-            let user = await this.databaseService.repoUser().findOne({ where: { email } });
-
-            if (user) {
-                throw new UnauthorizedException('User already exists');
+        const existingUser = await this.databaseService.repoUser().findOne({ where: [{ email }, { phone }] });
+        if (existingUser) {
+            if (existingUser.email === email) {
+                throw new BadRequestException('User with this email already exists');
             }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-            user = await this.databaseService.repoUser().save({
-                email,
-                firstName: 'Riya',
-                lastName: 'Demo',
-                employeeId: 'EMP001',
-                phone: '1234567890',
-                password: hashedPassword
-            });
-
-            const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` };
-            return {
-                accessToken: this.jwtService.sign(payload),
-                user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email }
-            };
-        } catch (error) {
-            console.log(error)
+            if (existingUser.phone === phone) {
+                throw new BadRequestException('User with this phone number already exists');
+            }
         }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const user = await this.databaseService.repoUser().save({
+            email,
+            firstName,
+            lastName,
+            phone,
+            password: hashedPassword
+        });
+
+        const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` };
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone }
+        };
     }
 
-    // create user 
-    async createUser(user: any) {
-        try {
-            const newUser = await this.databaseService.repoUser().save(user);
-            return newUser;
-        } catch (error) {
-            console.log(error)
+    async getMe(userId: string) {
+        const user = await this.databaseService.repoUser().findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('User not found');
         }
+        return user;
+    }
+
+    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+        const user = await this.databaseService.repoUser().findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        if (updateProfileDto.firstName) user.firstName = updateProfileDto.firstName;
+        if (updateProfileDto.lastName) user.lastName = updateProfileDto.lastName;
+        if (updateProfileDto.phone) user.phone = updateProfileDto.phone;
+
+        await this.databaseService.repoUser().save(user);
+        return user;
+    }
+
+    async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+        const user = await this.databaseService.repoUser().findOne({ 
+            where: { id: userId },
+            select: { id: true, password: true } 
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const isMatch = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+        if (!isMatch) {
+            throw new BadRequestException('Current password is incorrect');
+        }
+
+        user.password = await bcrypt.hash(changePasswordDto.newPassword, 10);
+        await this.databaseService.repoUser().save(user);
+
+        return { message: 'Password changed successfully' };
     }
 }

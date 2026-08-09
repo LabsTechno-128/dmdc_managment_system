@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -83,10 +83,16 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-70"
+            className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-70 mt-6"
           >
             {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
+          
+          <div className="text-center mt-4">
+            <p className="text-sm text-slate-600">
+              Don't have an account? <Link to="/register" className="text-primary font-semibold hover:underline">Sign Up</Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>

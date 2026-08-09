@@ -28,8 +28,12 @@ export const Profile: React.FC = () => {
             <label className="block text-sm font-medium text-slate-500">Phone</label>
             <p className="mt-1 text-lg text-slate-900">{user.phone || 'N/A'}</p>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-500">User Role</label>
+            <p className="mt-1 text-lg text-slate-900">{user.role || 'N/A'}</p>
+          </div>
         </div>
-        
+
         <div className="mt-8 flex space-x-4">
           <Link to="/profile/edit" className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition">
             Edit Profile

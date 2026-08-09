@@ -10,6 +10,15 @@ import {
 } from 'typeorm';
 import { Employee } from './employee';
 
+export enum UserRole {
+    ADMIN = 'admin',
+    RECEPTIONIST = 'receptionist',
+    DOCTOR = 'doctor',
+    LAB_TECHNICIAN = 'lab_technician',
+    ACCOUNTANT = 'accountant',
+    PHARMACIST = 'pharmacist',
+}
+
 @Entity({ name: 'users' })
 @Index(['email'], { unique: true })
 
@@ -17,6 +26,8 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    @Column({ type: 'enum', enum: UserRole, default: UserRole.RECEPTIONIST })
+    role!: UserRole;
 
     @Column({ length: 100 })
     firstName!: string;

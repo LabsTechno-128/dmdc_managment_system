@@ -10,3 +10,4 @@ export * from './entities/Report';
 export * from './entities/Notification';
 export * from './entities/employee';
 export * from './entities/Appointment';
+export * from './entities/labTest';

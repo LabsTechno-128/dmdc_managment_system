@@ -34,6 +34,7 @@ import { NewAppointment } from './pages/Appointments/NewAppointment';
 import { AppointmentDetails } from './pages/Appointments/AppointmentDetails';
 import { EditAppointment } from './pages/Appointments/EditAppointment';
 import AppointmentAssign from './pages/Appointments/AppointmentAssign';
+import Labtest from './pages/Labtest/Labtest';
 
 const queryClient = new QueryClient();
 
@@ -70,15 +71,15 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
-            
+
             {/* Profile Routes */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="/profile/change-password" element={<ChangePassword />} />
-            
+
             {/* Users Route */}
             <Route path="/users" element={<UsersList />} />
-            
+
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/new" element={<NewPatient />} />
             <Route path="/billing" element={<BillingList />} />
@@ -97,6 +98,7 @@ function App() {
             <Route path="/appointments/:id" element={<AppointmentDetails />} />
             <Route path="/appointments/:id/edit" element={<EditAppointment />} />
             <Route path="/appointments/assign/:id" element={<AppointmentAssign />} />
+            <Route path="/lab-test" element={<Labtest />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

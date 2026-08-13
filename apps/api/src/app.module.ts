@@ -12,8 +12,9 @@ import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { UsersModule } from './users/users.module';
+import { LabTestsModule } from './lab-tests/lab-tests.module';
 
 @Module({
-  imports: [DatabaseModule, PatientsModule, AuthModule, DoctorsModule, TestsModule, BillingModule, TestCounterModule, ReportsModule, DashboardModule, SettingsModule, NotificationsModule, AppointmentsModule, UsersModule],
+  imports: [LabTestsModule, DatabaseModule, PatientsModule, AuthModule, DoctorsModule, TestsModule, BillingModule, TestCounterModule, ReportsModule, DashboardModule, SettingsModule, NotificationsModule, AppointmentsModule, UsersModule],
 })
 export class AppModule { }

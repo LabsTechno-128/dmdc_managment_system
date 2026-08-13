@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -26,12 +26,12 @@ export const UserRole = {
 export type UserRoleType =
     (typeof UserRole)[keyof typeof UserRole];
 
-const ALL_ROLES: UserRoleType[] = Object.values(UserRole);
-const RECEPTIONIST_ROLE: UserRoleType[] = [UserRole.RECEPTIONIST];
-const DOCTOR_ROLE: UserRoleType[] = [UserRole.DOCTOR];
-const LAB_TECHNICIAN_ROLE: UserRoleType[] = [UserRole.LAB_TECHNICIAN];
-const ACCOUNTANT_ROLE: UserRoleType[] = [UserRole.ACCOUNTANT];
-const PHARMACIST_ROLE: UserRoleType[] = [UserRole.PHARMACIST];
+// const ALL_ROLES: UserRoleType[] = Object.values(UserRole);
+// const RECEPTIONIST_ROLE: UserRoleType[] = [UserRole.RECEPTIONIST];
+// const DOCTOR_ROLE: UserRoleType[] = [UserRole.DOCTOR];
+// const LAB_TECHNICIAN_ROLE: UserRoleType[] = [UserRole.LAB_TECHNICIAN];
+// const ACCOUNTANT_ROLE: UserRoleType[] = [UserRole.ACCOUNTANT];
+// const PHARMACIST_ROLE: UserRoleType[] = [UserRole.PHARMACIST];
 
 interface NavItem {
     label: string;
@@ -45,37 +45,43 @@ const ITEMS: NavItem[] = [
         label: 'Dashboard',
         path: '/',
         icon: LayoutDashboard,
-        role: RECEPTIONIST_ROLE,
+
     },
     {
         label: 'Patients',
         path: '/patients',
         icon: Users,
-        role: ALL_ROLES,
+
+    },
+    {
+        label: 'Lab Test',
+        path: '/lab-test',
+        icon: Users,
+
     },
     {
         label: 'Billing',
         path: '/billing',
         icon: FileText,
-        role: ALL_ROLES,
+
     },
     {
         label: 'Test Counter',
         path: '/test-counter',
         icon: Activity,
-        role: ALL_ROLES,
+
     },
     {
         label: 'Reports',
         path: '/reports',
         icon: ClipboardList,
-        role: ALL_ROLES,
+
     },
     {
         label: 'Doctors',
         path: '/doctors',
         icon: Stethoscope,
-        role: DOCTOR_ROLE,
+
     },
     {
         label: 'Appointments',
@@ -96,7 +102,7 @@ const ITEMS: NavItem[] = [
 
 export const Sidebar: FC = () => {
     const user = useAuthStore((state) => state.user);
-
+    const navigate = useNavigate()
     if (!user) {
         return null;
     }
@@ -112,7 +118,11 @@ export const Sidebar: FC = () => {
                 }
                 return item.role.includes(role);
             });
-
+    const handleLogout = () => {
+        localStorage.removeItem("auth-storage")
+        window.location.reload()
+        navigate('/login')
+    }
     return (
         <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
             {/* Logo / Brand */}
@@ -157,17 +167,13 @@ export const Sidebar: FC = () => {
             </div>
 
             {/* Bottom Plan Card */}
-            <div className="border-t border-slate-200 p-4">
-                <div className="rounded-xl bg-gradient-to-r from-primary to-secondary p-4 text-white shadow-md">
-                    <div className="mb-1 text-xs font-semibold opacity-90">
-                        PRO PLAN
-                    </div>
-
-                    <div className="text-sm font-medium">
-                        All systems operational
-                    </div>
-                </div>
-            </div>
+            <button className="border-t border-slate-200 p-4 w-full cursor-pointer" onClick={() => handleLogout()}>
+                <span className="rounded-xl bg-gradient-to-r from-primary to-secondary p-4 text-white shadow-md w-full block">
+                    <span className="mb-1 text-lg font-semibold opacity-90">
+                        Log Out
+                    </span>
+                </span>
+            </button>
         </div>
     );
 };

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../../lib/api';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 
 const patientSchema = z.object({
@@ -21,21 +21,45 @@ const patientSchema = z.object({
 
 type PatientFormValues = z.infer<typeof patientSchema>;
 
-export const NewPatient: React.FC = () => {
+export const EditPatient: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const { data: response, isLoading, isError } = useQuery({
+    queryKey: ['patient', id],
+    queryFn: () => api.get(`/patients/${id}`),
+  });
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema) as any,
   });
 
+  useEffect(() => {
+    if (response?.data) {
+      reset({
+        name: response.data.name || '',
+        phone: response.data.phone || '',
+        email: response.data.email || '',
+        gender: response.data.gender || undefined,
+        age: response.data.age || undefined,
+        bloodGroup: response.data.bloodGroup || '',
+        weight: response.data.weight || undefined,
+        bloodPresure: response.data.bloodPresure || '',
+        address: response.data.address || '',
+      });
+    }
+  }, [response, reset]);
+
   const mutation = useMutation({
-    mutationFn: (newPatient: PatientFormValues) => {
-      return api.post('/patients', newPatient);
+    mutationFn: (updatedPatient: PatientFormValues) => {
+      // Assuming patch for updates based on common REST standards
+      return api.patch(`/patients/${id}`, updatedPatient);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
@@ -47,6 +71,14 @@ export const NewPatient: React.FC = () => {
     mutation.mutate(data);
   };
 
+  if (isLoading) {
+    return <div className="p-8 text-center text-slate-500 font-semibold">Loading patient details...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-8 text-center text-red-500 font-semibold">Failed to load patient details.</div>;
+  }
+
   return (
     <div className="mx-auto max-w-2xl animate-in fade-in duration-500">
       <div className="mb-6 flex items-center space-x-4">
@@ -57,8 +89,8 @@ export const NewPatient: React.FC = () => {
           <ArrowLeft size={18} className="text-slate-500 group-hover:text-slate-700 transition-colors" />
         </button>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">New Patient Registration</h1>
-          <p className="mt-1 text-xs text-slate-500">Register a new patient into the system.</p>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Edit Patient Profile</h1>
+          <p className="mt-1 text-xs text-slate-500">Update information for the selected patient.</p>
         </div>
       </div>
 
@@ -204,7 +236,7 @@ export const NewPatient: React.FC = () => {
               disabled={mutation.isPending}
               className="cursor-pointer flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {mutation.isPending ? 'Saving...' : 'Save Patient'}
+              {mutation.isPending ? 'Updating...' : 'Update Patient'}
             </button>
           </div>
         </form>

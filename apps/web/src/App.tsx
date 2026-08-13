@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard';
 
 import { NewPatient } from './pages/Patients/NewPatient';
+import { EditPatient } from './pages/Patients/EditPatient';
 import { DoctorsList } from './pages/Doctors/DoctorsList';
 import { NewDoctor } from './pages/Doctors/NewDoctor';
 import { EditDoctor } from './pages/Doctors/EditDoctor';
@@ -82,6 +83,7 @@ function App() {
 
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/new" element={<NewPatient />} />
+            <Route path="/patients/:id/edit" element={<EditPatient />} />
             <Route path="/billing" element={<BillingList />} />
             <Route path="/billing/new" element={<NewBilling />} />
             <Route path="/test-counter" element={<TestCounter />} />

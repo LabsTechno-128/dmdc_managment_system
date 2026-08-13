@@ -10,9 +10,9 @@ export const Header: FC = () => {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
-        <header className="h-16 flex items-center justify-between px-6 bg-green-800 border-b border-slate-200 shadow-sm z-10">
+        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/80 px-6 backdrop-blur-md shadow-sm transition-all">
             {/* Mobile Sidebar Toggle would go here if implemented, for now hidden on md */}
-            <div className="flex md:hidden items-center font-bold text-primary-dark">
+            <div className="flex items-center font-black text-blue-600 tracking-tight text-xl md:hidden">
                 DMDC
             </div>
 
@@ -20,31 +20,26 @@ export const Header: FC = () => {
             <div className="hidden md:block"></div>
 
             <div className="flex items-center space-x-6">
-                <div className="text-sm text-slate-500 font-medium hidden sm:block">
+                <div className="hidden items-center rounded-full bg-slate-100/80 px-4 py-1.5 text-xs font-semibold text-slate-500 shadow-inner sm:flex">
                     {today}
                 </div>
 
-                {/* <button className="relative p-2 text-slate-400 hover:text-primary transition-colors rounded-full hover:bg-slate-50">
-                    <Bell size={20} />
-                    <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                </button> */}
-
-                <Link to="/profile" className="flex items-center space-x-3 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors">
+                <Link to="/profile" className="group flex cursor-pointer items-center space-x-3 rounded-full border border-transparent p-1 transition-all hover:border-slate-200 hover:bg-slate-50 hover:shadow-sm active:scale-95">
                     {
                         user.avatar ? (
                             <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
                         ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary-dark font-semibold">
-                                A
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-inner">
+                                {user.firstName?.charAt(0) || 'A'}
                             </div>
                         )
 
                     }
-                    <div className="hidden sm:block text-left">
-                        <div className="text-sm font-bold text-slate-800 leading-none truncate w-20">
+                    <div className="hidden text-left sm:block pr-2">
+                        <div className="w-24 truncate text-sm font-bold text-slate-800 leading-none group-hover:text-blue-600 transition-colors">
                             {user.firstName + " " + user.lastName}
                         </div>
-                        <div className="text-xs text-slate-500 mt-1 capitalize">
+                        <div className="mt-1 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
                             {user.role}
                         </div>
                     </div>

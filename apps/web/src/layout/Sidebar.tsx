@@ -3,13 +3,15 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
-    FileText,
     Activity,
     ClipboardList,
     Settings,
     Stethoscope,
     ScrollText,
     CalendarClock,
+    FlaskConical,
+    Receipt,
+    LogOut
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -56,13 +58,13 @@ const ITEMS: NavItem[] = [
     {
         label: 'Lab Test',
         path: '/lab-test',
-        icon: Users,
+        icon: FlaskConical,
 
     },
     {
         label: 'Billing',
         path: '/billing',
-        icon: FileText,
+        icon: Receipt,
 
     },
     {
@@ -124,20 +126,20 @@ export const Sidebar: FC = () => {
         navigate('/login')
     }
     return (
-        <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
+        <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
             {/* Logo / Brand */}
-            <div className="flex items-center px-6 py-5 border-b border-slate-200">
+            <div className="flex items-center px-6 py-6 border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white font-bold">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white font-black shadow-inner shadow-white/20">
                         DP
                     </div>
 
                     <div>
-                        <h1 className="text-lg font-bold text-slate-900">
+                        <h1 className="text-[17px] font-black text-slate-900 tracking-tight">
                             Diagnostic Pro
                         </h1>
-                        <p className="text-xs text-slate-500">
-                            Diagnostic Center
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            Center
                         </p>
                     </div>
                 </div>
@@ -153,27 +155,33 @@ export const Sidebar: FC = () => {
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) =>
-                                `flex items-center space-x-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${isActive
-                                    ? 'bg-primary/10 text-primary-dark font-semibold'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                                `group flex items-center space-x-3 rounded-xl px-4 py-3 transition-all duration-200 active:scale-95 ${isActive
+                                    ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-100 ring-1 ring-blue-500/10'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                 }`
                             }
                         >
-                            <Icon className="h-5 w-5" />
-                            <span>{item.label}</span>
+                            {({ isActive }) => (
+                                <>
+                                    <Icon className={`h-[18px] w-[18px] transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                                    <span className={`text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
+                                </>
+                            )}
                         </NavLink>
                     );
                 })}
             </div>
 
-            {/* Bottom Plan Card */}
-            <button className="border-t border-slate-200 p-4 w-full cursor-pointer" onClick={() => handleLogout()}>
-                <span className="rounded-xl bg-gradient-to-r from-primary to-secondary p-4 text-white shadow-md w-full block">
-                    <span className="mb-1 text-lg font-semibold opacity-90">
-                        Log Out
-                    </span>
-                </span>
-            </button>
+            {/* Bottom Actions */}
+            <div className="border-t border-slate-100 p-4 w-full">
+                <button 
+                    onClick={() => handleLogout()}
+                    className="group flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-95 border border-transparent hover:border-red-100"
+                >
+                    <LogOut size={16} className="text-slate-400 group-hover:text-red-500 transition-colors" />
+                    <span>Log Out</span>
+                </button>
+            </div>
         </div>
     );
 };

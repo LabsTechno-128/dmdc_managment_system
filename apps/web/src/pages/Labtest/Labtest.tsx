@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { useLabTests, useCreateLabTest, useUpdateLabTest, useDeleteLabTest, useLabTestSummary, type LabTest } from '../../hooks/useLabTest';
+import { DeleteModal } from '../../components/DeleteModal';
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +37,8 @@ function LabTest() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<LabTest | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data: response, isLoading: loading, refetch: load } = useLabTests({
         page,
@@ -104,16 +107,20 @@ function LabTest() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    async function remove(id: number) {
-        if (!window.confirm('Delete this lab test?')) return;
+    async function handleConfirmDelete() {
+        if (!deleteTarget) return;
 
         try {
+            setIsDeleting(true);
             setError('');
-            await deleteLabTest.mutateAsync(id);
+            await deleteLabTest.mutateAsync(deleteTarget.id);
             setMessage('Lab test deleted successfully.');
             if (tests.length === 1 && page > 1) setPage((p) => p - 1);
         } catch {
             setError('Unable to delete this test.');
+        } finally {
+            setIsDeleting(false);
+            setDeleteTarget(null);
         }
     }
 
@@ -355,7 +362,7 @@ function LabTest() {
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => void remove(test.id)}
+                                                        onClick={() => setDeleteTarget(test)}
                                                         className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition-all hover:bg-red-500 hover:text-white hover:shadow-sm hover:shadow-red-500/20 active:scale-95"
                                                     >
                                                         <Trash2 size={14} />
@@ -422,6 +429,16 @@ function LabTest() {
                     </div>
                 </section>
             </main>
+
+            <DeleteModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Lab Test"
+                message="Are you sure you want to delete this lab test? This action cannot be undone."
+                itemName={deleteTarget?.name}
+                isDeleting={isDeleting}
+            />
         </div>
     );
 }

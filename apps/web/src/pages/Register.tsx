@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, User, Phone, ArrowRight, ShieldCheck, Activity, Users } from 'lucide-react';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, { message: 'First name must be at least 2 characters' }),
@@ -46,113 +47,196 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Create Account</h1>
-          <p className="text-slate-500 mt-2">Sign up to get started</p>
+    <div className="flex min-h-screen w-full bg-white">
+      
+      {/* Left side: Image/Gradient */}
+      <div className="relative hidden w-0 flex-1 lg:block">
+        <div className="absolute inset-0 h-full w-full bg-violet-600 object-cover bg-gradient-to-br from-indigo-900 via-violet-800 to-fuchsia-900" />
+        
+        {/* Decorative elements */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="absolute inset-0 flex flex-col justify-center px-20">
+          <div className="relative z-10 w-full max-w-lg rounded-3xl bg-white/10 p-10 backdrop-blur-md border border-white/20 shadow-2xl">
+             <div className="mb-6 inline-flex rounded-xl bg-violet-500/30 p-4 text-violet-200">
+                <Users size={40} />
+             </div>
+             <h2 className="mb-4 text-4xl font-extrabold text-white leading-tight">
+               Join the future of healthcare.
+             </h2>
+             <p className="text-lg font-medium text-violet-100/80">
+               Create an account to gain access to the hospital management dashboard, patient directories, and laboratory tools.
+             </p>
+          </div>
         </div>
+      </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
-              <input
-                type="text"
-                {...register('firstName')}
-                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                  errors.firstName ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                }`}
-                placeholder="John"
-              />
-              {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>}
+      {/* Right side: Form */}
+      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-20 xl:px-32">
+        <div className="mx-auto w-full max-w-sm lg:w-[28rem]">
+          <div className="mb-8 flex items-center justify-end gap-3 lg:justify-start">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-600/30">
+              <Activity size={24} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
-              <input
-                type="text"
-                {...register('lastName')}
-                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                  errors.lastName ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                }`}
-                placeholder="Doe"
-              />
-              {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName.message}</p>}
+            <span className="text-xl font-black tracking-tight text-slate-900">
+              DMDC<span className="text-violet-600">.</span>
+            </span>
+          </div>
+
+          <div className="mb-8">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create Account</h1>
+            <p className="text-slate-500 mt-2 font-medium">Get started with your free account.</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+              <ShieldCheck className="h-5 w-5 flex-shrink-0 text-red-500" />
+              {error}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input
-              type="email"
-              {...register('email')}
-              className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                errors.email ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-              }`}
-              placeholder="Enter your email"
-            />
-            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="group">
+                <label className="mb-2 block text-sm font-bold text-slate-700">First Name</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <User className={`h-4 w-4 transition-colors ${errors.firstName ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                  </div>
+                  <input
+                    type="text"
+                    {...register('firstName')}
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                      errors.firstName 
+                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                        : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                    }`}
+                    placeholder="John"
+                  />
+                </div>
+                {errors.firstName && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.firstName.message}</p>}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-            <input
-              type="tel"
-              {...register('phone')}
-              className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                errors.phone ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-              }`}
-              placeholder="Enter your phone"
-            />
-            {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone.message}</p>}
-          </div>
+              <div className="group">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Last Name</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <User className={`h-4 w-4 transition-colors ${errors.lastName ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                  </div>
+                  <input
+                    type="text"
+                    {...register('lastName')}
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                      errors.lastName 
+                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                        : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                    }`}
+                    placeholder="Doe"
+                  />
+                </div>
+                {errors.lastName && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.lastName.message}</p>}
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <input
-              type="password"
-              {...register('password')}
-              className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                errors.password ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-              }`}
-              placeholder="Create a password"
-            />
-            {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
-          </div>
+            <div className="group">
+              <label className="mb-2 block text-sm font-bold text-slate-700">Email Address</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                  <Mail className={`h-5 w-5 transition-colors ${errors.email ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                </div>
+                <input
+                  type="email"
+                  {...register('email')}
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    errors.email 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                      : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                  }`}
+                  placeholder="name@diagnosticpro.com"
+                />
+              </div>
+              {errors.email && <p className="mt-2 text-xs font-bold text-red-500">{errors.email.message}</p>}
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
-            <input
-              type="password"
-              {...register('confirmPassword')}
-              className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${
-                errors.confirmPassword ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-              }`}
-              placeholder="Confirm your password"
-            />
-            {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword.message}</p>}
-          </div>
+            <div className="group">
+              <label className="mb-2 block text-sm font-bold text-slate-700">Phone Number</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                  <Phone className={`h-5 w-5 transition-colors ${errors.phone ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                </div>
+                <input
+                  type="tel"
+                  {...register('phone')}
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    errors.phone 
+                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                      : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                  }`}
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+              {errors.phone && <p className="mt-2 text-xs font-bold text-red-500">{errors.phone.message}</p>}
+            </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-70 mt-6"
-          >
-            {isSubmitting ? 'Creating account...' : 'Create Account'}
-          </button>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-slate-600">
-              Already have an account? <Link to="/login" className="text-primary font-semibold hover:underline">Sign In</Link>
-            </p>
-          </div>
-        </form>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="group">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <Lock className={`h-4 w-4 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                  </div>
+                  <input
+                    type="password"
+                    {...register('password')}
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                      errors.password 
+                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                        : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                    }`}
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.password && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.password.message}</p>}
+              </div>
+
+              <div className="group">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Confirm</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <Lock className={`h-4 w-4 transition-colors ${errors.confirmPassword ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
+                  </div>
+                  <input
+                    type="password"
+                    {...register('confirmPassword')}
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                      errors.confirmPassword 
+                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                        : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
+                    }`}
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.confirmPassword && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.confirmPassword.message}</p>}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group relative mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-700 hover:shadow-violet-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70"
+            >
+              {isSubmitting ? 'Creating account...' : 'Create Account'}
+              {!isSubmitting && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm font-medium text-slate-600">
+            Already have an account?{' '}
+            <Link to="/login" className="font-bold text-violet-600 hover:text-violet-700 hover:underline">
+              Sign In
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

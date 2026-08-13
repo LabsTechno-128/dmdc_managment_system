@@ -14,7 +14,7 @@ import {
     X,
 } from 'lucide-react';
 
-import { useLabTests, useCreateLabTest, useUpdateLabTest, useDeleteLabTest, useLabTestSummary, type LabTest } from '../../hooks/useLabTest';
+import { useLabTests, useCreateLabTest, useUpdateLabTest, useDeleteLabTest, useLabTestSummary, type LabTest as LabTestType } from '../../hooks/useLabTest';
 import { DeleteModal } from '../../components/DeleteModal';
 
 const PAGE_SIZE = 10;
@@ -33,11 +33,11 @@ function LabTest() {
     const [searchInput, setSearchInput] = useState('');
     const [name, setName] = useState('');
     const [billRate, setBillRate] = useState('');
-    const [editing, setEditing] = useState<LabTest | null>(null);
+    const [editing, setEditing] = useState<LabTestType | null>(null);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
-    const [deleteTarget, setDeleteTarget] = useState<LabTest | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<LabTestType | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const { data: response, isLoading: loading, refetch: load } = useLabTests({
@@ -100,7 +100,7 @@ function LabTest() {
         setEditing(null);
     }
 
-    function startEdit(test: LabTest) {
+    function startEdit(test: LabTestType) {
         setEditing(test);
         setName(test.name);
         setBillRate(String(test.billRate));

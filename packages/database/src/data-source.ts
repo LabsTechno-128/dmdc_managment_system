@@ -12,7 +12,7 @@ import { Report } from './entities/Report'
 import { Notification } from './entities/Notification'
 import { Employee } from './entities/employee'
 import { Appointment } from './entities/Appointment'
-import { LabTest } from './entities/labTest'
+import { LabTest } from './entities/LabTest'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',

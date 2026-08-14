@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
+import AsyncSelect from 'react-select/async';
 
 import { api } from '../../lib/api';
 import {
@@ -23,44 +23,51 @@ import { AppointmentOdpForm } from '../../components/OdpForm';
 // =========================
 
 const appointmentSchema = z.object({
-    doctorId: z
-        .string()
-        .min(1, 'Doctor is required'),
-
-    name: z
-        .string()
-        .trim()
-        .min(2, 'Name must be at least 2 characters long'),
-
-    age: z
-        .number({
-            message: 'Age is required',
-        })
-        .min(0, 'Age must be at least 0'),
-
-    gender: z
-        .string()
-        .min(1, 'Gender is required'),
-
-    weight: z
-        .number({
-            message: 'Weight is required',
-        })
-        .min(0, 'Weight must be at least 0'),
-
-    bloodPresure: z
-        .string()
-        .trim()
-        .min(1, 'Blood pressure is required'),
-
-    notes: z
-        .string()
-        .optional(),
-
-    phone: z
-        .string()
-        .trim()
-        .min(1, 'Phone is required'),
+    bookingType: z.enum(['LIVE', 'FUTURE']),
+    existingPatientId: z.string().optional(),
+    appointmentDate: z.string().optional(),
+    appointmentTime: z.string().optional(),
+    doctorId: z.string().min(1, 'Doctor is required'),
+    name: z.string().optional(),
+    age: z.number().optional(),
+    gender: z.string().optional(),
+    weight: z.number().optional(),
+    bloodPresure: z.string().optional(),
+    phone: z.string().optional(),
+    notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.bookingType === 'FUTURE') {
+        if (!data.appointmentDate) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Date is required for future appointments',
+                path: ['appointmentDate']
+            });
+        }
+        if (!data.appointmentTime) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Time is required for future appointments',
+                path: ['appointmentTime']
+            });
+        }
+    }
+    if (!data.existingPatientId) {
+        if (!data.name || data.name.trim().length < 2) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Name is required for new patient',
+                path: ['name']
+            });
+        }
+        if (!data.phone || data.phone.trim().length < 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Phone is required for new patient',
+                path: ['phone']
+            });
+        }
+    }
 });
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
@@ -82,6 +89,13 @@ interface Doctor {
     specialization: string;
 }
 
+interface Patient {
+    id: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+}
 
 // =========================
 // Appointment Form
@@ -97,10 +111,18 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
     const [appointmentId, setAppointmentId] = useState<string>('');
 
-    const { data: doctors } = useQuery<Doctor[]>({
+    const { data: doctorsResponse } = useQuery({
         queryKey: ['doctors'],
         queryFn: async () => {
             const { data } = await api.get('/doctors');
+            return data;
+        },
+    });
+
+    const { data: patientsResponse } = useQuery({
+        queryKey: ['patients'],
+        queryFn: async () => {
+            const { data } = await api.get('/patients');
             return data;
         },
     });
@@ -118,6 +140,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             console.log(response);
 
             setAppointmentId(response.id);
+
+            if (payload.bookingType === 'FUTURE') {
+                toast.success('Future appointment created successfully!');
+                // Wait briefly then navigate back
+                setTimeout(() => navigate('/appointments'), 1500);
+            }
         } catch (error) {
             console.log(error);
 
@@ -187,9 +215,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
             <DMDCRegistration
                 onSubmit={onSubmit}
-                doctors={doctors ?? []}
+                doctors={Array.isArray(doctorsResponse) ? doctorsResponse : doctorsResponse?.data ?? []}
+                patients={patientsResponse?.data ?? []}
                 appointment={appointment}
-                isLoading={isLoading}
+                isLoading={isLoading || createMutation.isPending}
             />
         </div>
     );
@@ -201,29 +230,33 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 function DMDCRegistration({
     onSubmit,
     doctors,
+    patients,
     appointment,
     isLoading,
 }: {
     onSubmit: (data: AppointmentFormValues) => void;
     doctors: Doctor[];
+    patients: Patient[];
     appointment?: Appointment;
     isLoading: boolean;
 }) {
-    const [selectedDoctor, setSelectedDoctor] =
-        useState<string>('');
+    const [selectedDoctor, setSelectedDoctor] = useState<string>('');
+    const [isNewPatient, setIsNewPatient] = useState<boolean>(true);
 
     const {
         register,
         handleSubmit,
         setValue,
-        formState: {
-            errors,
-        },
+        control,
+        formState: { errors },
     } = useForm<AppointmentFormValues>({
         resolver: zodResolver(appointmentSchema),
-
         defaultValues: {
+            bookingType: 'LIVE',
             doctorId: '',
+            existingPatientId: '',
+            appointmentDate: '',
+            appointmentTime: '',
             name: '',
             phone: '',
             age: undefined,
@@ -234,224 +267,232 @@ function DMDCRegistration({
         },
     });
 
+    const bookingType = useWatch({ control, name: 'bookingType' });
 
     const submitForm = (data: AppointmentFormValues) => {
+        if (isNewPatient) {
+            data.existingPatientId = undefined; // clear it if they switched back
+        } else {
+            // Clear new patient fields to avoid confusion
+            data.name = undefined;
+            data.phone = undefined;
+            data.age = undefined;
+            data.gender = undefined;
+            data.weight = undefined;
+            data.bloodPresure = undefined;
+        }
         onSubmit(data);
     };
 
-
     const handleDoctorSelect = (doctorId: string) => {
         setSelectedDoctor(doctorId);
-
         setValue('doctorId', doctorId, {
             shouldValidate: true,
             shouldDirty: true,
         });
     };
 
-
     return (
         <div className="min-h-screen bg-gray-100 text-gray-800 text-sm">
-
             <main className="p-4">
-
-                {/* New Patient's Details */}
-                <div className="bg-gray-200 rounded px-3 py-1.5 mb-2 w-56 text-xs font-medium">
-                    New Patient's Details
-                </div>
-
-
-                {/* Patient Form */}
                 <form onSubmit={handleSubmit(submitForm)}>
-
-                    <div className="grid grid-cols-12 gap-2 mb-6">
-
-                        {/* Name */}
-                        <div className="col-span-3">
-
-                            <input
-                                {...register('name')}
-                                className={`w-full bg-gray-200 rounded px-3 py-2 placeholder-gray-600 text-xs focus:outline-none focus:ring-2 ${errors.name
-                                    ? 'ring-2 ring-red-500'
-                                    : 'focus:ring-emerald-600'
-                                    }`}
-                                placeholder="Name:"
-                            />
-
-                            {errors.name && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.name.message}
-                                </p>
-                            )}
+                    {/* Booking Type Selection */}
+                    {!appointment && (
+                        <div className="mb-6 flex gap-4">
+                            <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'LIVE' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
+                                <input type="radio" value="LIVE" {...register('bookingType')} className="hidden" />
+                                <div className="font-semibold text-emerald-700">Live / Walk-in</div>
+                            </label>
+                            <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'FUTURE' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                                <input type="radio" value="FUTURE" {...register('bookingType')} className="hidden" />
+                                <div className="font-semibold text-blue-700">Future Appointment</div>
+                            </label>
                         </div>
+                    )}
 
-
-                        {/* Phone */}
-                        <div className="col-span-2">
-
-                            <input
-                                type="tel"
-                                {...register('phone')}
-                                className={`w-full bg-gray-200 rounded px-3 py-2 placeholder-gray-600 text-xs focus:outline-none focus:ring-2 ${errors.phone
-                                    ? 'ring-2 ring-red-500'
-                                    : 'focus:ring-emerald-600'
-                                    }`}
-                                placeholder="Phone:"
-                            />
-
-                            {errors.phone && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.phone.message}
-                                </p>
-                            )}
-                        </div>
-
-
-                        {/* Age */}
-                        <div className="col-span-1">
-
-                            <div
-                                className={`flex items-center bg-gray-200 rounded px-2 py-2 ${errors.age
-                                    ? 'ring-2 ring-red-500'
-                                    : ''
-                                    }`}
-                            >
-                                <input
-                                    type="number"
-                                    min="0"
-                                    {...register('age', {
-                                        valueAsNumber: true,
-                                    })}
-                                    className="bg-transparent placeholder-gray-600 text-xs w-full focus:outline-none"
-                                    placeholder="Age:"
-                                />
-
-                                <span className="text-gray-500 text-xs">
-                                    ▾
-                                </span>
+                    {/* Patient Details */}
+                    {!appointment && (
+                        <div className="mb-6 bg-white p-4 rounded shadow-sm">
+                            <div className="flex items-center gap-4 mb-4">
+                                <h3 className="font-semibold text-gray-700">Patient Information</h3>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => { setIsNewPatient(false); setValue('existingPatientId', ''); }} className={`px-3 py-1 rounded text-xs font-medium ${!isNewPatient ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Existing Patient</button>
+                                    <button type="button" onClick={() => { setIsNewPatient(true); setValue('existingPatientId', ''); }} className={`px-3 py-1 rounded text-xs font-medium ${isNewPatient ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>New Patient</button>
+                                </div>
                             </div>
 
-                            {errors.age && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.age.message}
-                                </p>
+                            {!isNewPatient ? (
+                                <div className="mb-4 max-w-md">
+                                    <Controller
+                                        name="existingPatientId"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <AsyncSelect
+                                                {...field}
+                                                cacheOptions
+                                                defaultOptions
+                                                loadOptions={async (inputValue) => {
+                                                    try {
+                                                        const { data } = await api.get('/patients', {
+                                                            params: { search: inputValue, limit: 20 },
+                                                        });
+                                                        const patientsData = Array.isArray(data) ? data : data?.data || [];
+                                                        return patientsData.map((p: any) => ({
+                                                            label: `${p.name || `${p.firstName || ''} ${p.lastName || ''}`} - ${p.phone}`,
+                                                            value: p.id,
+                                                        }));
+                                                    } catch (error) {
+                                                        return [];
+                                                    }
+                                                }}
+                                                onChange={(option: any) => {
+                                                    field.onChange(option ? option.value : '');
+                                                }}
+                                                value={field.value ? { 
+                                                    label: (() => {
+                                                        const p = patients.find(pat => pat.id === field.value);
+                                                        return p ? `${p.name || `${p.firstName || ''} ${p.lastName || ''}`} - ${p.phone}` : 'Selected Patient';
+                                                    })(), 
+                                                    value: field.value 
+                                                } : null}
+                                                placeholder="Search by name or phone..."
+                                                isClearable
+                                                className="text-sm"
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        backgroundColor: '#f9fafb',
+                                                        borderColor: errors.existingPatientId ? '#ef4444' : '#d1d5db',
+                                                        minHeight: '38px',
+                                                        boxShadow: 'none',
+                                                        '&:hover': {
+                                                            borderColor: errors.existingPatientId ? '#ef4444' : '#6366f1'
+                                                        }
+                                                    })
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    {errors.existingPatientId && <p className="text-red-500 text-[11px] mt-1">{errors.existingPatientId.message}</p>}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-12 gap-2">
+                                    {/* Name */}
+                                    <div className="col-span-3">
+                                        <input
+                                            {...register('name')}
+                                            className={`w-full bg-gray-50 border rounded px-3 py-2 placeholder-gray-500 text-xs focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                                            placeholder="Name:"
+                                        />
+                                        {errors.name && <p className="text-red-500 text-[11px] mt-1">{errors.name.message}</p>}
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div className="col-span-2">
+                                        <input
+                                            type="tel"
+                                            {...register('phone')}
+                                            className={`w-full bg-gray-50 border rounded px-3 py-2 placeholder-gray-500 text-xs focus:outline-none focus:ring-2 ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                                            placeholder="Phone:"
+                                        />
+                                        {errors.phone && <p className="text-red-500 text-[11px] mt-1">{errors.phone.message}</p>}
+                                    </div>
+
+                                    {/* Age */}
+                                    <div className="col-span-1">
+                                        <div className={`flex items-center bg-gray-50 border rounded px-2 py-2 ${errors.age ? 'border-red-500' : 'border-gray-300'}`}>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                {...register('age', { valueAsNumber: true })}
+                                                className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
+                                                placeholder="Age:"
+                                            />
+                                        </div>
+                                        {errors.age && <p className="text-red-500 text-[11px] mt-1">{errors.age.message}</p>}
+                                    </div>
+
+                                    {/* Gender */}
+                                    <div className="col-span-2">
+                                        <select
+                                            {...register('gender')}
+                                            className={`w-full bg-gray-50 border rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 ${errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                        {errors.gender && <p className="text-red-500 text-[11px] mt-1">{errors.gender.message}</p>}
+                                    </div>
+
+                                    {/* Weight */}
+                                    <div className="col-span-2">
+                                        <div className={`flex items-center gap-1 bg-gray-50 border rounded px-3 py-2 ${errors.weight ? 'border-red-500' : 'border-gray-300'}`}>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                {...register('weight', { valueAsNumber: true })}
+                                                className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
+                                                placeholder="Weight:"
+                                            />
+                                            <span className="text-gray-500 text-xs shrink-0">kg</span>
+                                        </div>
+                                        {errors.weight && <p className="text-red-500 text-[11px] mt-1">{errors.weight.message}</p>}
+                                    </div>
+
+                                    {/* Blood Pressure */}
+                                    <div className="col-span-2">
+                                        <div className={`flex items-center gap-1 bg-gray-50 border rounded px-3 py-2 ${errors.bloodPresure ? 'border-red-500' : 'border-gray-300'}`}>
+                                            <input
+                                                {...register('bloodPresure')}
+                                                className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
+                                                placeholder="BP:"
+                                            />
+                                        </div>
+                                        {errors.bloodPresure && <p className="text-red-500 text-[11px] mt-1">{errors.bloodPresure.message}</p>}
+                                    </div>
+                                </div>
                             )}
                         </div>
+                    )}
 
-
-                        {/* Gender */}
-                        <div className="col-span-2">
-
-                            <select
-                                {...register('gender')}
-                                className={`w-full bg-gray-200 rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 ${errors.gender
-                                    ? 'ring-2 ring-red-500'
-                                    : 'focus:ring-emerald-600'
-                                    }`}
-                            >
-                                <option value="">
-                                    Select Gender
-                                </option>
-
-                                <option value="MALE">
-                                    Male
-                                </option>
-
-                                <option value="FEMALE">
-                                    Female
-                                </option>
-
-                                <option value="OTHER">
-                                    Other
-                                </option>
-                            </select>
-
-                            {errors.gender && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.gender.message}
-                                </p>
-                            )}
-                        </div>
-
-
-                        {/* Weight */}
-                        <div className="col-span-2">
-
-                            <div
-                                className={`flex items-center gap-1 bg-gray-200 rounded px-3 py-2 ${errors.weight
-                                    ? 'ring-2 ring-red-500'
-                                    : ''
-                                    }`}
-                            >
-                                <input
-                                    type="number"
-                                    min="0"
-                                    {...register('weight', {
-                                        valueAsNumber: true,
-                                    })}
-                                    className="bg-transparent placeholder-gray-600 text-xs w-full focus:outline-none"
-                                    placeholder="Weight:"
-                                />
-
-                                <span className="text-gray-500 text-xs shrink-0">
-                                    kg
-                                </span>
+                    {/* Date/Time for FUTURE */}
+                    {bookingType === 'FUTURE' && !appointment && (
+                        <div className="mb-6 bg-white p-4 rounded shadow-sm">
+                            <h3 className="font-semibold text-gray-700 mb-4">Date & Time</h3>
+                            <div className="flex gap-4">
+                                <div className="w-1/3">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                                    <input
+                                        type="date"
+                                        min={new Date().toISOString().split('T')[0]}
+                                        {...register('appointmentDate')}
+                                        className={`w-full bg-gray-50 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${errors.appointmentDate ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                                    />
+                                    {errors.appointmentDate && <p className="text-red-500 text-[11px] mt-1">{errors.appointmentDate.message}</p>}
+                                </div>
+                                <div className="w-1/3">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Time</label>
+                                    <input
+                                        type="time"
+                                        {...register('appointmentTime')}
+                                        className={`w-full bg-gray-50 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${errors.appointmentTime ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                                    />
+                                    {errors.appointmentTime && <p className="text-red-500 text-[11px] mt-1">{errors.appointmentTime.message}</p>}
+                                </div>
                             </div>
-
-                            {errors.weight && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.weight.message}
-                                </p>
-                            )}
                         </div>
-
-
-                        {/* Blood Pressure */}
-                        <div className="col-span-2">
-
-                            <div
-                                className={`flex items-center gap-1 bg-gray-200 rounded px-3 py-2 ${errors.bloodPresure
-                                    ? 'ring-2 ring-red-500'
-                                    : ''
-                                    }`}
-                            >
-                                <input
-                                    {...register('bloodPresure')}
-                                    className="bg-transparent placeholder-gray-600 text-xs w-full focus:outline-none"
-                                    placeholder="R/P:"
-                                />
-
-                                <span className="text-gray-500 text-xs">
-                                    /
-                                </span>
-                            </div>
-
-                            {errors.bloodPresure && (
-                                <p className="text-red-500 text-[11px] mt-1">
-                                    {errors.bloodPresure.message}
-                                </p>
-                            )}
-                        </div>
-
-                    </div>
-
+                    )}
 
                     {/* Doctor + OPD */}
                     <div className="grid grid-cols-12 gap-4">
 
                         {/* Doctor Selection */}
-                        <div
-                            className={
-                                appointment
-                                    ? 'col-span-5'
-                                    : 'col-span-12'
-                            }
-                        >
-
+                        <div className={appointment ? 'col-span-5' : 'col-span-12'}>
                             <div className="bg-gray-200 rounded px-3 py-1.5 mb-3 w-48 text-sm font-semibold">
                                 Select Doctor
                             </div>
-
 
                             {errors.doctorId && (
                                 <p className="text-red-500 text-xs mb-2">
@@ -459,81 +500,53 @@ function DMDCRegistration({
                                 </p>
                             )}
 
-
-                            <div
-                                className={
-                                    `grid ${appointment
-                                        ? 'grid-cols-2'
-                                        : 'grid-cols-3'
-                                    } gap-3`
-                                }
-                            >
-
+                            <div className={`grid ${appointment ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
                                 {doctors.map((doc) => (
-
                                     <button
                                         type="button"
                                         key={doc.id}
-                                        onClick={() =>
-                                            handleDoctorSelect(doc.id)
-                                        }
+                                        onClick={() => handleDoctorSelect(doc.id)}
                                         className={`text-left rounded shadow-sm px-4 py-3 transition ${selectedDoctor === doc.id
                                             ? 'bg-emerald-100 ring-2 ring-emerald-700'
-                                            : 'bg-gray-200 hover:bg-gray-300'
+                                            : 'bg-white hover:bg-gray-50 border border-gray-200'
                                             }`}
                                     >
-
                                         <div className="font-semibold text-sm">
                                             {doc.firstName} {doc.lastName}
                                         </div>
-
                                         <div className="text-[11px] text-gray-600 whitespace-pre-line leading-tight mt-0.5">
                                             {doc.specialization}
                                         </div>
-
                                     </button>
-
                                 ))}
-
                             </div>
 
-
                             {!appointment && (
-
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full mt-4 bg-emerald-600 text-white rounded px-4 py-2 hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full mt-6 bg-emerald-600 text-white rounded px-4 py-3 font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLoading
-                                        ? 'Creating...'
-                                        : 'Generate OPD'}
+                                        ? 'Processing...'
+                                        : bookingType === 'LIVE' ? 'Generate OPD' : 'Book Appointment'}
                                 </button>
-
                             )}
-
                         </div>
-
 
                         {/* OPD Form */}
                         <div className="col-span-7">
-
-                            {appointment && (
+                            {appointment && bookingType === 'LIVE' && (
                                 <AppointmentOdpForm
                                     appointment={appointment}
                                     isLoading={isLoading}
                                 />
                             )}
-
                         </div>
 
                     </div>
-
                 </form>
-
             </main>
-
         </div>
     );
 }
-

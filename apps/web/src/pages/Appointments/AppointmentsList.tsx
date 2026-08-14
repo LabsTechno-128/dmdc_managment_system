@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useAppointments, useDeleteAppointment } from '../../hooks/useAppointments';
-import { AppointmentStatus, AppointmentType } from '../../types/appointment';
+import { AppointmentStatus, AppointmentType, AppointmentBookingType } from '../../types/appointment';
 import type { AppointmentQueryParams } from '../../types/appointment';
-import { Plus, Trash2, Edit, Eye, RefreshCw, Search, Calendar, Filter } from 'lucide-react';
+import { Plus, Trash2, Edit, Eye, RefreshCw, Search, Calendar, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
     Pending: 'bg-amber-100 text-amber-700',
@@ -21,6 +21,11 @@ const typeColors: Record<string, string> = {
     Emergency: 'bg-red-100 text-red-700',
 };
 
+const bookingTypeColors: Record<string, string> = {
+    LIVE: 'bg-emerald-100 text-emerald-700',
+    FUTURE: 'bg-blue-100 text-blue-700',
+};
+
 export const AppointmentsList: React.FC = () => {
     const navigate = useNavigate();
     const deleteMutation = useDeleteAppointment();
@@ -31,6 +36,7 @@ export const AppointmentsList: React.FC = () => {
     const [searchInput, setSearchInput] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
+    const [bookingTypeFilter, setBookingTypeFilter] = useState('');
     const [doctorFilter, setDoctorFilter] = useState('');
     const [patientFilter, setPatientFilter] = useState('');
     const [dateFilter, setDateFilter] = useState('');
@@ -43,6 +49,7 @@ export const AppointmentsList: React.FC = () => {
         search: search || undefined,
         status: (statusFilter || undefined) as any,
         appointmentType: (typeFilter || undefined) as any,
+        bookingType: (bookingTypeFilter || undefined) as any,
         doctorId: doctorFilter || undefined,
         patientId: patientFilter || undefined,
         startDate: dateFilter || undefined,
@@ -68,9 +75,9 @@ export const AppointmentsList: React.FC = () => {
         },
     });
 
-    let patients = patient?.data || [];
+    let patients = Array.isArray(patient) ? patient : (patient as any)?.data || [];
 
-    const appointments = response ?? [];
+    const appointments = response?.data ?? [];
     const meta = response?.meta;
 
     const handleSearch = (e: React.FormEvent) => {
@@ -99,6 +106,7 @@ export const AppointmentsList: React.FC = () => {
         setSearchInput('');
         setStatusFilter('');
         setTypeFilter('');
+        setBookingTypeFilter('');
         setDoctorFilter('');
         setPatientFilter('');
         setDateFilter('');
@@ -107,7 +115,7 @@ export const AppointmentsList: React.FC = () => {
         setPage(1);
     };
 
-    const hasActiveFilters = search || statusFilter || typeFilter || doctorFilter || patientFilter || dateFilter;
+    const hasActiveFilters = search || statusFilter || typeFilter || bookingTypeFilter || doctorFilter || patientFilter || dateFilter;
     if (!response) {
         return <div>loading</div>
     }
@@ -192,6 +200,17 @@ export const AppointmentsList: React.FC = () => {
                         <option value={AppointmentType.Emergency}>Emergency</option>
                     </select>
 
+                    {/* Booking Type Filter */}
+                    <select
+                        value={bookingTypeFilter}
+                        onChange={(e) => { setBookingTypeFilter(e.target.value); setPage(1); }}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
+                    >
+                        <option value="">All Booking Types</option>
+                        <option value={AppointmentBookingType.LIVE}>Live / Walk-in</option>
+                        <option value={AppointmentBookingType.FUTURE}>Future Appointment</option>
+                    </select>
+
                     {/* Doctor Filter */}
                     <select
                         value={doctorFilter}
@@ -257,6 +276,7 @@ export const AppointmentsList: React.FC = () => {
                                         </div>
                                     </th>
                                     <th className="p-4">Time</th>
+                                    <th className="p-4">Booking</th>
                                     <th className="p-4">Type</th>
                                     <th className="p-4 cursor-pointer select-none hover:bg-slate-100" onClick={() => handleSort('status')}>
                                         <div className="flex items-center space-x-1">
@@ -313,6 +333,11 @@ export const AppointmentsList: React.FC = () => {
                                                 {appointment.appointmentTime}
                                             </td>
                                             <td className="p-4">
+                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${bookingTypeColors[appointment.bookingType] || 'bg-slate-100 text-slate-700'}`}>
+                                                    {appointment.bookingType}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
                                                 <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${typeColors[appointment.appointmentType] || 'bg-slate-100 text-slate-700'}`}>
                                                     {appointment.appointmentType}
                                                 </span>
@@ -361,29 +386,41 @@ export const AppointmentsList: React.FC = () => {
 
                 {/* Pagination */}
                 {meta && meta.total > 0 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200">
-                        <div className="text-sm text-slate-500">
-                            Showing <span className="font-medium text-slate-700">{((meta.page - 1) * meta.limit) + 1}</span> to{' '}
-                            <span className="font-medium text-slate-700">{Math.min(meta.page * meta.limit, meta.total)}</span> of{' '}
-                            <span className="font-medium text-slate-700">{meta.total}</span> appointments
-                        </div>
-                        <div className="flex items-center space-x-2">
+                    <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-slate-500">
+                            Showing <span className="font-bold text-slate-700">{((meta.page - 1) * meta.limit) + 1}</span>–{' '}
+                            <span className="font-bold text-slate-700">{Math.min(meta.page * meta.limit, meta.total)}</span> of{' '}
+                            <span className="font-bold text-slate-700">{meta.total}</span> appointments
+                        </p>
+                        <div className="flex items-center gap-1">
                             <button
-                                onClick={() => setPage(page - 1)}
                                 disabled={page <= 1}
-                                className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => setPage((p) => p - 1)}
+                                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                Previous
+                                <ChevronLeft size={15} />
                             </button>
-                            <span className="text-sm text-slate-500">
-                                Page {meta.page} of {meta.totalPages}
-                            </span>
+                            {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => {
+                                const p = i + 1;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
+                                            ? 'bg-blue-600 text-white shadow-blue-600/20'
+                                            : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
                             <button
-                                onClick={() => setPage(page + 1)}
                                 disabled={page >= meta.totalPages}
-                                className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => setPage((p) => p + 1)}
+                                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                Next
+                                <ChevronRight size={15} />
                             </button>
                         </div>
                     </div>

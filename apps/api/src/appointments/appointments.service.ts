@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
-import { Appointment, AppointmentStatus, AppointmentType, Patients } from '@hospital/database';
+import { Appointment, AppointmentStatus, AppointmentType, Patients, AppointmentBookingType } from '@hospital/database';
 import { Between, MoreThanOrEqual } from 'typeorm';
 
 @Injectable()
@@ -27,59 +27,82 @@ export class AppointmentsService {
                 throw new NotFoundException(`Doctor with ID "${createAppointmentDto.doctorId}" not found`);
             }
 
-            // Validate patient exists
-            // const patient = await patientRepo.findOne({ where: { id: createAppointmentDto.patientId } });
-            // if (!patient) {
-            //     throw new NotFoundException(`Patient with ID "${createAppointmentDto.patientId}" not found`);
-            // }
+            let patientData;
 
-            let patient = patientRepo.create({
-                name: createAppointmentDto.name,
-                age: createAppointmentDto.age,
-                gender: createAppointmentDto.gender,
-                weight: createAppointmentDto.weight,
-                bloodPresure: createAppointmentDto.bloodPresure,
-                phone: createAppointmentDto.phone,
-            })
+            // Handle Patient
+            if (createAppointmentDto.existingPatientId) {
+                patientData = await patientRepo.findOne({ where: { id: createAppointmentDto.existingPatientId } });
+                if (!patientData) {
+                    throw new NotFoundException(`Patient with ID "${createAppointmentDto.existingPatientId}" not found`);
+                }
+            } else {
+                if (!createAppointmentDto.name || !createAppointmentDto.phone) {
+                    throw new BadRequestException('Patient name and phone are required for a new patient');
+                }
+                const patient = patientRepo.create({
+                    name: createAppointmentDto.name,
+                    age: createAppointmentDto.age,
+                    gender: createAppointmentDto.gender,
+                    weight: createAppointmentDto.weight,
+                    bloodPresure: createAppointmentDto.bloodPresure,
+                    phone: createAppointmentDto.phone,
+                });
+                patientData = await patientRepo.save(patient);
+            }
 
-            let patientData = await patientRepo.save(patient)
+            // Handle Dates and Booking Type
+            const bookingType = createAppointmentDto.bookingType || AppointmentBookingType.LIVE;
+            let appointmentDate: Date;
+            let appointmentTime: string;
 
-
-            // Validate appointment date is not in the past
-            // const appointmentDate = new Date();
-            // const today = new Date();
-            // today.setHours(0, 0, 0, 0);
-            // if (appointmentDate < today) {
-            //     throw new BadRequestException('Appointment date cannot be in the past');
-            // }
-
-            // Check for duplicate appointment (same doctor, same date, same time)
-            // const existing = await repo.findOne({
-            //     where: {
-            //         doctorId: createAppointmentDto.doctorId,
-            //         appointmentDate: appointmentDate,
-            //         appointmentTime: new Date().toISOString(),
-            //     },
-            // });
-            // if (existing) {
-            //     throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
-            // }
+            if (bookingType === AppointmentBookingType.LIVE) {
+                const now = new Date();
+                appointmentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                appointmentTime = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            } else {
+                if (!createAppointmentDto.appointmentDate) {
+                    throw new BadRequestException('Appointment date is required for FUTURE bookings');
+                }
+                appointmentDate = new Date(createAppointmentDto.appointmentDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (appointmentDate < today) {
+                    throw new BadRequestException('Appointment date cannot be in the past');
+                }
+                appointmentTime = createAppointmentDto.appointmentTime || '00:00';
+                
+                // Check for duplicate future appointment (same doctor, same date, same time)
+                const existing = await repo.findOne({
+                    where: {
+                        doctorId: createAppointmentDto.doctorId,
+                        appointmentDate: appointmentDate,
+                        appointmentTime: appointmentTime,
+                    },
+                });
+                if (existing) {
+                    throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
+                }
+            }
 
             const appointment = repo.create({
                 doctorId: createAppointmentDto.doctorId,
                 patientId: patientData.id,
+                bookingType: bookingType,
+                appointmentDate: appointmentDate,
+                appointmentTime: appointmentTime,
             });
 
-            return repo.save(appointment);
+            return await repo.save(appointment);
         } catch (error) {
-            console.log(error)
+            console.log(error);
+            throw error;
         }
     }
 
     async findAll(query: QueryAppointmentDto) {
         const repo = this.databaseService.repoAppointment();
-        const page = query.page ?? 1;
-        const limit = query.limit ?? 10;
+        const page = Number(query.page ?? 1);
+        const limit = Number(query.limit ?? 10);
         const skip = (page - 1) * limit;
 
         const qb = repo.createQueryBuilder('appointment')

@@ -168,11 +168,16 @@ function MedicalForm({ data }: { data: Appointment }) {
                         <FormRow label="Date">
                             <input
                                 type="date"
-                                value={patient.date}
+                                value={data?.appointmentDate ? new Date(data.appointmentDate).toISOString().slice(0, 10) : patient.date}
                                 readOnly
                                 onChange={handleChange("date")}
                                 className="flex-1 bg-transparent border-b border-slate-400 focus:border-green-600 outline-none px-1 py-0.5 font-sans text-base"
                             />
+                        </FormRow>
+                        <FormRow label="Type">
+                            <span className="font-semibold text-emerald-700">
+                                {data?.bookingType === 'FUTURE' ? 'Future Appointment' : 'Live / Walk-in'}
+                            </span>
                         </FormRow>
                         {data?.patient?.patientId && <Barcode value={data?.patient?.patientId} />}
 

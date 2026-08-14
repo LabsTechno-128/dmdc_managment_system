@@ -8,8 +8,11 @@ import type {
 
 export const appointmentService = {
     getAppointments: async (params?: AppointmentQueryParams) => {
-        const { data } = await api.get('/appointments', { params });
-        return data;
+        const response = await api.get('/appointments', { params });
+        return {
+            data: response.data,
+            meta: (response as any).meta,
+        };
     },
 
     getAppointmentById: async (id: string): Promise<Appointment> => {

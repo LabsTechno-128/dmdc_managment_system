@@ -19,12 +19,17 @@ export class PatientsService {
     }
   }
 
-  async findAll(page: number = 1, limit: number = 10) {
-    const [data, total] = await this.databaseService.repoPatients().findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(page: number = 1, limit: number = 10, search?: string) {
+    const qb = this.databaseService.repoPatients().createQueryBuilder('patient')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('patient.createdAt', 'DESC');
+
+    if (search) {
+      qb.where('patient.name ILIKE :search OR patient.phone ILIKE :search', { search: `%${search}%` });
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return {
       data,

@@ -25,6 +25,11 @@ export enum AppointmentType {
     Emergency = 'Emergency',
 }
 
+export enum AppointmentBookingType {
+    LIVE = 'LIVE',
+    FUTURE = 'FUTURE',
+}
+
 @Entity({ name: 'appointments' })
 export class Appointment {
     @PrimaryGeneratedColumn('uuid')
@@ -63,6 +68,13 @@ export class Appointment {
         default: AppointmentStatus.Pending,
     })
     status!: AppointmentStatus;
+
+    @Column({
+        type: 'enum',
+        enum: AppointmentBookingType,
+        default: AppointmentBookingType.LIVE,
+    })
+    bookingType!: AppointmentBookingType;
 
     @Column({ type: 'text', nullable: true })
     visitReason?: string;

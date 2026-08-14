@@ -16,6 +16,13 @@ export const AppointmentType = {
 
 export type AppointmentType = (typeof AppointmentType)[keyof typeof AppointmentType];
 
+export const AppointmentBookingType = {
+    LIVE: 'LIVE',
+    FUTURE: 'FUTURE',
+} as const;
+
+export type AppointmentBookingType = (typeof AppointmentBookingType)[keyof typeof AppointmentBookingType];
+
 export interface Doctor {
     id: string;
     firstName: string;
@@ -48,6 +55,7 @@ export interface Appointment {
     appointmentDate: string;
     appointmentTime: string;
     appointmentType: AppointmentType;
+    bookingType: AppointmentBookingType;
     status: AppointmentStatus;
     visitReason?: string;
     notes?: string;
@@ -59,12 +67,18 @@ export interface Appointment {
 
 export interface CreateAppointmentRequest {
     doctorId: string;
-    name: string;
+    bookingType: AppointmentBookingType;
+    existingPatientId?: string;
+    appointmentDate?: string;
+    appointmentTime?: string;
+    name?: string;
     age?: number;
-    gender: string;
+    gender?: string;
     weight?: number;
     bloodPresure?: string;
     phone?: string;
+    visitReason?: string;
+    notes?: string;
 }
 
 export interface UpdateAppointmentRequest {
@@ -85,6 +99,7 @@ export interface AppointmentQueryParams {
     search?: string;
     status?: AppointmentStatus;
     appointmentType?: AppointmentType;
+    bookingType?: AppointmentBookingType;
     doctorId?: string;
     patientId?: string;
     startDate?: string;

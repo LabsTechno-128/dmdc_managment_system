@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 
 export const UserRole = {
+    SUPER_ADMIN: 'super_admin',
     ADMIN: 'admin',
     RECEPTIONIST: 'receptionist',
     DOCTOR: 'doctor',
@@ -100,6 +101,12 @@ const ITEMS: NavItem[] = [
         path: '/terms-and-conditions',
         icon: ScrollText,
     },
+    {
+        label: 'Users',
+        path: '/users',
+        icon: Users,
+        role: ['super_admin'],
+    },
 ];
 
 export const Sidebar: FC = () => {
@@ -112,7 +119,7 @@ export const Sidebar: FC = () => {
     const role = user.role as UserRoleType;
 
     const NAV_ITEMS =
-        role === UserRole.ADMIN
+        role === UserRole.SUPER_ADMIN || role === UserRole.ADMIN
             ? ITEMS
             : ITEMS.filter((item) => {
                 if (!item.role) {

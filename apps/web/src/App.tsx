@@ -79,7 +79,9 @@ function App() {
             <Route path="/profile/change-password" element={<ChangePassword />} />
 
             {/* Users Route */}
-            <Route path="/users" element={<UsersList />} />
+            <Route element={<ProtectedRoute allowedRoles={['super_admin']} />}>
+              <Route path="/users" element={<UsersList />} />
+            </Route>
 
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/new" element={<NewPatient />} />

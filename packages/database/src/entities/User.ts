@@ -11,7 +11,9 @@ import {
 import { Employee } from './employee';
 
 export enum UserRole {
+    SUPER_ADMIN = 'super_admin',
     ADMIN = 'admin',
+    USER = 'user',
     RECEPTIONIST = 'receptionist',
     DOCTOR = 'doctor',
     LAB_TECHNICIAN = 'lab_technician',

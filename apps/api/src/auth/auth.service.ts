@@ -18,11 +18,15 @@ export class AuthService {
         const { email, password } = loginDto;
         const user = await this.databaseService.repoUser().findOne({ 
             where: { email },
-            select: { id: true, email: true, firstName: true, lastName: true, password: true }
+            select: { id: true, email: true, firstName: true, lastName: true, password: true, role: true, isActive: true }
         });
 
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
+        }
+
+        if (!user.isActive) {
+            throw new UnauthorizedException('User account is inactive');
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -30,10 +34,10 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` };
+        const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}`, role: user.role };
         return {
             accessToken: this.jwtService.sign(payload),
-            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName }
+            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, isActive: user.isActive }
         };
     }
 
@@ -60,10 +64,10 @@ export class AuthService {
             password: hashedPassword
         });
 
-        const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` };
+        const payload = { sub: user.id, email: user.email, name: `${user.firstName} ${user.lastName}`, role: user.role };
         return {
             accessToken: this.jwtService.sign(payload),
-            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone }
+            user: { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone, role: user.role, isActive: user.isActive }
         };
     }
 
@@ -71,6 +75,9 @@ export class AuthService {
         const user = await this.databaseService.repoUser().findOne({ where: { id: userId } });
         if (!user) {
             throw new NotFoundException('User not found');
+        }
+        if (!user.isActive) {
+            throw new UnauthorizedException('User account is inactive');
         }
         return user;
     }

@@ -37,7 +37,7 @@ function AppointmentAssign() {
             <div className="max-w-4xl mx-auto py-4 flex justify-end print:hidden">
                 <button
                     onClick={handlePrint}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium"
+                    className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium"
                 >
                     Print Prescription
                 </button>

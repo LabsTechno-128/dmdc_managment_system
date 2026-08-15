@@ -197,7 +197,7 @@ export const Register: React.FC = () => {
                     }`}
                     placeholder="••••••••"
                   />
-                  <button
+                  <button className="cursor-pointer"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -224,7 +224,7 @@ export const Register: React.FC = () => {
                     }`}
                     placeholder="••••••••"
                   />
-                  <button
+                  <button className="cursor-pointer"
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -239,7 +239,7 @@ export const Register: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-700 hover:shadow-violet-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70"
+              className="cursor-pointer group relative mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-700 hover:shadow-violet-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70"
             >
               {isSubmitting ? 'Creating account...' : 'Create Account'}
               {!isSubmitting && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}

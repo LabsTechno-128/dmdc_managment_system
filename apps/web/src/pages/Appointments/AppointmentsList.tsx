@@ -128,7 +128,7 @@ export const AppointmentsList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Appointments</h1>
                     <p className="text-slate-500 mt-1">Manage patient appointments and schedules</p>
                 </div>
-                <button
+                <button className="cursor-pointer"
                     onClick={() => navigate('/appointments/create')}
                     className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
                 >
@@ -152,13 +152,13 @@ export const AppointmentsList: React.FC = () => {
                                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 text-sm"
                             />
                         </div>
-                        <button type="submit" className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors text-sm font-medium">
+                        <button type="submit" className="cursor-pointer px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors text-sm font-medium">
                             Search
                         </button>
                     </form>
 
                     {/* Refresh */}
-                    <button
+                    <button className="cursor-pointer"
                         onClick={() => refetch()}
                         disabled={isFetching}
                         className="flex items-center space-x-1 px-3 py-2 text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-xl shadow-sm transition-colors text-sm font-medium"
@@ -247,7 +247,7 @@ export const AppointmentsList: React.FC = () => {
                     {hasActiveFilters && (
                         <button
                             onClick={clearFilters}
-                            className="text-sm text-red-500 hover:text-red-600 font-medium"
+                            className="cursor-pointer text-sm text-red-500 hover:text-red-600 font-medium"
                         >
                             Clear Filters
                         </button>
@@ -353,21 +353,21 @@ export const AppointmentsList: React.FC = () => {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end space-x-2">
-                                                    <button
+                                                    <button className="cursor-pointer"
                                                         onClick={() => navigate(`/appointments/${appointment.id}`)}
                                                         className="p-2 text-slate-400 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
                                                         title="View"
                                                     >
                                                         <Eye size={16} />
                                                     </button>
-                                                    <button
+                                                    <button className="cursor-pointer"
                                                         onClick={() => navigate(`/appointments/${appointment.id}/edit`)}
                                                         className="p-2 text-slate-400 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
-                                                    <button
+                                                    <button className="cursor-pointer"
                                                         onClick={() => handleDelete(appointment.id)}
                                                         disabled={deleteMutation.isPending}
                                                         className="p-2 text-slate-400 hover:text-red-500 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
@@ -394,7 +394,7 @@ export const AppointmentsList: React.FC = () => {
                             <span className="font-bold text-slate-700">{meta.total}</span> appointments
                         </p>
                         <div className="flex items-center gap-1">
-                            <button
+                            <button className="cursor-pointer"
                                 disabled={page <= 1}
                                 onClick={() => setPage((p) => p - 1)}
                                 className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
@@ -404,7 +404,7 @@ export const AppointmentsList: React.FC = () => {
                             {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => {
                                 const p = i + 1;
                                 return (
-                                    <button
+                                    <button className="cursor-pointer"
                                         key={p}
                                         onClick={() => setPage(p)}
                                         className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
@@ -416,7 +416,7 @@ export const AppointmentsList: React.FC = () => {
                                     </button>
                                 );
                             })}
-                            <button
+                            <button className="cursor-pointer"
                                 disabled={page >= meta.totalPages}
                                 onClick={() => setPage((p) => p + 1)}
                                 className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"

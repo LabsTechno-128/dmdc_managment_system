@@ -46,7 +46,7 @@ export const Profile: React.FC = () => {
               </div>
             </div>
             <div className="border-t border-slate-100 bg-slate-50 px-6 py-4">
-              <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all">
+              <button className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all">
                 <LogOut size={16} className="text-slate-400" />
                 Sign Out
               </button>

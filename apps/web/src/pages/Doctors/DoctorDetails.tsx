@@ -10,7 +10,7 @@ import {
     Calendar,
     Clock,
 } from 'lucide-react';
-import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
+import { DetailsSkeleton } from '../../components/skeleton/DetailsSkeleton';
 
 export const DoctorDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -27,8 +27,8 @@ export const DoctorDetails: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
-                <FormSkeleton />
+            <div className="w-full animate-in fade-in duration-500 max-w-4xl mx-auto">
+                <DetailsSkeleton />
             </div>
         );
     }
@@ -39,7 +39,7 @@ export const DoctorDetails: React.FC = () => {
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => navigate('/doctors')}
-                        className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
+                        className="cursor-pointer p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
@@ -59,7 +59,7 @@ export const DoctorDetails: React.FC = () => {
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => navigate('/doctors')}
-                        className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
+                        className="cursor-pointer p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
@@ -72,7 +72,7 @@ export const DoctorDetails: React.FC = () => {
                 </div>
                 <button
                     onClick={() => navigate(`/doctors/${doctor.id}/edit`)}
-                    className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
+                    className="cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary-dark hover:to-blue-700 text-white px-5 py-2.5 rounded-xl transition-all font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                     <Edit size={18} />
                     <span>Edit</span>
@@ -80,16 +80,18 @@ export const DoctorDetails: React.FC = () => {
             </div>
 
             {/* Profile Card */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="p-6 sm:p-8">
+            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-primary/10 via-blue-500/5 to-purple-500/10"></div>
+                <div className="p-6 sm:p-8 relative z-10 mt-6">
                     {/* Avatar + Name */}
                     <div className="flex items-center space-x-5 mb-6">
-                        <div className="flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full">
-                            <Stethoscope className="h-10 w-10 text-primary" />
+                        <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/10 to-blue-500/10 rounded-2xl shadow-sm border border-primary/20 transform rotate-3">
+                            <Stethoscope className="h-10 w-10 text-primary -rotate-3" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900">
                                 Dr. {doctor.firstName} {doctor.lastName}
+                                {doctor.degree && <span className="ml-2 text-lg font-normal text-slate-500">({doctor.degree})</span>}
                             </h2>
                             <p className="text-slate-500 mt-1">{doctor.specialization}</p>
                         </div>
@@ -141,7 +143,7 @@ export const DoctorDetails: React.FC = () => {
             </div>
 
             {/* Metadata */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-100 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

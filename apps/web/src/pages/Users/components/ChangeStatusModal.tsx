@@ -38,7 +38,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({ isOpen, on
           <h2 className="text-xl font-semibold text-slate-800">
             {isActivating ? 'Activate User' : 'Deactivate User'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100" disabled={mutation.isPending}>
+          <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100" disabled={mutation.isPending}>
             <X size={20} />
           </button>
         </div>
@@ -63,11 +63,11 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({ isOpen, on
           <button
             onClick={onClose}
             disabled={mutation.isPending}
-            className="flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="cursor-pointer flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
-          <button
+          <button className="cursor-pointer"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
             className={`flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed text-white shadow-sm ${

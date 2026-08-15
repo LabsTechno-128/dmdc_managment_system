@@ -69,7 +69,7 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose, user }) 
           </div>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors"
           >
             <X size={24} />
           </button>
@@ -85,7 +85,7 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose, user }) 
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all pr-11"
                 placeholder="Enter new password"
               />
-              <button
+              <button className="cursor-pointer"
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -105,7 +105,7 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose, user }) 
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all pr-11"
                 placeholder="Confirm new password"
               />
-              <button
+              <button className="cursor-pointer"
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -120,14 +120,14 @@ export const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose, user }) 
             <button
               type="button"
               onClick={handleClose}
-              className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors"
+              className="cursor-pointer px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm shadow-blue-200 disabled:opacity-50"
+              className="cursor-pointer px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm shadow-blue-200 disabled:opacity-50"
             >
               {mutation.isPending ? 'Updating...' : 'Update Password'}
             </button>

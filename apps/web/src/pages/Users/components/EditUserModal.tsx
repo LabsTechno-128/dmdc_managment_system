@@ -61,7 +61,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, u
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-xl font-semibold text-slate-800">Edit User</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
+          <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
             <X size={20} />
           </button>
         </div>
@@ -114,7 +114,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, u
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors"
+            className="cursor-pointer px-5 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors"
           >
             Cancel
           </button>
@@ -122,7 +122,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, u
             type="submit"
             form="edit-user-form"
             disabled={mutation.isPending}
-            className="flex items-center space-x-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center space-x-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {mutation.isPending && <Loader2 size={18} className="animate-spin" />}
             <span>Save Changes</span>

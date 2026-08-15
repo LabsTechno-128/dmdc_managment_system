@@ -11,6 +11,7 @@ const doctorSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
     lastName: z.string().min(1, 'Last name is required'),
     specialization: z.string().min(1, 'Specialization is required'),
+    degree: z.string().optional(),
     availability: z.string().optional(),
 });
 
@@ -36,6 +37,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
             firstName: '',
             lastName: '',
             specialization: '',
+            degree: '',
             availability: '',
         },
     });
@@ -46,6 +48,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                 firstName: initialData.firstName || '',
                 lastName: initialData.lastName || '',
                 specialization: initialData.specialization || '',
+                degree: initialData.degree || '',
                 availability: initialData.availability || '',
             });
         }
@@ -73,9 +76,9 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
             <div className="flex items-center space-x-4">
-                <button
+                <button className="cursor-pointer"
                     onClick={() => navigate('/doctors')}
-                    className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
+                    className="cursor-pointer p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
                 >
                     <ArrowLeft size={20} className="text-slate-600" />
                 </button>
@@ -103,7 +106,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                             <input
                                 type="text"
                                 {...register('firstName')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.firstName ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.firstName ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
                                     }`}
                                 placeholder="John"
                             />
@@ -115,7 +118,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                             <input
                                 type="text"
                                 {...register('lastName')}
-                                className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.lastName ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.lastName ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
                                     }`}
                                 placeholder="Doe"
                             />
@@ -123,16 +126,30 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Specialization</label>
-                        <input
-                            type="text"
-                            {...register('specialization')}
-                            className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors.specialization ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
-                                }`}
-                            placeholder="e.g. Cardiologist"
-                        />
-                        {errors.specialization && <p className="mt-1 text-sm text-red-500">{errors.specialization.message}</p>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Specialization</label>
+                            <input
+                                type="text"
+                                {...register('specialization')}
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.specialization ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
+                                    }`}
+                                placeholder="e.g. Cardiologist"
+                            />
+                            {errors.specialization && <p className="mt-1 text-sm text-red-500">{errors.specialization.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Degree</label>
+                            <input
+                                type="text"
+                                {...register('degree')}
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.degree ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
+                                    }`}
+                                placeholder="e.g. MD, MBBS"
+                            />
+                            {errors.degree && <p className="mt-1 text-sm text-red-500">{errors.degree.message}</p>}
+                        </div>
                     </div>
 
                     <div>
@@ -140,23 +157,23 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                         <input
                             type="text"
                             {...register('availability')}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20"
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 transition-all"
                             placeholder="e.g. Mon-Fri, 9am-5pm"
                         />
                     </div>
 
                     <div className="flex justify-end pt-4">
-                        <button
+                        <button className="cursor-pointer"
                             type="button"
                             onClick={() => navigate('/doctors')}
-                            className="px-6 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors mr-3"
+                            className="cursor-pointer px-6 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors mr-3 font-medium"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={mutation.isPending}
-                            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-70"
+                            className="cursor-pointer px-6 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary-dark hover:to-blue-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                         >
                             {mutation.isPending ? 'Saving...' : isEdit ? 'Update Doctor' : 'Save Doctor'}
                         </button>

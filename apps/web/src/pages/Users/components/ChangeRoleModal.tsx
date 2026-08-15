@@ -52,7 +52,7 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({ isOpen, onClos
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-xl font-semibold text-slate-800">Change Role</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100" disabled={mutation.isPending}>
+          <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100" disabled={mutation.isPending}>
             <X size={20} />
           </button>
         </div>
@@ -88,11 +88,11 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({ isOpen, onClos
           <button
             onClick={onClose}
             disabled={mutation.isPending}
-            className="flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="cursor-pointer flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
-          <button
+          <button className="cursor-pointer"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending || selectedRole === user.role}
             className="flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"

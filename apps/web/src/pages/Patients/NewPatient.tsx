@@ -50,7 +50,7 @@ export const NewPatient: React.FC = () => {
   return (
     <div className="mx-auto max-w-2xl animate-in fade-in duration-500">
       <div className="mb-6 flex items-center space-x-4">
-        <button
+        <button className="cursor-pointer"
           onClick={() => navigate('/patients')}
           className="group flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-sm transition-all hover:bg-slate-50 active:scale-95"
         >
@@ -192,7 +192,7 @@ export const NewPatient: React.FC = () => {
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
+            <button className="cursor-pointer"
               type="button"
               onClick={() => navigate('/patients')}
               className="cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95"

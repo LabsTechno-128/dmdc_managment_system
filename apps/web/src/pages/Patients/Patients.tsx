@@ -65,7 +65,7 @@ const Patients: React.FC = () => {
               <p className="text-xs text-slate-500">Manage all registered patient profiles and history</p>
             </div>
           </div>
-          {/* <button
+          {/* <button className="cursor-pointer"
             onClick={() => navigate('/patients/new')}
             className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-95"
           >
@@ -144,21 +144,21 @@ const Patients: React.FC = () => {
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex justify-end gap-2">
-                            <button
+                            <button className="cursor-pointer"
                               onClick={() => navigate(`/patients/${patient.id}`)}
                               className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 transition-all hover:bg-blue-600 hover:text-white hover:shadow-sm hover:shadow-blue-600/20 active:scale-95"
                             >
                               <User size={14} />
                               View
                             </button>
-                            <button
+                            <button className="cursor-pointer"
                               onClick={() => navigate(`/patients/${patient.id}/edit`)}
                               className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-700 transition-all hover:bg-violet-600 hover:text-white hover:shadow-sm hover:shadow-violet-600/20 active:scale-95"
                             >
                               <Edit3 size={14} />
                               Edit
                             </button>
-                            <button
+                            <button className="cursor-pointer"
                               onClick={() => setDeleteTarget(patient)}
                               className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition-all hover:bg-red-500 hover:text-white hover:shadow-sm hover:shadow-red-500/20 active:scale-95"
                             >
@@ -181,7 +181,7 @@ const Patients: React.FC = () => {
                   <span className="font-bold text-slate-700">{total}</span>
                 </p>
                 <div className="flex items-center gap-1">
-                  <button
+                  <button className="cursor-pointer"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => p - 1)}
                     className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
@@ -191,7 +191,7 @@ const Patients: React.FC = () => {
                   {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                     const p = i + 1;
                     return (
-                      <button
+                      <button className="cursor-pointer"
                         key={p}
                         onClick={() => setPage(p)}
                         className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
@@ -203,7 +203,7 @@ const Patients: React.FC = () => {
                       </button>
                     );
                   })}
-                  <button
+                  <button className="cursor-pointer"
                     disabled={page >= totalPages}
                     onClick={() => setPage((p) => p + 1)}
                     className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"

@@ -24,6 +24,9 @@ export class Doctor {
     specialization!: string;
 
     @Column({ length: 255, nullable: true })
+    degree?: string;
+
+    @Column({ length: 255, nullable: true })
     availability?: string;
 
     @OneToMany(() => Appointment, (appointment) => appointment.doctor)

@@ -171,7 +171,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             {/* Page Header */}
             <div className="flex items-center space-x-4">
 
-                <button
+                <button className="cursor-pointer"
                     type="button"
                     onClick={() => navigate('/appointments')}
                     className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
@@ -318,8 +318,8 @@ function DMDCRegistration({
                             <div className="flex items-center gap-4 mb-4">
                                 <h3 className="font-semibold text-gray-700">Patient Information</h3>
                                 <div className="flex gap-2">
-                                    <button type="button" onClick={() => { setValue('isNewPatientMode', false); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${!isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Existing Patient</button>
-                                    <button type="button" onClick={() => { setValue('isNewPatientMode', true); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>New Patient</button>
+                                    <button className="cursor-pointer" type="button" onClick={() => { setValue('isNewPatientMode', false); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${!isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Existing Patient</button>
+                                    <button className="cursor-pointer" type="button" onClick={() => { setValue('isNewPatientMode', true); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>New Patient</button>
                                 </div>
                             </div>
 
@@ -501,7 +501,7 @@ function DMDCRegistration({
 
                             <div className={`grid ${appointment ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
                                 {doctors.map((doc) => (
-                                    <button
+                                    <button className="cursor-pointer"
                                         type="button"
                                         key={doc.id}
                                         onClick={() => handleDoctorSelect(doc.id)}
@@ -524,7 +524,7 @@ function DMDCRegistration({
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full mt-6 bg-emerald-600 text-white rounded px-4 py-3 font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="cursor-pointer w-full mt-6 bg-emerald-600 text-white rounded px-4 py-3 font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLoading
                                         ? 'Processing...'

@@ -95,7 +95,7 @@ export const NewBilling: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
       <div className="flex items-center space-x-4">
-        <button
+        <button className="cursor-pointer"
           onClick={() => navigate('/billing')}
           className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
         >
@@ -133,7 +133,7 @@ export const NewBilling: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-800">Billing Items</h2>
-              <button
+              <button className="cursor-pointer"
                 type="button"
                 onClick={() => append({ testId: '', price: 0 })}
                 className="flex items-center space-x-1 text-sm text-primary hover:text-primary-dark font-medium"
@@ -174,7 +174,7 @@ export const NewBilling: React.FC = () => {
                     />
                   </div>
                   
-                  <button
+                  <button className="cursor-pointer"
                     type="button"
                     onClick={() => remove(index)}
                     className="mt-6 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -252,7 +252,7 @@ export const NewBilling: React.FC = () => {
               <button
                 type="submit"
                 disabled={mutation.isPending || totalAmount < 0}
-                className="w-full mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-70"
+                className="cursor-pointer w-full mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-70"
               >
                 {mutation.isPending ? 'Generating...' : 'Generate Invoice'}
               </button>

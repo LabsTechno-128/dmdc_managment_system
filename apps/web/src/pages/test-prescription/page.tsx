@@ -10,11 +10,11 @@
 //     console.log("printRef", printRef.current);
 //     return (
 //         <>
-//             <button onClick={handlePrint}>
+//             <button className="cursor-pointer" onClick={handlePrint}>
 //                 Print
 //             </button>
 //             <div id="prescription-print" ref={printRef} className="w-[210mm] min-h-[297mm] bg-white p-10 mx-auto text-black">
-//                 {/* <button
+//                 {/* <button className="cursor-pointer"
 //                     onClick={() => window.print()}
 //                     className="no-print bg-blue-600 text-white px-4 py-2 rounded"
 //                 >
@@ -275,7 +275,7 @@ function Prescription() {
             <div className="max-w-4xl mx-auto py-4 flex justify-end print:hidden">
                 <button
                     onClick={handlePrint}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium"
+                    className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium"
                 >
                     Print Prescription
                 </button>
@@ -511,7 +511,7 @@ function MedicalForm() {
                                     placeholder="After meal"
                                     className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none py-1 text-sm"
                                 />
-                                <button
+                                <button className="cursor-pointer"
                                     onClick={() => removeMedicine(i)}
                                     className="text-slate-400 hover:text-red-600 print:hidden text-sm"
                                     aria-label="Remove medicine"
@@ -524,7 +524,7 @@ function MedicalForm() {
 
                     <button
                         onClick={addMedicine}
-                        className="mt-4 text-sm text-green-700 hover:text-green-800 font-medium print:hidden"
+                        className="cursor-pointer mt-4 text-sm text-green-700 hover:text-green-800 font-medium print:hidden"
                     >
                         + Add medicine
                     </button>

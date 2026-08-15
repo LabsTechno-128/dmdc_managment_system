@@ -51,7 +51,7 @@ export const ChangePassword: React.FC = () => {
   return (
     <div className="mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <button 
+        <button className="cursor-pointer" 
           onClick={() => navigate('/profile')} 
           className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors"
         >
@@ -105,7 +105,7 @@ export const ChangePassword: React.FC = () => {
                   }`}
                   placeholder="Enter current password"
                 />
-                <button
+                <button className="cursor-pointer"
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -135,7 +135,7 @@ export const ChangePassword: React.FC = () => {
                     }`}
                     placeholder="Enter new password"
                   />
-                  <button
+                  <button className="cursor-pointer"
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -162,7 +162,7 @@ export const ChangePassword: React.FC = () => {
                     }`}
                     placeholder="Confirm new password"
                   />
-                  <button
+                  <button className="cursor-pointer"
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -175,7 +175,7 @@ export const ChangePassword: React.FC = () => {
             </div>
 
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
+              <button className="cursor-pointer"
                 type="button"
                 onClick={() => navigate('/profile')}
                 className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 transition-all hover:bg-slate-50"
@@ -185,7 +185,7 @@ export const ChangePassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || success}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70"
+                className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70"
               >
                 {isSubmitting ? 'Updating...' : 'Update Password'}
               </button>

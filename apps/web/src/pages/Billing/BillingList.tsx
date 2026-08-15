@@ -41,7 +41,7 @@ export const BillingList: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Billing & Invoices</h1>
           <p className="text-slate-500 mt-1">Manage patient invoices and payments</p>
         </div>
-        <button
+        <button className="cursor-pointer"
           onClick={() => navigate('/billing/new')}
           className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
         >
@@ -108,7 +108,7 @@ export const BillingList: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        <button
+                        <button className="cursor-pointer"
                           onClick={() => handleUpdateStatus(billing.id, billing.paymentStatus)}
                           disabled={updateStatusMutation.isPending}
                           className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"

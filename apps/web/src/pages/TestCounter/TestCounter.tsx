@@ -114,7 +114,7 @@ export const TestCounter: React.FC = () => {
                       </td>
                       <td className="p-4 text-right space-x-2">
                         {order.status !== 'Completed' ? (
-                            <button
+                            <button className="cursor-pointer"
                                 onClick={() => handleStatusChange(order.id, order.status)}
                                 disabled={updateStatusMutation.isPending}
                                 className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg shadow-sm transition-colors"

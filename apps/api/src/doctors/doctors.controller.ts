@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
@@ -19,8 +19,12 @@ export class DoctorsController {
 
     @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)
     @Get()
-    findAll() {
-        return this.doctorsService.findAll();
+    findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
+        @Query('search') search?: string
+    ) {
+        return this.doctorsService.findAll(Number(page), Number(limit), search);
     }
 
     @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)

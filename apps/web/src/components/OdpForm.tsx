@@ -51,7 +51,7 @@ export function AppointmentOdpForm({
             >
                 <MedicalForm data={appointment} />
             </div>
-            <button
+            <button className="cursor-pointer"
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../../../services/user.service';
 import { toast } from 'react-toastify';
@@ -25,6 +25,7 @@ interface CreateUserModalProps {
 
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
+  const [showPassword, setShowPassword] = React.useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -39,6 +40,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
       toast.success('User created successfully');
       queryClient.invalidateQueries({ queryKey: ['users'] });
       reset();
+      setShowPassword(false);
       onClose();
     },
     onError: (error: any) => {
@@ -107,12 +109,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-              <input
-                type="password"
-                {...register('password')}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register('password')}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all pr-11"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
               {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
             </div>
 

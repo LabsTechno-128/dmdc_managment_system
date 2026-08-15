@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, ShieldCheck, Activity, Stethoscope } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Activity, Stethoscope, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -16,6 +16,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
 
@@ -94,15 +95,22 @@ export const Login: React.FC = () => {
                   <Lock className={`h-5 w-5 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   {...register('password')}
-                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                     errors.password 
                       ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                       : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
                   }`}
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
               {errors.password && <p className="mt-2 text-xs font-bold text-red-500">{errors.password.message}</p>}
             </div>

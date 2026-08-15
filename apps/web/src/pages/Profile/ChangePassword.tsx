@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../../lib/api';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, KeyRound, ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, { message: 'Current password is required' }),
@@ -20,6 +20,9 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 export const ChangePassword: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -93,15 +96,22 @@ export const ChangePassword: React.FC = () => {
                   <KeyRound className={`h-5 w-5 transition-colors ${errors.currentPassword ? 'text-red-400' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
                 </div>
                 <input
-                  type="password"
+                  type={showCurrentPassword ? "text" : "password"}
                   {...register('currentPassword')}
-                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                     errors.currentPassword 
                       ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                       : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
                   }`}
                   placeholder="Enter current password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
               {errors.currentPassword && <p className="mt-2 text-xs font-bold text-red-500">{errors.currentPassword.message}</p>}
             </div>
@@ -116,15 +126,22 @@ export const ChangePassword: React.FC = () => {
                     <KeyRound className={`h-5 w-5 transition-colors ${errors.newPassword ? 'text-red-400' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
                   </div>
                   <input
-                    type="password"
+                    type={showNewPassword ? "text" : "password"}
                     {...register('newPassword')}
-                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                       errors.newPassword 
                         ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                         : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
                     }`}
                     placeholder="Enter new password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
                 {errors.newPassword && <p className="mt-2 text-xs font-bold text-red-500">{errors.newPassword.message}</p>}
               </div>
@@ -136,15 +153,22 @@ export const ChangePassword: React.FC = () => {
                     <KeyRound className={`h-5 w-5 transition-colors ${errors.confirmPassword ? 'text-red-400' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     {...register('confirmPassword')}
-                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                       errors.confirmPassword 
                         ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                         : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
                     }`}
                     placeholder="Confirm new password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
                 {errors.confirmPassword && <p className="mt-2 text-xs font-bold text-red-500">{errors.confirmPassword.message}</p>}
               </div>

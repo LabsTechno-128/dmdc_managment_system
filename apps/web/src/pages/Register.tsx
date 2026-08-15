@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Phone, ArrowRight, ShieldCheck, Activity, Users } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, ShieldCheck, Activity, Users, Eye, EyeOff } from 'lucide-react';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, { message: 'First name must be at least 2 characters' }),
@@ -23,6 +23,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const Register: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
 
@@ -186,15 +188,22 @@ export const Register: React.FC = () => {
                     <Lock className={`h-4 w-4 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     {...register('password')}
-                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-11 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                       errors.password 
                         ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                         : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
                     }`}
                     placeholder="••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {errors.password && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.password.message}</p>}
               </div>
@@ -206,15 +215,22 @@ export const Register: React.FC = () => {
                     <Lock className={`h-4 w-4 transition-colors ${errors.confirmPassword ? 'text-red-400' : 'text-slate-400 group-focus-within:text-violet-500'}`} />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     {...register('confirmPassword')}
-                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
+                    className={`block w-full rounded-2xl border bg-slate-50/50 py-3 pl-11 pr-11 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
                       errors.confirmPassword 
                         ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
                         : 'border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10'
                     }`}
                     placeholder="••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {errors.confirmPassword && <p className="mt-1.5 text-xs font-bold text-red-500">{errors.confirmPassword.message}</p>}
               </div>

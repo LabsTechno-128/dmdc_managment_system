@@ -98,13 +98,7 @@ interface Doctor {
     specialization: string;
 }
 
-interface Patient {
-    id: string;
-    name?: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-}
+
 
 // =========================
 // Appointment Form
@@ -128,13 +122,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         },
     });
 
-    const { data: patientsResponse } = useQuery({
-        queryKey: ['patients'],
-        queryFn: async () => {
-            const { data } = await api.get('/patients');
-            return data;
-        },
-    });
+
 
     const mutation = isEdit ? updateMutation : createMutation;
 
@@ -225,7 +213,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             <DMDCRegistration
                 onSubmit={onSubmit}
                 doctors={Array.isArray(doctorsResponse) ? doctorsResponse : doctorsResponse?.data ?? []}
-                patients={patientsResponse?.data ?? []}
                 appointment={appointment}
                 isLoading={isLoading || createMutation.isPending}
             />
@@ -239,13 +226,11 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
 function DMDCRegistration({
     onSubmit,
     doctors,
-    patients,
     appointment,
     isLoading,
 }: {
     onSubmit: (data: AppointmentFormValues) => void;
     doctors: Doctor[];
-    patients: Patient[];
     appointment?: Appointment;
     isLoading: boolean;
 }) {

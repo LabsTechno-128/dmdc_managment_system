@@ -6,31 +6,36 @@ import { DoctorsService } from './doctors.service';
 import { Doctor, UserRole } from '@hospital/database';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN)
+
 @Controller('doctors')
 export class DoctorsController {
     constructor(private readonly doctorsService: DoctorsService) { }
 
+    @Roles(UserRole.SUPER_ADMIN)
     @Post()
     create(@Body() data: Partial<Doctor>) {
         return this.doctorsService.create(data);
     }
 
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)
     @Get()
     findAll() {
         return this.doctorsService.findAll();
     }
 
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.doctorsService.findOne(id);
     }
 
+    @Roles(UserRole.SUPER_ADMIN)
     @Patch(':id')
     update(@Param('id') id: string, @Body() data: Partial<Doctor>) {
         return this.doctorsService.update(id, data);
     }
 
+    @Roles(UserRole.SUPER_ADMIN)
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.doctorsService.remove(id);

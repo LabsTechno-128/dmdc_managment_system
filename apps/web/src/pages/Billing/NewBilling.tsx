@@ -43,13 +43,14 @@ export const NewBilling: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [patientSearchError, setPatientSearchError] = useState('');
   const [isSearchingPatient, setIsSearchingPatient] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [createdInvoice, setCreatedInvoice] = useState<any>(null);
 
   // Queries
   const { data: tests } = useQuery({
     queryKey: ['tests'],
     queryFn: async () => {
-      const response = await api.get('/tests');
+      const response = await api.get('/lab-tests?limit=100');
       return response.data?.data || response.data || [];
     },
   });
@@ -118,16 +119,17 @@ export const NewBilling: React.FC = () => {
       // Assuming GET /patients?search=... returns an array
       const res = await api.get(`/patients`, { params: { search: searchPatientId } });
       const data = res.data?.data || res.data;
-      // Find exact match by patientId
-      const match = data.find((p: any) => p.patientId === searchPatientId);
-      if (match) {
-        setSelectedPatient(match);
+      if (data && data.length > 0) {
+        setSearchResults(data);
+        setSelectedPatient(null);
       } else {
         setPatientSearchError('Patient not found. Register as Outside Patient.');
+        setSearchResults([]);
         setSelectedPatient(null);
       }
     } catch (error) {
       setPatientSearchError('Error searching patient.');
+      setSearchResults([]);
       setSelectedPatient(null);
     } finally {
       setIsSearchingPatient(false);
@@ -197,9 +199,9 @@ export const NewBilling: React.FC = () => {
       return;
     }
 
-    const test = tests?.find((t: any) => t.id === testId);
+    const test = tests?.find((t: any) => String(t.id) === String(testId));
     if (test) {
-      appendItem({ testId: test.id, name: test.name, price: Number(test.price) });
+      appendItem({ testId: String(test.id), name: test.name, price: Number(test.billRate) });
     }
     e.target.value = ''; // Reset select
   };
@@ -265,7 +267,7 @@ export const NewBilling: React.FC = () => {
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                       <input
                         type="text"
-                        placeholder="Enter Patient ID (e.g. DMDCPTN-0000001)"
+                        placeholder="Search by Patient ID, Name, or Phone..."
                         value={searchPatientId}
                         onChange={(e) => setSearchPatientId(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && searchPatient()}
@@ -280,6 +282,31 @@ export const NewBilling: React.FC = () => {
                     </button>
                   </div>
                   {patientSearchError && <p className="text-red-500 text-sm font-medium">{patientSearchError}</p>}
+                  
+                  {searchResults.length > 0 && !selectedPatient && (
+                    <div className="mt-4 space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                      {searchResults.map((patient: any) => (
+                        <div key={patient.id} 
+                           className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:border-primary transition-colors cursor-pointer bg-white"
+                           onClick={() => {
+                             setSelectedPatient(patient);
+                             setSearchResults([]);
+                           }}
+                        >
+                          <div>
+                            <p className="font-bold text-slate-800">{patient.name || `${patient.firstName} ${patient.lastName}`}</p>
+                            <p className="text-sm text-slate-500 mt-0.5">ID: <span className="font-medium text-slate-700">{patient.patientId}</span> • Phone: {patient.phone || 'N/A'}</p>
+                          </div>
+                          <button 
+                            type="button"
+                            className="text-sm bg-primary/10 text-primary px-4 py-2 rounded-lg font-bold hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                          >
+                            Select
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   
                   {selectedPatient && (
                     <div className="mt-6 border border-emerald-100 bg-emerald-50/50 rounded-xl p-4 flex items-start gap-4">
@@ -345,7 +372,7 @@ export const NewBilling: React.FC = () => {
                 >
                   <option value="">Search and select test or service...</option>
                   {tests?.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.name} (BDT {t.price})</option>
+                    <option key={t.id} value={t.id}>{t.name} (BDT {t.billRate})</option>
                   ))}
                 </select>
               </div>

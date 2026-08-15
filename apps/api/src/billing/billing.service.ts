@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Billing, BillingItem, TestOrder, PatientType, Patients, DiagnosticTest } from '@hospital/database';
+import { Billing, BillingItem, TestOrder, PatientType, Patients, LabTest } from '@hospital/database';
 
 @Injectable()
 export class BillingService {
@@ -30,11 +30,11 @@ export class BillingService {
             let subtotal = 0;
             const validItems = [];
             for (const item of items) {
-                const test = await queryRunner.manager.findOne(DiagnosticTest, { where: { id: item.testId } });
+                const test = await queryRunner.manager.findOne(LabTest, { where: { id: Number(item.testId) } });
                 if (!test) {
                     throw new BadRequestException(`Test with ID ${item.testId} not found`);
                 }
-                const testPrice = Number(test.price) || 0;
+                const testPrice = Number(test.billRate) || 0;
                 subtotal += testPrice;
                 validItems.push({
                     testId: test.id,

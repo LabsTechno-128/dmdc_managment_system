@@ -19,7 +19,7 @@ import { UpdateLabTestDto } from './dto/update-lab-test.dto';
 import { LabTestsService } from './lab-tests.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.RECEPTIONIST)
 @Controller('lab-tests')
 export class LabTestsController {
   constructor(private readonly service: LabTestsService) { }

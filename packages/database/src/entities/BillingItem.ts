@@ -9,7 +9,7 @@ import {
     JoinColumn
 } from 'typeorm';
 import { Billing } from './Billing';
-import { DiagnosticTest } from './DiagnosticTest';
+import { LabTest } from './LabTest';
 
 @Entity({ name: 'billing_items' })
 export class BillingItem {
@@ -23,12 +23,12 @@ export class BillingItem {
     @JoinColumn({ name: 'billingId' })
     billing!: Billing;
 
-    @Column()
-    testId!: string;
+    @Column('int')
+    testId!: number;
 
-    @ManyToOne(() => DiagnosticTest)
+    @ManyToOne(() => LabTest)
     @JoinColumn({ name: 'testId' })
-    test!: DiagnosticTest;
+    test!: LabTest;
 
     @Column('decimal', { precision: 10, scale: 2 })
     price!: number;

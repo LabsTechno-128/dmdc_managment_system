@@ -26,7 +26,7 @@ export class PatientsService {
       .orderBy('patient.createdAt', 'DESC');
 
     if (search) {
-      qb.where('patient.name ILIKE :search OR patient.phone ILIKE :search', { search: `%${search}%` });
+      qb.where('patient.name ILIKE :search OR patient.phone ILIKE :search OR patient.patientId ILIKE :search', { search: `%${search}%` });
     }
 
     const [data, total] = await qb.getManyAndCount();

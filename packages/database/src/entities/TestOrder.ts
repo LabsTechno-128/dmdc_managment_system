@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Patients } from './Patients';
 import { Billing } from './Billing';
-import { DiagnosticTest } from './DiagnosticTest';
+import { LabTest } from './LabTest';
 
 @Entity({ name: 'test_orders' })
 export class TestOrder {
@@ -31,12 +31,12 @@ export class TestOrder {
     @JoinColumn({ name: 'billingId' })
     billing?: Billing;
 
-    @Column()
-    testId!: string;
+    @Column('int')
+    testId!: number;
 
-    @ManyToOne(() => DiagnosticTest)
+    @ManyToOne(() => LabTest)
     @JoinColumn({ name: 'testId' })
-    test!: DiagnosticTest;
+    test!: LabTest;
 
     @Column({ length: 50, default: 'Waiting' })
     status!: string;

@@ -43,6 +43,10 @@ export const userService = {
     const response = await api.patch(`/users/${id}/status`, { isActive });
     return response.data;
   },
+  updateUserPassword: async (id: string, password: string) => {
+    const response = await api.patch(`/users/${id}/password`, { password });
+    return response.data;
+  },
   deleteUser: async (id: string) => {
     const response = await api.delete(`/users/${id}`);
     return response.data;

@@ -33,6 +33,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 message = res.message ?? 'Request failed';
                 errors = res.errors ?? null;
             }
+        } else if (exception instanceof Error) {
+            // Log the error to the backend console for debugging
+            console.error('[Unhandled Exception]:', exception);
+            message = exception.message || 'Internal server error';
+        } else {
+            console.error('[Unhandled Exception]:', exception);
         }
 
         response.status(status).json({

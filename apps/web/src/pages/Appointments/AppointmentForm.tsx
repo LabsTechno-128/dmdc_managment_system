@@ -98,7 +98,13 @@ interface Doctor {
     specialization: string;
 }
 
-
+// interface Patient {
+//     id: string;
+//     name?: string;
+//     firstName?: string;
+//     lastName?: string;
+//     phone?: string;
+// }
 
 // =========================
 // Appointment Form
@@ -235,7 +241,7 @@ function DMDCRegistration({
     isLoading: boolean;
 }) {
     const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-    const [selectedPatientOpt, setSelectedPatientOpt] = useState<{label: string, value: string} | null>(null);
+    const [selectedPatientOpt, setSelectedPatientOpt] = useState<{ label: string, value: string } | null>(null);
 
     const {
         register,

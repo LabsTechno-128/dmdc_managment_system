@@ -6,6 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ILike, FindOptionsWhere } from 'typeorm';
 import { User, UserRole } from '@hospital/database';
 
@@ -137,6 +138,14 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.findOne(id);
     user.isActive = updateUserStatusDto.isActive;
     return this.databaseService.repoUser().save(user);
+  }
+
+  async updatePassword(id: string, updateUserPasswordDto: UpdateUserPasswordDto) {
+    const user = await this.findOne(id);
+    const hashedPassword = await bcrypt.hash(updateUserPasswordDto.password, 10);
+    user.password = hashedPassword;
+    await this.databaseService.repoUser().save(user);
+    return { success: true, message: 'Password updated successfully' };
   }
 
   async remove(id: string) {

@@ -22,8 +22,8 @@ export enum UserRole {
 }
 
 @Entity({ name: 'users' })
-@Index(['email'], { unique: true })
-
+@Index(['email'], { unique: true, where: '"deletedAt" IS NULL' })
+@Index(['phone'], { unique: true, where: '"deletedAt" IS NULL' })
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -37,10 +37,10 @@ export class User {
     @Column({ length: 100 })
     lastName!: string;
 
-    @Column({ length: 200, unique: true })
+    @Column({ length: 200 })
     email!: string;
 
-    @Column({ length: 20, unique: true })
+    @Column({ length: 20 })
     phone!: string;
 
     @Column({ select: false })

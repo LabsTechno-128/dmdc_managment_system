@@ -9,6 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
@@ -44,6 +45,11 @@ export class UsersController {
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() updateUserStatusDto: UpdateUserStatusDto) {
     return this.usersService.updateStatus(id, updateUserStatusDto);
+  }
+
+  @Patch(':id/password')
+  updatePassword(@Param('id') id: string, @Body() updateUserPasswordDto: UpdateUserPasswordDto) {
+    return this.usersService.updatePassword(id, updateUserPasswordDto);
   }
 
   @Delete(':id')

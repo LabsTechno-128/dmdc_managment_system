@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Search, Plus, Shield, Power, 
   Trash2, Edit2, ChevronLeft, ChevronRight,
-  MoreVertical, ShieldAlert
+  MoreVertical, ShieldAlert, KeyRound
 } from 'lucide-react';
 import { userService } from '../../services/user.service';
 import type { User, UserQueryParams } from '../../services/user.service';
@@ -11,6 +11,7 @@ import { CreateUserModal } from './components/CreateUserModal';
 import { EditUserModal } from './components/EditUserModal';
 import { ChangeRoleModal } from './components/ChangeRoleModal';
 import { ChangeStatusModal } from './components/ChangeStatusModal';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { DeleteModal } from '../../components/DeleteModal';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { toast } from 'react-toastify';
@@ -32,6 +33,7 @@ export const UsersList: React.FC = () => {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [roleUser, setRoleUser] = useState<User | null>(null);
   const [statusUser, setStatusUser] = useState<User | null>(null);
+  const [passwordUser, setPasswordUser] = useState<User | null>(null);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
 
   // Debounce search
@@ -231,6 +233,13 @@ export const UsersList: React.FC = () => {
                         >
                           <Power size={18} />
                         </button>
+                        <button 
+                          onClick={() => setPasswordUser(user)}
+                          className="p-1.5 cursor-pointer text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Change Password"
+                        >
+                          <KeyRound size={18} />
+                        </button>
                         <div className="w-px h-4 bg-slate-200 mx-1"></div>
                         <button 
                           onClick={() => setDeleteUser(user)}
@@ -313,6 +322,12 @@ export const UsersList: React.FC = () => {
         isOpen={!!statusUser} 
         onClose={() => setStatusUser(null)} 
         user={statusUser} 
+      />
+
+      <ChangePasswordModal 
+        isOpen={!!passwordUser} 
+        onClose={() => setPasswordUser(null)} 
+        user={passwordUser} 
       />
 
       <DeleteModal

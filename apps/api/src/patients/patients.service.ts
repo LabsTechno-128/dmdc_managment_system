@@ -43,7 +43,29 @@ export class PatientsService {
   }
 
   async findOne(id: string) {
-    return this.databaseService.repoPatients().findOne({ where: { id } });
+    return this.databaseService.repoPatients().findOne({
+      where: { id },
+      relations: {
+        appointments: {
+          doctor: true,
+        },
+        reports: {
+          testOrder: true,
+        },
+        billings: true,
+      },
+      order: {
+        appointments: {
+          appointmentDate: 'DESC',
+        },
+        reports: {
+          createdAt: 'DESC',
+        },
+        billings: {
+          createdAt: 'DESC',
+        },
+      },
+    });
   }
 
   async update(id: string, updatePatientDto: UpdatePatientDto) {

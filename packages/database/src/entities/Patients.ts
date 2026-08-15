@@ -9,6 +9,8 @@ import {
     OneToMany,
 } from 'typeorm';
 import { Appointment } from './Appointment';
+import { Report } from './Report';
+import { Billing } from './Billing';
 
 export enum Gender {
     MALE = 'MALE',
@@ -88,6 +90,12 @@ export class Patients extends BaseEntity {
 
     @OneToMany(() => Appointment, (appointment) => appointment.patient)
     appointments!: Appointment[];
+
+    @OneToMany(() => Report, (report) => report.patient)
+    reports!: Report[];
+
+    @OneToMany(() => Billing, (billing) => billing.patient)
+    billings!: Billing[];
 
     @CreateDateColumn()
     createdAt!: Date;

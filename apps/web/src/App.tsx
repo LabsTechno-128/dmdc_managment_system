@@ -16,6 +16,7 @@ const RootRedirect = () => {
 
 import { NewPatient } from './pages/Patients/NewPatient';
 import { EditPatient } from './pages/Patients/EditPatient';
+
 import { DoctorsList } from './pages/Doctors/DoctorsList';
 import { NewDoctor } from './pages/Doctors/NewDoctor';
 import { EditDoctor } from './pages/Doctors/EditDoctor';
@@ -48,6 +49,7 @@ import { EditAppointment } from './pages/Appointments/EditAppointment';
 import AppointmentAssign from './pages/Appointments/AppointmentAssign';
 import Labtest from './pages/Labtest/Labtest';
 import { Placeholder } from './pages/Placeholder';
+import { PatientDetails } from './pages/Patients/PatientDetails';
 
 const queryClient = new QueryClient();
 
@@ -83,7 +85,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            
+
             {/* General Authenticated Routes */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/edit" element={<EditProfile />} />
@@ -100,6 +102,7 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'receptionist']} />}>
               <Route path="/patients" element={<Patients />} />
               <Route path="/patients/new" element={<NewPatient />} />
+              <Route path="/patients/:id" element={<PatientDetails />} />
               <Route path="/patients/:id/edit" element={<EditPatient />} />
               <Route path="/billing" element={<BillingList />} />
               <Route path="/billing/new" element={<NewBilling />} />

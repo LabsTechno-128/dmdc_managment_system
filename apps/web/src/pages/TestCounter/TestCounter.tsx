@@ -2,6 +2,7 @@ import React from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Activity, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const fetchTestQueue = async () => {
   const { data } = await api.get('/test-counter');
@@ -63,7 +64,7 @@ export const TestCounter: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading queue...</div>
+          <TableSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading queue</div>
         ) : (

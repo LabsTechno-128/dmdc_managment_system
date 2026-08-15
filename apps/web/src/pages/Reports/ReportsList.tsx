@@ -2,6 +2,7 @@ import React from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, Clock } from 'lucide-react';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const fetchReports = async () => {
   const { data } = await api.get('/reports');
@@ -38,7 +39,7 @@ export const ReportsList: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading reports...</div>
+          <TableSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading reports</div>
         ) : (

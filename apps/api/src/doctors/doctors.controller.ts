@@ -1,9 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { DoctorsService } from './doctors.service';
-import { Doctor } from '@hospital/database';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../common/roles.guard';
+import { Roles } from '../common/roles.decorator';
+import { DoctorsService } from './doctors.service';
+import { Doctor, UserRole } from '@hospital/database';
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('doctors')
 export class DoctorsController {
     constructor(private readonly doctorsService: DoctorsService) { }

@@ -12,6 +12,7 @@ import { EditUserModal } from './components/EditUserModal';
 import { ChangeRoleModal } from './components/ChangeRoleModal';
 import { ChangeStatusModal } from './components/ChangeStatusModal';
 import { DeleteModal } from '../../components/DeleteModal';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { toast } from 'react-toastify';
 
 export const UsersList: React.FC = () => {
@@ -152,11 +153,8 @@ export const UsersList: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
-                      <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-                      <p>Loading users...</p>
-                    </div>
+                  <td colSpan={5} className="p-0 border-b-0">
+                    <TableSkeleton />
                   </td>
                 </tr>
               ) : users.length === 0 ? (

@@ -10,6 +10,7 @@ import {
     Calendar,
     Clock,
 } from 'lucide-react';
+import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 
 export const DoctorDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -27,7 +28,7 @@ export const DoctorDetails: React.FC = () => {
     if (isLoading) {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
-                <div className="p-8 text-center text-slate-500">Loading doctor details...</div>
+                <FormSkeleton />
             </div>
         );
     }

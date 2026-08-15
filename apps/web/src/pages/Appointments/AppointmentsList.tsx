@@ -6,6 +6,7 @@ import { useAppointments, useDeleteAppointment } from '../../hooks/useAppointmen
 import { AppointmentStatus, AppointmentType, AppointmentBookingType } from '../../types/appointment';
 import type { AppointmentQueryParams } from '../../types/appointment';
 import { Plus, Trash2, Edit, Eye, RefreshCw, Search, Calendar, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const statusColors: Record<string, string> = {
     Pending: 'bg-amber-100 text-amber-700',
@@ -257,7 +258,7 @@ export const AppointmentsList: React.FC = () => {
             {/* Table */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 {isLoading ? (
-                    <div className="p-8 text-center text-slate-500">Loading appointments...</div>
+                    <TableSkeleton />
                 ) : isError ? (
                     <div className="p-8 text-center text-red-500">Error loading appointments</div>
                 ) : (

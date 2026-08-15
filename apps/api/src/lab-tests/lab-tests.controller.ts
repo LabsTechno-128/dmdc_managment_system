@@ -8,11 +8,18 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../common/roles.guard';
+import { Roles } from '../common/roles.decorator';
+import { UserRole } from '@hospital/database';
 import { CreateLabTestDto } from './dto/create-lab-test.dto';
 import { UpdateLabTestDto } from './dto/update-lab-test.dto';
 import { LabTestsService } from './lab-tests.service';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('lab-tests')
 export class LabTestsController {
   constructor(private readonly service: LabTestsService) { }

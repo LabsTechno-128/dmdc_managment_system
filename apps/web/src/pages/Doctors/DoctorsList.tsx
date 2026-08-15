@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Trash2, Edit, Eye, Stethoscope, RefreshCw, Search } from 'lucide-react';
+import { Edit, Eye, RefreshCw, Search, Stethoscope, Trash2, UserPlus } from 'lucide-react';
 import { DeleteModal } from '../../components/DeleteModal';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const fetchDoctors = async () => {
   const { data } = await api.get('/doctors');
@@ -91,7 +92,7 @@ export const DoctorsList: React.FC = () => {
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading doctors...</div>
+          <TableSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading doctors</div>
         ) : (

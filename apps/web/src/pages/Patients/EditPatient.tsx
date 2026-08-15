@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
+import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 
 const patientSchema = z.object({
   name: z.string().min(1, 'Patient name is required'),
@@ -72,7 +73,7 @@ export const EditPatient: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500 font-semibold">Loading patient details...</div>;
+    return <div className="max-w-2xl mx-auto mt-8"><FormSkeleton /></div>;
   }
 
   if (isError) {

@@ -14,6 +14,7 @@ import {
     CheckCircle,
     XCircle,
 } from 'lucide-react';
+import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 
 const statusColors: Record<string, string> = {
     Pending: 'bg-amber-100 text-amber-700',
@@ -36,8 +37,8 @@ export const AppointmentDetails: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
-                <div className="p-8 text-center text-slate-500">Loading appointment details...</div>
+            <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mt-8">
+                <FormSkeleton />
             </div>
         );
     }

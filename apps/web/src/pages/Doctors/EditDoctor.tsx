@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { DoctorForm } from './DoctorForm';
 import { ArrowLeft } from 'lucide-react';
+import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 
 export const EditDoctor: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -32,8 +33,8 @@ export const EditDoctor: React.FC = () => {
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Edit Doctor</h1>
                     </div>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center text-slate-500">
-                    Loading doctor details...
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <FormSkeleton />
                 </div>
             </div>
         );

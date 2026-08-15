@@ -3,6 +3,7 @@ import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Plus, CheckCircle, Clock } from 'lucide-react';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const fetchBillings = async () => {
   const { data } = await api.get('/billing');
@@ -51,7 +52,7 @@ export const BillingList: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading invoices...</div>
+          <TableSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading invoices</div>
         ) : (

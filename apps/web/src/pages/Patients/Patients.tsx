@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trash2, Edit3, UserPlus, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DeleteModal } from '../../components/DeleteModal';
+import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 
 const fetchPatients = async (page: number, limit: number = 10) => {
   const response = await api.get(`/patients?page=${page}&limit=${limit}`);
@@ -95,7 +96,7 @@ const Patients: React.FC = () => {
             <span className="text-xs font-semibold text-slate-500">{total} total</span>
           </div>
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading patients...</div>
+          <TableSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading patients</div>
         ) : (

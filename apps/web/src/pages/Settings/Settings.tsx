@@ -2,6 +2,7 @@ import React from 'react';
 import { api } from '../../lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, MapPin, Phone, Mail, DollarSign } from 'lucide-react';
+import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 
 const fetchSettings = async () => {
   const { data } = await api.get('/settings');
@@ -21,9 +22,9 @@ export const Settings: React.FC = () => {
         <p className="text-slate-500 mt-1">View system configuration and general settings</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 sm:p-8">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Loading settings...</div>
+          <FormSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading settings</div>
         ) : (

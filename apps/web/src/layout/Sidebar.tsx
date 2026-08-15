@@ -7,11 +7,14 @@ import {
     ClipboardList,
     Settings,
     Stethoscope,
-    ScrollText,
     CalendarClock,
     FlaskConical,
     Receipt,
-    LogOut
+    LogOut,
+    Wallet,
+    Package,
+    PiggyBank,
+    CreditCard
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -29,13 +32,6 @@ export const UserRole = {
 export type UserRoleType =
     (typeof UserRole)[keyof typeof UserRole];
 
-// const ALL_ROLES: UserRoleType[] = Object.values(UserRole);
-// const RECEPTIONIST_ROLE: UserRoleType[] = [UserRole.RECEPTIONIST];
-// const DOCTOR_ROLE: UserRoleType[] = [UserRole.DOCTOR];
-// const LAB_TECHNICIAN_ROLE: UserRoleType[] = [UserRole.LAB_TECHNICIAN];
-// const ACCOUNTANT_ROLE: UserRoleType[] = [UserRole.ACCOUNTANT];
-// const PHARMACIST_ROLE: UserRoleType[] = [UserRole.PHARMACIST];
-
 interface NavItem {
     label: string;
     path: string;
@@ -44,69 +40,22 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
-    {
-        label: 'Dashboard',
-        path: '/',
-        icon: LayoutDashboard,
-
-    },
-    {
-        label: 'Patients',
-        path: '/patients',
-        icon: Users,
-
-    },
-    {
-        label: 'Lab Test',
-        path: '/lab-test',
-        icon: FlaskConical,
-
-    },
-    {
-        label: 'Billing',
-        path: '/billing',
-        icon: Receipt,
-
-    },
-    {
-        label: 'Test Counter',
-        path: '/test-counter',
-        icon: Activity,
-
-    },
-    {
-        label: 'Reports',
-        path: '/reports',
-        icon: ClipboardList,
-
-    },
-    {
-        label: 'Doctors',
-        path: '/doctors',
-        icon: Stethoscope,
-
-    },
-    {
-        label: 'Appointments',
-        path: '/appointments',
-        icon: CalendarClock,
-    },
-    {
-        label: 'Settings',
-        path: '/settings',
-        icon: Settings,
-    },
-    {
-        label: 'Terms & Conditions',
-        path: '/terms-and-conditions',
-        icon: ScrollText,
-    },
-    {
-        label: 'Users',
-        path: '/users',
-        icon: Users,
-        role: ['super_admin'],
-    },
+    { label: 'Dashboard', path: '/', icon: LayoutDashboard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+    { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Doctor's List", path: '/doctors', icon: Stethoscope, role: [UserRole.SUPER_ADMIN] },
+    { label: 'Tests List', path: '/lab-test', icon: FlaskConical, role: [UserRole.SUPER_ADMIN] },
+    { label: "User's List", path: '/users', icon: Users, role: [UserRole.SUPER_ADMIN] },
+    { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Doctor's Fee", path: '/doctors-fee', icon: CreditCard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: 'Accounts', path: '/accounts', icon: Wallet, role: [UserRole.SUPER_ADMIN] },
+    { label: 'Inventory', path: '/inventory', icon: Package, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+    { label: 'Income', path: '/income', icon: PiggyBank, role: [UserRole.ADMIN] },
+    { label: 'Expense', path: '/expense', icon: Receipt, role: [UserRole.ADMIN] },
+    { label: 'Setting', path: '/settings', icon: Settings, role: [UserRole.SUPER_ADMIN] },
+    { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.LAB_TECHNICIAN] },
+    { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
 ];
 
 export const Sidebar: FC = () => {
@@ -118,15 +67,11 @@ export const Sidebar: FC = () => {
 
     const role = user.role as UserRoleType;
 
-    const NAV_ITEMS =
-        role === UserRole.SUPER_ADMIN || role === UserRole.ADMIN
-            ? ITEMS
-            : ITEMS.filter((item) => {
-                if (!item.role) {
-                    return true;
-                }
-                return item.role.includes(role);
-            });
+    const NAV_ITEMS = ITEMS.filter((item) => {
+        if (!item.role) return true;
+        return item.role.includes(role);
+    });
+
     const handleLogout = () => {
         localStorage.removeItem("auth-storage")
         window.location.reload()
@@ -181,7 +126,7 @@ export const Sidebar: FC = () => {
 
             {/* Bottom Actions */}
             <div className="border-t border-slate-100 p-4 w-full">
-                <button 
+                <button
                     onClick={() => handleLogout()}
                     className="group flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-95 border border-transparent hover:border-red-100"
                 >

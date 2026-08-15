@@ -1,7 +1,12 @@
 import { Controller, UseGuards, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../common/roles.guard';
+import { Roles } from '../common/roles.decorator';
+import { UserRole } from '@hospital/database';
 import { BillingService } from './billing.service';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
 @Controller('billing')
 export class BillingController {
     constructor(private readonly billingService: BillingService) {}

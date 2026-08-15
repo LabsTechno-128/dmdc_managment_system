@@ -3,6 +3,7 @@ import { UserPlus, FileText, Send, Calendar, Users, CheckCircle, CreditCard, Che
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { DashboardSkeleton } from '../components/skeleton/DashboardSkeleton';
 
 const fetchStats = async () => {
     const { data } = await api.get('/dashboard/stats');
@@ -24,6 +25,10 @@ export const Dashboard: FC = () => {
         completed: 0,
         collection: 0,
     };
+
+    if (isLoading) {
+        return <DashboardSkeleton />;
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -96,7 +101,6 @@ export const Dashboard: FC = () => {
                         <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mr-2">📊</span>
                         Today's Overview
                     </h2>
-                    {isLoading && <span className="text-sm text-slate-500 animate-pulse">Refreshing...</span>}
                     <button className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
                         View Detailed Analytics
                     </button>

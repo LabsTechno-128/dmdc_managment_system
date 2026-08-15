@@ -9,11 +9,15 @@ import {
     JoinColumn
 } from 'typeorm';
 import { Patients } from './Patients';
+import { PatientType } from '../enums';
 
 @Entity({ name: 'billings' })
 export class Billing {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
+
+    @Column({ unique: true, nullable: true })
+    billNumber?: string;
 
     @Column()
     patientId!: string;
@@ -22,11 +26,24 @@ export class Billing {
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
 
+    @Column({
+        type: 'enum',
+        enum: PatientType,
+        default: PatientType.IN_HOUSE
+    })
+    patientType!: PatientType;
+
     @Column('decimal', { precision: 10, scale: 2 })
     subtotal!: number;
 
+    @Column({ length: 50, default: 'FIXED' })
+    discountType!: string;
+
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     discount!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    discountAmount!: number;
 
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     additionalCharges!: number;

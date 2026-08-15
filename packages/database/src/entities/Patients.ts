@@ -12,12 +12,8 @@ import { Appointment } from './Appointment';
 import { Report } from './Report';
 import { Billing } from './Billing';
 
-export enum Gender {
-    MALE = 'MALE',
-    FEMALE = 'FEMALE',
-    OTHER = 'OTHER',
-
-}
+import { Gender, PatientType } from '../enums';
+export { Gender, PatientType };
 
 @Entity({ name: 'patients' })
 
@@ -87,6 +83,13 @@ export class Patients extends BaseEntity {
 
     @Column({ default: true })
     isActive!: boolean;
+
+    @Column({
+        type: 'enum',
+        enum: PatientType,
+        default: PatientType.IN_HOUSE
+    })
+    patientType!: PatientType;
 
     @OneToMany(() => Appointment, (appointment) => appointment.patient)
     appointments!: Appointment[];

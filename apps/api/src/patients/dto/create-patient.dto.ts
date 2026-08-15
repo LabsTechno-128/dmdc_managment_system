@@ -1,7 +1,11 @@
-import { Gender } from '@hospital/database';
+import { Gender, PatientType } from '@hospital/database';
 import { IsEnum, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreatePatientDto {
+
+    @IsEnum(PatientType)
+    @IsOptional()
+    patientType?: PatientType;
 
     @IsString()
     @MinLength(2)

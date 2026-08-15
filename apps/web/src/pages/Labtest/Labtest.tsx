@@ -155,8 +155,7 @@ function LabTest() {
                         <button className="cursor-pointer rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-slate-800 hover:shadow-slate-900/20 active:scale-95">
                             Investigation Bill
                         </button>
-                        <button className="cursor-pointer"
-                            onClick={() => void load()}
+                        <button onClick={() => void load()}
                             className="cursor-pointer rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-sm shadow-violet-600/20 transition-all hover:bg-violet-700 hover:shadow-violet-600/40 active:scale-95"
                         >
                             Refresh
@@ -195,8 +194,7 @@ function LabTest() {
                             }`}
                     >
                         <span>{error || message}</span>
-                        <button className="cursor-pointer"
-                            onClick={() => {
+                        <button onClick={() => {
                                 setMessage('');
                                 setError('');
                             }}
@@ -286,8 +284,7 @@ function LabTest() {
                             <button className="cursor-pointer rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-95">
                                 Search
                             </button>
-                            <button className="cursor-pointer"
-                                type="button"
+                            <button type="button"
                                 onClick={() => {
                                     setSearchInput('');
                                     setSearch('');
@@ -311,8 +308,7 @@ function LabTest() {
                         </div>
                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                             <span>{total} item(s)</span>
-                            <button className="cursor-pointer"
-                                onClick={() => void load()}
+                            <button onClick={() => void load()}
                                 className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-700 active:scale-95"
                                 title="Refresh list"
                             >
@@ -354,15 +350,13 @@ function LabTest() {
                                             </td>
                                             <td className="px-5 py-3">
                                                 <div className="flex justify-end gap-2">
-                                                    <button className="cursor-pointer"
-                                                        onClick={() => startEdit(test)}
+                                                    <button onClick={() => startEdit(test)}
                                                         className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-700 transition-all hover:bg-violet-600 hover:text-white hover:shadow-sm hover:shadow-violet-600/20 active:scale-95"
                                                     >
                                                         <Edit3 size={14} />
                                                         Edit
                                                     </button>
-                                                    <button className="cursor-pointer"
-                                                        onClick={() => setDeleteTarget(test)}
+                                                    <button onClick={() => setDeleteTarget(test)}
                                                         className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition-all hover:bg-red-500 hover:text-white hover:shadow-sm hover:shadow-red-500/20 active:scale-95"
                                                     >
                                                         <Trash2 size={14} />
@@ -396,8 +390,7 @@ function LabTest() {
                             <span className="font-bold text-slate-700">{total}</span>
                         </p>
                         <div className="flex items-center gap-1">
-                            <button className="cursor-pointer"
-                                disabled={page <= 1}
+                            <button disabled={page <= 1}
                                 onClick={() => setPage((p) => p - 1)}
                                 className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                             >
@@ -406,8 +399,7 @@ function LabTest() {
                             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                                 const p = i + 1;
                                 return (
-                                        <button className="cursor-pointer"
-                                            key={p}
+                                        <button key={p}
                                             onClick={() => setPage(p)}
                                             className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
                                                 ? 'bg-blue-600 text-white shadow-blue-600/20'
@@ -418,8 +410,7 @@ function LabTest() {
                                     </button>
                                 );
                             })}
-                            <button className="cursor-pointer"
-                                disabled={page >= totalPages}
+                            <button disabled={page >= totalPages}
                                 onClick={() => setPage((p) => p + 1)}
                                 className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                             >

@@ -79,8 +79,7 @@ export const DoctorsList: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Doctors</h1>
           <p className="text-slate-500 mt-1">Manage doctor profiles and schedules</p>
         </div>
-        <button className="cursor-pointer"
-          onClick={() => navigate('/doctors/new')}
+        <button onClick={() => navigate('/doctors/new')}
           className="cursor-pointer flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
         >
           <UserPlus size={18} />
@@ -101,8 +100,7 @@ export const DoctorsList: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 text-sm"
             />
           </div>
-          <button className="cursor-pointer"
-            onClick={() => refetch()}
+          <button onClick={() => refetch()}
             disabled={isFetching}
             className="cursor-pointer flex items-center space-x-1 px-3 py-2 text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-xl shadow-sm transition-colors text-sm font-medium"
           >
@@ -172,22 +170,19 @@ export const DoctorsList: React.FC = () => {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end space-x-2">
-                            <button className="cursor-pointer"
-                              onClick={() => navigate(`/doctors/${doctor.id}`)}
+                            <button onClick={() => navigate(`/doctors/${doctor.id}`)}
                               className="cursor-pointer p-2 text-slate-400 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
                               title="View Details"
                             >
                               <Eye size={16} />
                             </button>
-                            <button className="cursor-pointer"
-                              onClick={() => navigate(`/doctors/${doctor.id}/edit`)}
+                            <button onClick={() => navigate(`/doctors/${doctor.id}/edit`)}
                               className="cursor-pointer p-2 text-slate-400 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
                               title="Edit"
                             >
                               <Edit size={16} />
                             </button>
-                            <button className="cursor-pointer"
-                              onClick={() => setDeleteTarget({ id: doctor.id, name: `Dr. ${doctor.firstName} ${doctor.lastName}` })}
+                            <button onClick={() => setDeleteTarget({ id: doctor.id, name: `Dr. ${doctor.firstName} ${doctor.lastName}` })}
                               disabled={deleteMutation.isPending}
                               className="cursor-pointer p-2 text-slate-400 hover:text-red-500 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Delete"
@@ -210,8 +205,7 @@ export const DoctorsList: React.FC = () => {
                   <span className="font-bold text-slate-700">{total}</span>
               </p>
               <div className="flex items-center gap-1">
-                  <button className="cursor-pointer"
-                      disabled={page <= 1}
+                  <button disabled={page <= 1}
                       onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
                       className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -220,8 +214,7 @@ export const DoctorsList: React.FC = () => {
                   {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                       const p = i + 1; // Basic pagination logic
                       return (
-                          <button className="cursor-pointer"
-                              key={p}
+                          <button key={p}
                               onClick={() => setParams(prev => ({ ...prev, page: p }))}
                               className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
                                   ? 'bg-primary text-white shadow-primary/20'
@@ -232,8 +225,7 @@ export const DoctorsList: React.FC = () => {
                           </button>
                       );
                   })}
-                  <button className="cursor-pointer"
-                      disabled={page >= totalPages}
+                  <button disabled={page >= totalPages}
                       onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
                       className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >

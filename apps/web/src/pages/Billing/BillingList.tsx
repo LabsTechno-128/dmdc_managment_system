@@ -20,8 +20,8 @@ export const BillingList: React.FC = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: string }) => 
-        api.patch(`/billing/${id}/status`, { paymentStatus }),
+    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: string }) =>
+      api.patch(`/billing/${id}/status`, { paymentStatus }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['billings'] });
     },
@@ -41,7 +41,7 @@ export const BillingList: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Billing & Invoices</h1>
           <p className="text-slate-500 mt-1">Manage patient invoices and payments</p>
         </div>
-        <button className="cursor-pointer"
+        <button
           onClick={() => navigate('/billing/new')}
           className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
         >
@@ -60,8 +60,9 @@ export const BillingList: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
-                  <th className="p-4">Invoice ID</th>
+                  <th className="p-4">Invoice ID / Bill No</th>
                   <th className="p-4">Patient</th>
+                  <th className="p-4">Type</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Amount</th>
                   <th className="p-4">Status</th>
@@ -83,15 +84,22 @@ export const BillingList: React.FC = () => {
                           <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
                             <FileText size={16} />
                           </div>
-                          <span className="font-mono text-sm font-semibold text-slate-700">
-                            #{billing.id.substring(0, 8)}
-                          </span>
+                          <div className="flex flex-col space-y-1">
+                            <span className="font-mono text-sm font-semibold text-slate-700">
+                              {billing.billNumber || `#${billing.id.substring(0, 8)}`}
+                            </span>
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="font-semibold text-slate-800">
-                          {billing.patient ? `${billing.patient.firstName} ${billing.patient.lastName}` : 'Unknown Patient'}
+                          {billing.patient?.name || `${billing.patient?.firstName || ''} ${billing.patient?.lastName || ''}`.trim() || 'Unknown Patient'}
                         </div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${billing.patientType === 'OUTSIDE' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {billing.patientType === 'OUTSIDE' ? 'Outside' : 'In-House'}
+                        </span>
                       </td>
                       <td className="p-4 text-sm text-slate-600">
                         {new Date(billing.createdAt).toLocaleDateString()}
@@ -100,15 +108,14 @@ export const BillingList: React.FC = () => {
                         {Number(billing.totalAmount).toLocaleString()} BDT
                       </td>
                       <td className="p-4">
-                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          billing.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
+                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium ${billing.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
                           {billing.paymentStatus === 'Paid' ? <CheckCircle size={12} /> : <Clock size={12} />}
                           <span>{billing.paymentStatus}</span>
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        <button className="cursor-pointer"
+                        <button
                           onClick={() => handleUpdateStatus(billing.id, billing.paymentStatus)}
                           disabled={updateStatusMutation.isPending}
                           className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"

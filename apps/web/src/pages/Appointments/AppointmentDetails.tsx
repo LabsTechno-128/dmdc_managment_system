@@ -47,8 +47,7 @@ export const AppointmentDetails: React.FC = () => {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
                 <div className="flex items-center space-x-4">
-                    <button className="cursor-pointer"
-                        onClick={() => navigate('/appointments')}
+                    <button onClick={() => navigate('/appointments')}
                         className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
@@ -67,8 +66,7 @@ export const AppointmentDetails: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                    <button className="cursor-pointer"
-                        onClick={() => navigate('/appointments')}
+                    <button onClick={() => navigate('/appointments')}
                         className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
@@ -82,8 +80,7 @@ export const AppointmentDetails: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button className="cursor-pointer"
-                    onClick={() => navigate(`/appointments/${appointment.id}/edit`)}
+                <button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}
                     className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
                 >
                     <Edit size={18} />

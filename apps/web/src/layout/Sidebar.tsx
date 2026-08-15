@@ -126,8 +126,7 @@ export const Sidebar: FC = () => {
 
             {/* Bottom Actions */}
             <div className="border-t border-slate-100 p-4 w-full">
-                <button className="cursor-pointer"
-                    onClick={() => handleLogout()}
+                <button onClick={() => handleLogout()}
                     className="group flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-95 border border-transparent hover:border-red-100"
                 >
                     <LogOut size={16} className="text-slate-400 group-hover:text-red-500 transition-colors" />

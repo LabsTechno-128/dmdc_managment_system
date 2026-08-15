@@ -116,8 +116,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all pr-11"
                   placeholder="••••••••"
                 />
-                <button className="cursor-pointer"
-                  type="button"
+                <button type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
                 >

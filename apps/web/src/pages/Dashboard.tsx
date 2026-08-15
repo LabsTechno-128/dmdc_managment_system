@@ -44,8 +44,7 @@ export const Dashboard: FC = () => {
                     Quick Actions
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="cursor-pointer" 
-                        onClick={() => navigate('/patients/new')}
+                    <button onClick={() => navigate('/patients/new')}
                         className="group flex items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl hover:border-primary hover:shadow-md transition-all text-left"
                     >
                         <div className="flex items-center space-x-4">
@@ -60,8 +59,7 @@ export const Dashboard: FC = () => {
                         <ChevronRight className="text-slate-300 group-hover:text-primary transition-colors" />
                     </button>
 
-                    <button className="cursor-pointer" 
-                        onClick={() => navigate('/billing/new')}
+                    <button onClick={() => navigate('/billing/new')}
                         className="group flex items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl hover:border-secondary hover:shadow-md transition-all text-left"
                     >
                         <div className="flex items-center space-x-4">
@@ -76,8 +74,7 @@ export const Dashboard: FC = () => {
                         <ChevronRight className="text-slate-300 group-hover:text-secondary transition-colors" />
                     </button>
 
-                    <button className="cursor-pointer" 
-                        onClick={() => navigate('/reports')}
+                    <button onClick={() => navigate('/reports')}
                         className="group flex items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl hover:border-emerald-500 hover:shadow-md transition-all text-left"
                     >
                         <div className="flex items-center space-x-4">

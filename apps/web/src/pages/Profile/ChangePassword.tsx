@@ -51,8 +51,7 @@ export const ChangePassword: React.FC = () => {
   return (
     <div className="mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <button className="cursor-pointer" 
-          onClick={() => navigate('/profile')} 
+        <button onClick={() => navigate('/profile')} 
           className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors"
         >
           <ArrowLeft size={16} />
@@ -105,8 +104,7 @@ export const ChangePassword: React.FC = () => {
                   }`}
                   placeholder="Enter current password"
                 />
-                <button className="cursor-pointer"
-                  type="button"
+                <button type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
                 >
@@ -135,8 +133,7 @@ export const ChangePassword: React.FC = () => {
                     }`}
                     placeholder="Enter new password"
                   />
-                  <button className="cursor-pointer"
-                    type="button"
+                  <button type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
                   >
@@ -162,8 +159,7 @@ export const ChangePassword: React.FC = () => {
                     }`}
                     placeholder="Confirm new password"
                   />
-                  <button className="cursor-pointer"
-                    type="button"
+                  <button type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
                   >
@@ -175,8 +171,7 @@ export const ChangePassword: React.FC = () => {
             </div>
 
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button className="cursor-pointer"
-                type="button"
+              <button type="button"
                 onClick={() => navigate('/profile')}
                 className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 transition-all hover:bg-slate-50"
               >

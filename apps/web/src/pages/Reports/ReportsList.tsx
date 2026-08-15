@@ -96,8 +96,7 @@ export const ReportsList: React.FC = () => {
                       </td>
                       <td className="p-4 text-right space-x-2">
                         {!report.isDelivered && (
-                          <button className="cursor-pointer"
-                            onClick={() => handleDeliver(report.id)}
+                          <button onClick={() => handleDeliver(report.id)}
                             disabled={deliverMutation.isPending}
                             className="px-3 py-1.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg shadow-sm transition-colors"
                           >

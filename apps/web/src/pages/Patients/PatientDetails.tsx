@@ -65,8 +65,7 @@ export const PatientDetails: React.FC = () => {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center space-x-4">
-                    <button className="cursor-pointer"
-                        onClick={() => navigate('/patients')}
+                    <button onClick={() => navigate('/patients')}
                         className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
@@ -394,8 +393,7 @@ export const PatientDetails: React.FC = () => {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div className="flex items-center gap-4">
-                        <button className="cursor-pointer"
-                            onClick={() => navigate('/patients')}
+                        <button onClick={() => navigate('/patients')}
                             className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors group cursor-pointer"
                         >
                             <ArrowLeft size={20} className="text-slate-500 group-hover:text-slate-700 transition-colors" />
@@ -418,8 +416,7 @@ export const PatientDetails: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button className="cursor-pointer"
-                            onClick={() => navigate(`/patients/${patient.id}/edit`)}
+                        <button onClick={() => navigate(`/patients/${patient.id}/edit`)}
                             className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm cursor-pointer"
                         >
                             <Edit3 size={16} /> Edit Profile
@@ -433,8 +430,7 @@ export const PatientDetails: React.FC = () => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
-                            <button className="cursor-pointer"
-                                key={tab.id}
+                            <button key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
                                 className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
                                     isActive 

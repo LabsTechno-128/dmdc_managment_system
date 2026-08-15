@@ -10,12 +10,11 @@
 //     console.log("printRef", printRef.current);
 //     return (
 //         <>
-//             <button className="cursor-pointer" onClick={handlePrint}>
+//             <button onClick={handlePrint}>
 //                 Print
 //             </button>
 //             <div id="prescription-print" ref={printRef} className="w-[210mm] min-h-[297mm] bg-white p-10 mx-auto text-black">
-//                 {/* <button className="cursor-pointer"
-//                     onClick={() => window.print()}
+//                 {/* <button //                     onClick={() => window.print()}
 //                     className="no-print bg-blue-600 text-white px-4 py-2 rounded"
 //                 >
 //                     Print Prescription
@@ -511,8 +510,7 @@ function MedicalForm() {
                                     placeholder="After meal"
                                     className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none py-1 text-sm"
                                 />
-                                <button className="cursor-pointer"
-                                    onClick={() => removeMedicine(i)}
+                                <button onClick={() => removeMedicine(i)}
                                     className="text-slate-400 hover:text-red-600 print:hidden text-sm"
                                     aria-label="Remove medicine"
                                 >

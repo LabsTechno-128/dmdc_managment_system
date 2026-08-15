@@ -92,8 +92,7 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({ isOpen, onClos
           >
             Cancel
           </button>
-          <button className="cursor-pointer"
-            onClick={() => mutation.mutate()}
+          <button onClick={() => mutation.mutate()}
             disabled={mutation.isPending || selectedRole === user.role}
             className="flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >

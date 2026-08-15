@@ -81,8 +81,7 @@ export const UsersList: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">User Management</h1>
           <p className="text-slate-500 mt-1">Manage platform access, roles, and user accounts</p>
         </div>
-        <button className="cursor-pointer" 
-          onClick={() => setIsCreateOpen(true)}
+        <button onClick={() => setIsCreateOpen(true)}
           className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm shadow-blue-200"
         >
           <Plus size={20} />
@@ -208,22 +207,19 @@ export const UsersList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-2 transition-opacity">
-                        <button className="cursor-pointer" 
-                          onClick={() => setEditUser(user)}
+                        <button onClick={() => setEditUser(user)}
                           className="p-1.5 cursor-pointer text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit User"
                         >
                           <Edit2 size={18} />
                         </button>
-                        <button className="cursor-pointer" 
-                          onClick={() => setRoleUser(user)}
+                        <button onClick={() => setRoleUser(user)}
                           className="p-1.5 cursor-pointer text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                           title="Change Role"
                         >
                           <ShieldAlert size={18} />
                         </button>
-                        <button className="cursor-pointer" 
-                          onClick={() => setStatusUser(user)}
+                        <button onClick={() => setStatusUser(user)}
                           className={`p-1.5 cursor-pointer rounded-lg transition-colors ${
                             user.isActive 
                               ? 'text-slate-400 hover:text-red-600 hover:bg-red-50' 
@@ -233,16 +229,14 @@ export const UsersList: React.FC = () => {
                         >
                           <Power size={18} />
                         </button>
-                        <button className="cursor-pointer" 
-                          onClick={() => setPasswordUser(user)}
+                        <button onClick={() => setPasswordUser(user)}
                           className="p-1.5 cursor-pointer text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                           title="Change Password"
                         >
                           <KeyRound size={18} />
                         </button>
                         <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                        <button className="cursor-pointer" 
-                          onClick={() => setDeleteUser(user)}
+                        <button onClick={() => setDeleteUser(user)}
                           className="p-1.5 cursor-pointer text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete User"
                         >
@@ -270,8 +264,7 @@ export const UsersList: React.FC = () => {
                 <span className="font-bold text-slate-700">{total}</span>
             </p>
             <div className="flex items-center gap-1">
-                <button className="cursor-pointer"
-                    disabled={page <= 1}
+                <button disabled={page <= 1}
                     onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
                     className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -280,8 +273,7 @@ export const UsersList: React.FC = () => {
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                     const p = i + 1;
                     return (
-                        <button className="cursor-pointer"
-                            key={p}
+                        <button key={p}
                             onClick={() => setParams(prev => ({ ...prev, page: p }))}
                             className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
                                 ? 'bg-blue-600 text-white shadow-blue-600/20'
@@ -292,8 +284,7 @@ export const UsersList: React.FC = () => {
                         </button>
                     );
                 })}
-                <button className="cursor-pointer"
-                    disabled={page >= totalPages}
+                <button disabled={page >= totalPages}
                     onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
                     className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >

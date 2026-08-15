@@ -67,8 +67,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({ isOpen, on
           >
             Cancel
           </button>
-          <button className="cursor-pointer"
-            onClick={() => mutation.mutate()}
+          <button onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
             className={`flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed text-white shadow-sm ${
               isActivating ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'

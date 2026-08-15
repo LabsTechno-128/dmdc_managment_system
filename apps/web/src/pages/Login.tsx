@@ -104,8 +104,7 @@ export const Login: React.FC = () => {
                   }`}
                   placeholder="••••••••"
                 />
-                <button className="cursor-pointer"
-                  type="button"
+                <button type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 focus:outline-none"
                 >

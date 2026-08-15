@@ -23,8 +23,7 @@ export const EditDoctor: React.FC = () => {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
                 <div className="flex items-center space-x-4">
-                    <button className="cursor-pointer"
-                        onClick={() => navigate('/doctors')}
+                    <button onClick={() => navigate('/doctors')}
                         className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
@@ -44,8 +43,7 @@ export const EditDoctor: React.FC = () => {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
                 <div className="flex items-center space-x-4">
-                    <button className="cursor-pointer"
-                        onClick={() => navigate('/doctors')}
+                    <button onClick={() => navigate('/doctors')}
                         className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />

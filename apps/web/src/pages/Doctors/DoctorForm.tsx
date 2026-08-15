@@ -76,8 +76,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
             <div className="flex items-center space-x-4">
-                <button className="cursor-pointer"
-                    onClick={() => navigate('/doctors')}
+                <button onClick={() => navigate('/doctors')}
                     className="cursor-pointer p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
                 >
                     <ArrowLeft size={20} className="text-slate-600" />
@@ -163,8 +162,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                     </div>
 
                     <div className="flex justify-end pt-4">
-                        <button className="cursor-pointer"
-                            type="button"
+                        <button type="button"
                             onClick={() => navigate('/doctors')}
                             className="cursor-pointer px-6 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors mr-3 font-medium"
                         >

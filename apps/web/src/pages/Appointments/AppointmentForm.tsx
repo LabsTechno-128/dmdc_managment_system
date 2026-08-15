@@ -24,14 +24,15 @@ import { AppointmentOdpForm } from '../../components/OdpForm';
 
 const appointmentSchema = z.object({
     bookingType: z.enum(['LIVE', 'FUTURE']),
+    isNewPatientMode: z.boolean(),
     existingPatientId: z.string().optional(),
     appointmentDate: z.string().optional(),
     appointmentTime: z.string().optional(),
     doctorId: z.string().min(1, 'Doctor is required'),
     name: z.string().optional(),
-    age: z.number().optional(),
+    age: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0).optional()),
     gender: z.string().optional(),
-    weight: z.number().optional(),
+    weight: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0).optional()),
     bloodPresure: z.string().optional(),
     phone: z.string().optional(),
     notes: z.string().optional(),
@@ -52,7 +53,7 @@ const appointmentSchema = z.object({
             });
         }
     }
-    if (!data.existingPatientId) {
+    if (data.isNewPatientMode) {
         if (!data.name || data.name.trim().length < 2) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -65,6 +66,14 @@ const appointmentSchema = z.object({
                 code: z.ZodIssueCode.custom,
                 message: 'Phone is required for new patient',
                 path: ['phone']
+            });
+        }
+    } else {
+        if (!data.existingPatientId || data.existingPatientId.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select an existing patient',
+                path: ['existingPatientId']
             });
         }
     }
@@ -241,7 +250,7 @@ function DMDCRegistration({
     isLoading: boolean;
 }) {
     const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-    const [isNewPatient, setIsNewPatient] = useState<boolean>(true);
+    const [selectedPatientOpt, setSelectedPatientOpt] = useState<{label: string, value: string} | null>(null);
 
     const {
         register,
@@ -250,9 +259,10 @@ function DMDCRegistration({
         control,
         formState: { errors },
     } = useForm<AppointmentFormValues>({
-        resolver: zodResolver(appointmentSchema),
+        resolver: zodResolver(appointmentSchema) as any,
         defaultValues: {
             bookingType: 'LIVE',
+            isNewPatientMode: true,
             doctorId: '',
             existingPatientId: '',
             appointmentDate: '',
@@ -268,9 +278,10 @@ function DMDCRegistration({
     });
 
     const bookingType = useWatch({ control, name: 'bookingType' });
+    const isNewPatientMode = useWatch({ control, name: 'isNewPatientMode' });
 
     const submitForm = (data: AppointmentFormValues) => {
-        if (isNewPatient) {
+        if (isNewPatientMode) {
             data.existingPatientId = undefined; // clear it if they switched back
         } else {
             // Clear new patient fields to avoid confusion
@@ -316,19 +327,21 @@ function DMDCRegistration({
                             <div className="flex items-center gap-4 mb-4">
                                 <h3 className="font-semibold text-gray-700">Patient Information</h3>
                                 <div className="flex gap-2">
-                                    <button type="button" onClick={() => { setIsNewPatient(false); setValue('existingPatientId', ''); }} className={`px-3 py-1 rounded text-xs font-medium ${!isNewPatient ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Existing Patient</button>
-                                    <button type="button" onClick={() => { setIsNewPatient(true); setValue('existingPatientId', ''); }} className={`px-3 py-1 rounded text-xs font-medium ${isNewPatient ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>New Patient</button>
+                                    <button type="button" onClick={() => { setValue('isNewPatientMode', false); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${!isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Existing Patient</button>
+                                    <button type="button" onClick={() => { setValue('isNewPatientMode', true); setValue('existingPatientId', ''); setSelectedPatientOpt(null); }} className={`px-3 py-1 rounded text-xs font-medium ${isNewPatientMode ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>New Patient</button>
                                 </div>
                             </div>
 
-                            {!isNewPatient ? (
+                            {!isNewPatientMode ? (
                                 <div className="mb-4 max-w-md">
                                     <Controller
                                         name="existingPatientId"
                                         control={control}
                                         render={({ field }) => (
                                             <AsyncSelect
-                                                {...field}
+                                                ref={field.ref}
+                                                name={field.name}
+                                                onBlur={field.onBlur}
                                                 cacheOptions
                                                 defaultOptions
                                                 loadOptions={async (inputValue) => {
@@ -347,14 +360,9 @@ function DMDCRegistration({
                                                 }}
                                                 onChange={(option: any) => {
                                                     field.onChange(option ? option.value : '');
+                                                    setSelectedPatientOpt(option);
                                                 }}
-                                                value={field.value ? { 
-                                                    label: (() => {
-                                                        const p = patients.find(pat => pat.id === field.value);
-                                                        return p ? `${p.name || `${p.firstName || ''} ${p.lastName || ''}`} - ${p.phone}` : 'Selected Patient';
-                                                    })(), 
-                                                    value: field.value 
-                                                } : null}
+                                                value={selectedPatientOpt}
                                                 placeholder="Search by name or phone..."
                                                 isClearable
                                                 className="text-sm"

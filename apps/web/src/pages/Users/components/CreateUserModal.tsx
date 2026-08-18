@@ -26,7 +26,7 @@ interface CreateUserModalProps {
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = React.useState(false);
-  
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
@@ -60,7 +60,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto flex-1">
           <form id="create-user-form" onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -139,7 +139,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
                 <option value="doctor">Doctor</option>
                 <option value="lab_technician">Lab Technician</option>
                 <option value="accountant">Accountant</option>
-                <option value="pharmacist">Pharmacist</option>
+                <option value="pharmacist">Sample Collection</option>
               </select>
               {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>}
             </div>

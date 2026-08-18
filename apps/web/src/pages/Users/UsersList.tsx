@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Search, Plus, Shield, Power, 
+import {
+  Search, Plus, Shield, Power,
   Trash2, Edit2, ChevronLeft, ChevronRight,
   MoreVertical, ShieldAlert, KeyRound
 } from 'lucide-react';
@@ -108,7 +108,7 @@ export const UsersList: React.FC = () => {
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
           />
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-4">
           <select
             value={params.role || ''}
@@ -123,7 +123,7 @@ export const UsersList: React.FC = () => {
             <option value="doctor">Doctor</option>
             <option value="lab_technician">Lab Technician</option>
             <option value="accountant">Accountant</option>
-            <option value="pharmacist">Pharmacist</option>
+            <option value="pharmacist">Sample Collection</option>
           </select>
 
           <select
@@ -191,11 +191,10 @@ export const UsersList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        user.isActive 
-                          ? 'bg-green-50 text-green-700 border-green-200' 
+                      <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${user.isActive
+                          ? 'bg-green-50 text-green-700 border-green-200'
                           : 'bg-slate-100 text-slate-600 border-slate-200'
-                      }`}>
+                        }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-slate-400'}`}></span>
                         <span>{user.isActive ? 'Active' : 'Inactive'}</span>
                       </span>
@@ -220,11 +219,10 @@ export const UsersList: React.FC = () => {
                           <ShieldAlert size={18} />
                         </button>
                         <button onClick={() => setStatusUser(user)}
-                          className={`p-1.5 cursor-pointer rounded-lg transition-colors ${
-                            user.isActive 
-                              ? 'text-slate-400 hover:text-red-600 hover:bg-red-50' 
+                          className={`p-1.5 cursor-pointer rounded-lg transition-colors ${user.isActive
+                              ? 'text-slate-400 hover:text-red-600 hover:bg-red-50'
                               : 'text-slate-400 hover:text-green-600 hover:bg-green-50'
-                          }`}
+                            }`}
                           title={user.isActive ? "Deactivate User" : "Activate User"}
                         >
                           <Power size={18} />
@@ -244,9 +242,9 @@ export const UsersList: React.FC = () => {
                         </button>
                       </div>
                       <div className="lg:hidden block opacity-100">
-                         <button className="p-1.5 cursor-pointer text-slate-400 hover:bg-slate-100 rounded-lg">
-                           <MoreVertical size={18} />
-                         </button>
+                        <button className="p-1.5 cursor-pointer text-slate-400 hover:bg-slate-100 rounded-lg">
+                          <MoreVertical size={18} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -258,67 +256,67 @@ export const UsersList: React.FC = () => {
 
         {/* Pagination */}
         <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-500">
-                Showing <span className="font-bold text-slate-700">{from}</span>–{' '}
-                <span className="font-bold text-slate-700">{to}</span> of{' '}
-                <span className="font-bold text-slate-700">{total}</span>
-            </p>
-            <div className="flex items-center gap-1">
-                <button disabled={page <= 1}
-                    onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
-                    className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          <p className="text-xs text-slate-500">
+            Showing <span className="font-bold text-slate-700">{from}</span>–{' '}
+            <span className="font-bold text-slate-700">{to}</span> of{' '}
+            <span className="font-bold text-slate-700">{total}</span>
+          </p>
+          <div className="flex items-center gap-1">
+            <button disabled={page <= 1}
+              onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              const p = i + 1;
+              return (
+                <button key={p}
+                  onClick={() => setParams(prev => ({ ...prev, page: p }))}
+                  className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
+                    ? 'bg-blue-600 text-white shadow-blue-600/20'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
                 >
-                    <ChevronLeft size={15} />
+                  {p}
                 </button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    const p = i + 1;
-                    return (
-                        <button key={p}
-                            onClick={() => setParams(prev => ({ ...prev, page: p }))}
-                            className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
-                                ? 'bg-blue-600 text-white shadow-blue-600/20'
-                                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                                }`}
-                        >
-                            {p}
-                        </button>
-                    );
-                })}
-                <button disabled={page >= totalPages}
-                    onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
-                    className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                    <ChevronRight size={15} />
-                </button>
-            </div>
+              );
+            })}
+            <button disabled={page >= totalPages}
+              onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Modals */}
       <CreateUserModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
-      
-      <EditUserModal 
-        isOpen={!!editUser} 
-        onClose={() => setEditUser(null)} 
-        user={editUser} 
-      />
-      
-      <ChangeRoleModal 
-        isOpen={!!roleUser} 
-        onClose={() => setRoleUser(null)} 
-        user={roleUser} 
-      />
-      
-      <ChangeStatusModal 
-        isOpen={!!statusUser} 
-        onClose={() => setStatusUser(null)} 
-        user={statusUser} 
+
+      <EditUserModal
+        isOpen={!!editUser}
+        onClose={() => setEditUser(null)}
+        user={editUser}
       />
 
-      <ChangePasswordModal 
-        isOpen={!!passwordUser} 
-        onClose={() => setPasswordUser(null)} 
-        user={passwordUser} 
+      <ChangeRoleModal
+        isOpen={!!roleUser}
+        onClose={() => setRoleUser(null)}
+        user={roleUser}
+      />
+
+      <ChangeStatusModal
+        isOpen={!!statusUser}
+        onClose={() => setStatusUser(null)}
+        user={statusUser}
+      />
+
+      <ChangePasswordModal
+        isOpen={!!passwordUser}
+        onClose={() => setPasswordUser(null)}
+        user={passwordUser}
       />
 
       <DeleteModal

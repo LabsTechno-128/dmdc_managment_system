@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { UserPlus, FileText, Send, Calendar, Users, CheckCircle, CreditCard, ChevronRight } from 'lucide-react';
+import { UserPlus, FileText, Send, Calendar, Users, CheckCircle, CreditCard, ChevronRight, TrendingUp, Stethoscope, Clock, Activity, FileDigit, BadgeDollarSign, UserCog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -24,6 +24,17 @@ export const Dashboard: FC = () => {
         waitingRoom: 0,
         completed: 0,
         collection: 0,
+        thisMonthIncome: 0,
+        lastMonthIncome: 0,
+        completePatientBillingCount: 0,
+        unpaidBillingCount: 0,
+        partialBillingCount: 0,
+        totalDoctor: 0,
+        totalPatient: 0,
+        totalAppointment: 0,
+        lastMonthAppointment: 0,
+        thisMonthAppointment: 0,
+        userListCount: 0
     };
 
     if (isLoading) {
@@ -31,7 +42,7 @@ export const Dashboard: FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-12">
             <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
                 <p className="text-slate-500 mt-1">Here is what's happening at the diagnostic center today.</p>
@@ -91,64 +102,15 @@ export const Dashboard: FC = () => {
                 </div>
             </section>
 
-            {/* Today's Overview */}
+            {/* Income & Billing Analytics */}
             <section>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-slate-800 flex items-center">
-                        <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mr-2">📊</span>
-                        Today's Overview
+                        <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mr-2">💰</span>
+                        Income & Billing Analytics
                     </h2>
-                    <button className="cursor-pointer text-sm font-medium text-primary hover:text-primary-dark transition-colors">
-                        View Detailed Analytics
-                    </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-0 opacity-50"></div>
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                                <Calendar size={20} />
-                            </div>
-                        </div>
-                        <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">
-                                {String(displayStats.totalBooked).padStart(2, '0')}
-                            </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Total Booked</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-0 opacity-50"></div>
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
-                                <Users size={20} />
-                            </div>
-                        </div>
-                        <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">
-                                {String(displayStats.waitingRoom).padStart(2, '0')}
-                            </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Waiting Room</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-0 opacity-50"></div>
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                                <CheckCircle size={20} />
-                            </div>
-                        </div>
-                        <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">
-                                {String(displayStats.completed).padStart(2, '0')}
-                            </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Completed</div>
-                        </div>
-                    </div>
-
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -z-0 opacity-50"></div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
@@ -157,13 +119,150 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-3xl font-bold text-slate-800">
-                                {Number(displayStats.collection).toLocaleString()} <span className="text-lg font-semibold text-slate-500">BDT</span>
+                            <div className="text-2xl font-bold text-slate-800">
+                                {Number(displayStats.collection).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
                             </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Collection</div>
+                            <div className="text-sm font-medium text-slate-500 mt-1">Today's Collection</div>
                         </div>
                     </div>
 
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-0 opacity-50"></div>
+                        <div className="flex justify-between items-start mb-4 relative z-10">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                <TrendingUp size={20} />
+                            </div>
+                        </div>
+                        <div className="relative z-10">
+                            <div className="text-2xl font-bold text-slate-800">
+                                {Number(displayStats.thisMonthIncome).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
+                            </div>
+                            <div className="text-sm font-medium text-slate-500 mt-1">This Month Income</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-slate-100 rounded-bl-full -z-0 opacity-50"></div>
+                        <div className="flex justify-between items-start mb-4 relative z-10">
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                <BadgeDollarSign size={20} />
+                            </div>
+                        </div>
+                        <div className="relative z-10">
+                            <div className="text-2xl font-bold text-slate-800">
+                                {Number(displayStats.lastMonthIncome).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
+                            </div>
+                            <div className="text-sm font-medium text-slate-500 mt-1">Last Month Income</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-center">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><CheckCircle size={14} className="mr-1 text-emerald-500"/> Paid Bills</span>
+                                <span className="font-bold text-slate-700">{displayStats.completePatientBillingCount}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><FileDigit size={14} className="mr-1 text-amber-500"/> Partial Bills</span>
+                                <span className="font-bold text-slate-700">{displayStats.partialBillingCount}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><Activity size={14} className="mr-1 text-red-500"/> Unpaid Bills</span>
+                                <span className="font-bold text-slate-700">{displayStats.unpaidBillingCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Operations & Staff */}
+            <section>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-slate-800 flex items-center">
+                        <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-2">🏥</span>
+                        Operations & Staff
+                    </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <Users size={24} />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-slate-800">{displayStats.totalPatient}</div>
+                            <div className="text-sm font-medium text-slate-500">Total Patients</div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <Stethoscope size={24} />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-slate-800">{displayStats.totalDoctor}</div>
+                            <div className="text-sm font-medium text-slate-500">Total Doctors</div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div className="p-3 bg-slate-100 text-slate-600 rounded-xl">
+                            <UserCog size={24} />
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-slate-800">{displayStats.userListCount}</div>
+                            <div className="text-sm font-medium text-slate-500">Total System Users</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Appointment & Order Analytics */}
+            <section>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-slate-800 flex items-center">
+                        <span className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mr-2">📅</span>
+                        Appointments & Orders
+                    </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center space-x-3 mb-2">
+                            <Calendar size={18} className="text-blue-500" />
+                            <span className="font-medium text-slate-600">Total Appointments</span>
+                        </div>
+                        <div className="text-2xl font-bold text-slate-800">{displayStats.totalAppointment}</div>
+                    </div>
+                    
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center space-x-3 mb-2">
+                            <Clock size={18} className="text-emerald-500" />
+                            <span className="font-medium text-slate-600">This Month Appts</span>
+                        </div>
+                        <div className="text-2xl font-bold text-slate-800">{displayStats.thisMonthAppointment}</div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center space-x-3 mb-2">
+                            <Clock size={18} className="text-slate-400" />
+                            <span className="font-medium text-slate-600">Last Month Appts</span>
+                        </div>
+                        <div className="text-2xl font-bold text-slate-800">{displayStats.lastMonthAppointment}</div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500">Today Booked</span>
+                                <span className="font-bold text-slate-700">{displayStats.totalBooked}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500">Waiting Room</span>
+                                <span className="font-bold text-slate-700">{displayStats.waitingRoom}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-500">Today Completed</span>
+                                <span className="font-bold text-slate-700">{displayStats.completed}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>

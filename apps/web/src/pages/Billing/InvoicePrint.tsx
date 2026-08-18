@@ -9,18 +9,25 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
   if (!billing) return null;
 
   return (
-    <div ref={ref} className="p-10 bg-white text-slate-800 font-sans max-w-[210mm] mx-auto hidden-print-block print:block">
-      {/* Header */}
-      <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-blue-600/10 rounded-2xl">
-            <Hospital className="w-10 h-10 text-blue-600" />
+    <div id="invoice-print" ref={ref} className="bg-white text-slate-800 font-sans mx-auto max-w-[210mm] min-h-[297mm]">
+      <style type="text/css" media="print">
+        {`
+          @page { size: A4; margin: 0; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        `}
+      </style>
+      <div className="p-10">
+        {/* Header */}
+        <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-blue-600/10 rounded-2xl">
+              <Hospital className="w-10 h-10 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">DMDC Hospital</h1>
+              <p className="text-slate-500 font-medium tracking-wide">Diagnostic & Medical Center</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">DMDC Hospital</h1>
-            <p className="text-slate-500 font-medium tracking-wide">Diagnostic & Medical Center</p>
-          </div>
-        </div>
         <div className="text-right text-sm text-slate-500 space-y-1">
           <p className="flex items-center justify-end gap-1"><MapPin size={14} /> 123 Health Avenue, Medical District</p>
           <p className="flex items-center justify-end gap-1"><Phone size={14} /> +880 1234 567 890</p>
@@ -92,7 +99,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             {billing.items?.map((item: any, index: number) => (
               <tr key={item.id || index} className="border-b border-slate-200 text-sm">
                 <td className="py-3 px-4 text-center text-slate-500">{index + 1}</td>
-                <td className="py-3 px-4 font-medium text-slate-800">{item.test?.name || 'Unknown Service'}</td>
+                <td className="py-3 px-4 font-medium text-slate-800">{item.test?.name || item.name || item.description || 'Service / Consultation'}</td>
                 <td className="py-3 px-4 text-center text-slate-600">1</td>
                 <td className="py-3 px-4 text-right text-slate-600">{Number(item.price).toFixed(2)}</td>
                 <td className="py-3 px-4 text-right font-medium text-slate-800">{Number(item.price).toFixed(2)}</td>
@@ -123,10 +130,20 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             <span>Net Payable</span>
             <span>{Number(billing.totalAmount || 0).toFixed(2)} BDT</span>
           </div>
+
+          <div className="flex justify-between text-sm text-slate-600 pt-2">
+            <span>Paid Amount</span>
+            <span className="font-semibold text-emerald-600">{Number(billing.paidAmount || 0).toFixed(2)} BDT</span>
+          </div>
+
+          <div className="flex justify-between text-sm text-slate-600">
+            <span>Due Amount</span>
+            <span className="font-semibold text-red-500">{Number(billing.dueAmount || 0).toFixed(2)} BDT</span>
+          </div>
           
           <div className="flex justify-between text-sm pt-2">
             <span className="text-slate-500">Payment Status:</span>
-            <span className={`font-bold ${billing.paymentStatus === 'Paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
+            <span className={`font-bold ${billing.paymentStatus === 'Paid' ? 'text-emerald-600' : billing.paymentStatus === 'Partial' ? 'text-blue-600' : 'text-amber-600'}`}>
               {billing.paymentStatus?.toUpperCase() || 'UNPAID'}
             </span>
           </div>
@@ -144,6 +161,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           <div className="w-40 border-b border-slate-400 mb-2"></div>
           <p className="text-sm font-medium text-slate-600">Authorized Signature</p>
         </div>
+      </div>
       </div>
     </div>
   );

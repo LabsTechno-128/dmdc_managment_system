@@ -28,7 +28,9 @@
   }
 
   #prescription-print,
-  #prescription-print * {
+  #prescription-print *,
+  #invoice-print,
+  #invoice-print * {
     visibility: visible !important;
   }
 

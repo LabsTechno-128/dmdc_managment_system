@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, UseGuards, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
@@ -17,8 +17,12 @@ export class BillingController {
     }
 
     @Get()
-    findAll() {
-        return this.billingService.findAll();
+    findAll(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string
+    ) {
+        return this.billingService.findAll({ page, limit, search });
     }
 
     @Get(':id')
@@ -29,5 +33,10 @@ export class BillingController {
     @Patch(':id/status')
     updateStatus(@Param('id') id: string, @Body('paymentStatus') paymentStatus: string) {
         return this.billingService.updateStatus(id, paymentStatus);
+    }
+
+    @Patch(':id/payment')
+    updatePayment(@Param('id') id: string, @Body('paidAmount') paidAmount: number) {
+        return this.billingService.updatePayment(id, paidAmount);
     }
 }

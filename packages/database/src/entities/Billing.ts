@@ -51,6 +51,12 @@ export class Billing {
     @Column('decimal', { precision: 10, scale: 2 })
     totalAmount!: number;
 
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    paidAmount!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    dueAmount!: number;
+
     @Column({ length: 50, default: 'Cash' })
     paymentMethod!: string;
 

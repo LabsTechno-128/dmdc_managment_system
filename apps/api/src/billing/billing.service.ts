@@ -7,7 +7,7 @@ export class BillingService {
     constructor(private readonly databaseService: DatabaseService) {}
 
     async create(data: any) {
-        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paymentStatus } = data;
+        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount } = data;
         
         if (!items || items.length === 0) {
             throw new BadRequestException('Billing items are required');
@@ -61,6 +61,19 @@ export class BillingService {
                 throw new BadRequestException('Total amount cannot be negative');
             }
 
+            // Determine paidAmount, dueAmount and paymentStatus
+            const paid = Number(paidAmount) || 0;
+            const due = Math.max(0, totalAmount - paid);
+            
+            let status = 'Unpaid';
+            if (paid >= totalAmount && totalAmount > 0) {
+                status = 'Paid';
+            } else if (paid > 0 && paid < totalAmount) {
+                status = 'Partial';
+            } else if (totalAmount === 0) {
+                status = 'Paid';
+            }
+
             // 4. Generate Bill Number
             const today = new Date();
             const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
@@ -83,8 +96,10 @@ export class BillingService {
                 discountAmount,
                 additionalCharges: additional,
                 totalAmount,
+                paidAmount: paid,
+                dueAmount: due,
                 paymentMethod: paymentMethod || 'Cash',
-                paymentStatus: paymentStatus || 'Unpaid'
+                paymentStatus: status
             });
 
             const savedBilling = await queryRunner.manager.save(newBilling);
@@ -121,11 +136,37 @@ export class BillingService {
         }
     }
 
-    async findAll() {
-        return this.databaseService.repoBilling().find({ 
-            relations: { patient: true },
-            order: { createdAt: 'DESC' }
-        });
+    async findAll(query?: { page?: string, limit?: string, search?: string }) {
+        const page = Math.max(1, Number(query?.page) || 1);
+        const limit = Math.max(1, Number(query?.limit) || 10);
+        const search = query?.search || '';
+
+        const qb = this.databaseService.repoBilling()
+            .createQueryBuilder('billing')
+            .leftJoinAndSelect('billing.patient', 'patient')
+            .orderBy('billing.createdAt', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        if (search) {
+            qb.where('billing.billNumber ILIKE :search', { search: `%${search}%` })
+              .orWhere('billing.id::text ILIKE :search', { search: `%${search}%` })
+              .orWhere('patient.firstName ILIKE :search', { search: `%${search}%` })
+              .orWhere('patient.lastName ILIKE :search', { search: `%${search}%` })
+              .orWhere('patient.name ILIKE :search', { search: `%${search}%` });
+        }
+
+        const [data, total] = await qb.getManyAndCount();
+        
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 
     async findOne(id: string) {
@@ -144,6 +185,33 @@ export class BillingService {
 
     async updateStatus(id: string, paymentStatus: string) {
         await this.databaseService.repoBilling().update(id, { paymentStatus });
+        return this.databaseService.repoBilling().findOne({ where: { id } });
+    }
+
+    async updatePayment(id: string, additionalAmount: number) {
+        const billing = await this.databaseService.repoBilling().findOne({ where: { id } });
+        if (!billing) throw new BadRequestException('Billing not found');
+
+        const totalAmount = Number(billing.totalAmount);
+        const addAmount = Number(additionalAmount) || 0;
+        const paid = Number(billing.paidAmount) + addAmount;
+        const due = Math.max(0, totalAmount - paid);
+        
+        let status = 'Unpaid';
+        if (paid >= totalAmount && totalAmount > 0) {
+            status = 'Paid';
+        } else if (paid > 0 && paid < totalAmount) {
+            status = 'Partial';
+        } else if (totalAmount === 0) {
+            status = 'Paid';
+        }
+
+        await this.databaseService.repoBilling().update(id, { 
+            paidAmount: paid, 
+            dueAmount: due, 
+            paymentStatus: status 
+        });
+
         return this.databaseService.repoBilling().findOne({ where: { id } });
     }
 }

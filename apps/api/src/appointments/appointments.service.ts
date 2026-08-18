@@ -84,12 +84,18 @@ export class AppointmentsService {
                 }
             }
 
+            const apptType = createAppointmentDto.appointmentType || AppointmentType.New;
+            const fee = apptType === AppointmentType.FollowUp ? doctor.followUpFee : doctor.consultationFee;
+
             const appointment = repo.create({
                 doctorId: createAppointmentDto.doctorId,
                 patientId: patientData.id,
                 bookingType: bookingType,
                 appointmentDate: appointmentDate,
                 appointmentTime: appointmentTime,
+                appointmentType: apptType,
+                consultationFee: fee,
+                paymentStatus: 'Unpaid',
             });
 
             return await repo.save(appointment);

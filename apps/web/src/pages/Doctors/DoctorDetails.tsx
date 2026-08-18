@@ -9,12 +9,20 @@ import {
     User,
     Calendar,
     Clock,
+    DollarSign,
+    Users,
+    Printer,
+    FileText,
 } from 'lucide-react';
 import { DetailsSkeleton } from '../../components/skeleton/DetailsSkeleton';
+import { useReactToPrint } from 'react-to-print';
 
 export const DoctorDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    const [statsDate, setStatsDate] = React.useState<string>(new Date().toISOString().split('T')[0]);
+    const printRef = React.useRef<HTMLDivElement>(null);
 
     const { data: doctor, isLoading, isError } = useQuery({
         queryKey: ['doctor', id],
@@ -23,6 +31,20 @@ export const DoctorDetails: React.FC = () => {
             return data;
         },
         enabled: !!id,
+    });
+
+    const { data: stats, isLoading: isStatsLoading } = useQuery({
+        queryKey: ['doctor-daily-stats', id, statsDate],
+        queryFn: async () => {
+            const { data } = await api.get(`/doctors/${id}/daily-stats?date=${statsDate}`);
+            return data;
+        },
+        enabled: !!id,
+    });
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Doctor_Daily_Report_${doctor?.firstName}_${statsDate}`,
     });
 
     if (isLoading) {
@@ -166,6 +188,129 @@ export const DoctorDetails: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Daily Stats Section */}
+            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mt-8 p-6 sm:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <FileText className="text-primary" size={24} />
+                            Daily Income & Report
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-1">Track daily patients, income, and generate reports.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="date"
+                            value={statsDate}
+                            onChange={(e) => setStatsDate(e.target.value)}
+                            className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        />
+                        <button
+                            onClick={() => handlePrint()}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 hover:bg-primary hover:text-white rounded-xl transition-colors font-medium text-sm"
+                        >
+                            <Printer size={16} />
+                            Print Report
+                        </button>
+                    </div>
+                </div>
+
+                {isStatsLoading ? (
+                    <div className="animate-pulse flex space-x-4">
+                        <div className="flex-1 space-y-4 py-1">
+                            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                            <div className="space-y-2">
+                                <div className="h-4 bg-slate-200 rounded"></div>
+                                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div ref={printRef} className="print:p-8">
+                        <div className="hidden print:block mb-8 text-center border-b pb-6">
+                            <h1 className="text-3xl font-bold text-slate-900">Dr. {doctor.firstName} {doctor.lastName}</h1>
+                            <p className="text-lg text-slate-600 mt-2">Daily Consultation Report - {statsDate}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl flex items-center gap-4">
+                                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                                    <DollarSign size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-emerald-800">Total Income</p>
+                                    <h3 className="text-2xl font-bold text-emerald-900">{Number(stats?.totalIncome || 0).toLocaleString()} BDT</h3>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl flex items-center gap-4">
+                                <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                                    <Users size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-blue-800">Patients Seen</p>
+                                    <h3 className="text-2xl font-bold text-blue-900">{stats?.totalPatients || 0}</h3>
+                                </div>
+                            </div>
+
+                            <div className="bg-amber-50 border border-amber-100 p-6 rounded-2xl flex items-center gap-4">
+                                <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
+                                    <DollarSign size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-amber-800">Total Discount</p>
+                                    <h3 className="text-2xl font-bold text-amber-900">{Number(stats?.totalDiscount || 0).toLocaleString()} BDT</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
+                                        <th className="p-4">Patient Name</th>
+                                        <th className="p-4">Visit Type</th>
+                                        <th className="p-4">Time</th>
+                                        <th className="p-4">Fee</th>
+                                        <th className="p-4">Discount</th>
+                                        <th className="p-4">Paid</th>
+                                        <th className="p-4">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stats?.patientsSeen?.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="p-6 text-center text-slate-500">No patients seen on this date.</td>
+                                        </tr>
+                                    ) : (
+                                        stats?.patientsSeen?.map((appt: any) => (
+                                            <tr key={appt.id} className="border-b border-slate-100 last:border-0">
+                                                <td className="p-4 font-medium text-slate-800">
+                                                    {appt.patient?.name || `${appt.patient?.firstName || ''} ${appt.patient?.lastName || ''}`}
+                                                </td>
+                                                <td className="p-4 text-sm text-slate-600">{appt.appointmentType}</td>
+                                                <td className="p-4 text-sm text-slate-600">{appt.appointmentTime}</td>
+                                                <td className="p-4 font-medium">{Number(appt.consultationFee).toLocaleString()} BDT</td>
+                                                <td className="p-4 text-red-500">{appt.billing?.discountAmount ? Number(appt.billing.discountAmount).toLocaleString() : 0} BDT</td>
+                                                <td className="p-4 font-semibold text-emerald-600">{appt.billing?.paidAmount ? Number(appt.billing.paidAmount).toLocaleString() : 0} BDT</td>
+                                                <td className="p-4">
+                                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                                        appt.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
+                                                        appt.paymentStatus === 'Partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                        {appt.paymentStatus || 'Unpaid'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

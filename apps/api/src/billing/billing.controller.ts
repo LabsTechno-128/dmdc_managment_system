@@ -39,4 +39,20 @@ export class BillingController {
     updatePayment(@Param('id') id: string, @Body('paidAmount') paidAmount: number) {
         return this.billingService.updatePayment(id, paidAmount);
     }
+
+    @Post('appointment/:appointmentId')
+    createConsultationBill(@Param('appointmentId') appointmentId: string, @Body() data: any) {
+        return this.billingService.createConsultationBill(appointmentId, data);
+    }
+
+    @Post(':id/payments')
+    createPayment(@Param('id') id: string, @Body() data: any) {
+        // Assume data includes: amount, paymentMethod, notes, receivedById
+        return this.billingService.createPayment(id, data);
+    }
+
+    @Get(':id/payments')
+    getPayments(@Param('id') id: string) {
+        return this.billingService.getPayments(id);
+    }
 }

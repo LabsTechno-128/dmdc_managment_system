@@ -13,6 +13,8 @@ const doctorSchema = z.object({
     specialization: z.string().min(1, 'Specialization is required'),
     degree: z.string().optional(),
     availability: z.string().optional(),
+    consultationFee: z.number().min(0, 'Consultation fee must be positive'),
+    followUpFee: z.number().min(0, 'Follow-up fee must be positive'),
 });
 
 type DoctorFormValues = z.infer<typeof doctorSchema>;
@@ -39,6 +41,8 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
             specialization: '',
             degree: '',
             availability: '',
+            consultationFee: 0,
+            followUpFee: 0,
         },
     });
 
@@ -50,6 +54,8 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                 specialization: initialData.specialization || '',
                 degree: initialData.degree || '',
                 availability: initialData.availability || '',
+                consultationFee: initialData.consultationFee || 0,
+                followUpFee: initialData.followUpFee || 0,
             });
         }
     }, [initialData, reset]);
@@ -159,6 +165,34 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:outline-none focus:border-primary focus:ring-primary/20 transition-all"
                             placeholder="e.g. Mon-Fri, 9am-5pm"
                         />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Consultation Fee (BDT)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                {...register('consultationFee', { valueAsNumber: true })}
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.consultationFee ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
+                                    }`}
+                                placeholder="0.00"
+                            />
+                            {errors.consultationFee && <p className="mt-1 text-sm text-red-500">{errors.consultationFee.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Follow-up Fee (BDT)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                {...register('followUpFee', { valueAsNumber: true })}
+                                className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.followUpFee ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
+                                    }`}
+                                placeholder="0.00"
+                            />
+                            {errors.followUpFee && <p className="mt-1 text-sm text-red-500">{errors.followUpFee.message}</p>}
+                        </div>
                     </div>
 
                     <div className="flex justify-end pt-4">

@@ -6,10 +6,17 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
     ManyToOne,
-    JoinColumn
+    JoinColumn,
+    OneToMany
 } from 'typeorm';
 import { Patients } from './Patients';
 import { PatientType } from '../enums';
+import { BillingItem } from './BillingItem';
+
+export enum BillingType {
+    DIAGNOSTIC = 'DIAGNOSTIC',
+    CONSULTATION = 'CONSULTATION',
+}
 
 @Entity({ name: 'billings' })
 export class Billing {
@@ -25,6 +32,19 @@ export class Billing {
     @ManyToOne(() => Patients)
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
+
+    @Column({ type: 'uuid', nullable: true })
+    appointmentId?: string;
+
+    @Column({ type: 'uuid', nullable: true })
+    doctorId?: string;
+
+    @Column({
+        type: 'enum',
+        enum: BillingType,
+        default: BillingType.DIAGNOSTIC,
+    })
+    billingType!: BillingType;
 
     @Column({
         type: 'enum',
@@ -71,4 +91,8 @@ export class Billing {
 
     @DeleteDateColumn()
     deletedAt?: Date;
+
+    @OneToMany(() => BillingItem, (item) => item.billing)
+    items!: BillingItem[];
 }
+

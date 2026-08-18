@@ -28,6 +28,15 @@ export class DoctorsController {
     }
 
     @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)
+    @Get(':id/daily-stats')
+    getDailyStats(
+        @Param('id') id: string,
+        @Query('date') date?: string
+    ) {
+        return this.doctorsService.getDailyStats(id, date);
+    }
+
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST)
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.doctorsService.findOne(id);

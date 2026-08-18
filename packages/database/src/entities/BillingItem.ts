@@ -23,12 +23,15 @@ export class BillingItem {
     @JoinColumn({ name: 'billingId' })
     billing!: Billing;
 
-    @Column('int')
-    testId!: number;
+    @Column('int', { nullable: true })
+    testId?: number;
 
     @ManyToOne(() => LabTest)
     @JoinColumn({ name: 'testId' })
-    test!: LabTest;
+    test?: LabTest;
+
+    @Column({ length: 255, nullable: true })
+    description?: string;
 
     @Column('decimal', { precision: 10, scale: 2 })
     price!: number;
@@ -42,3 +45,4 @@ export class BillingItem {
     @DeleteDateColumn()
     deletedAt?: Date;
 }
+

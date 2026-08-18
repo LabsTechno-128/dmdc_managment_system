@@ -85,6 +85,9 @@ export class Appointment {
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     consultationFee!: number;
 
+    @Column({ length: 50, default: 'Unpaid' })
+    paymentStatus!: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

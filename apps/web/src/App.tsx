@@ -50,6 +50,7 @@ import AppointmentAssign from './pages/Appointments/AppointmentAssign';
 import Labtest from './pages/Labtest/Labtest';
 import { Placeholder } from './pages/Placeholder';
 import { PatientDetails } from './pages/Patients/PatientDetails';
+import { DoctorFeesList } from './pages/DoctorFees/DoctorFeesList';
 
 const queryClient = new QueryClient();
 
@@ -112,7 +113,7 @@ function App() {
               <Route path="/appointments/:id" element={<AppointmentDetails />} />
               <Route path="/appointments/:id/edit" element={<EditAppointment />} />
               <Route path="/appointments/assign/:id" element={<AppointmentAssign />} />
-              <Route path="/doctors-fee" element={<Placeholder title="Doctor's Fee" />} />
+              <Route path="/doctors-fee" element={<DoctorFeesList />} />
             </Route>
 
             {/* Super Admin & Admin Shared Routes (No Receptionist) */}

@@ -29,6 +29,12 @@ export class Doctor {
     @Column({ length: 255, nullable: true })
     availability?: string;
 
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    consultationFee!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    followUpFee!: number;
+
     @OneToMany(() => Appointment, (appointment) => appointment.doctor)
     appointments!: Appointment[];
 

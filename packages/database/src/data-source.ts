@@ -13,6 +13,7 @@ import { Notification } from './entities/Notification'
 import { Employee } from './entities/employee'
 import { Appointment } from './entities/Appointment'
 import { LabTest } from './entities/LabTest'
+import { PaymentTransaction } from './entities/PaymentTransaction'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
@@ -29,7 +30,8 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         Notification,
         Employee,
         Appointment,
-        LabTest
+        LabTest,
+        PaymentTransaction
     ],
     synchronize: true,
     logging: false,

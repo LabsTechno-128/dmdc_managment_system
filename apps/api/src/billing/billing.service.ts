@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Billing, BillingItem, TestOrder, PatientType, Patients, LabTest } from '@hospital/database';
+import { Billing, BillingItem, TestOrder, PatientType, Patients, LabTest, Appointment, PaymentTransaction, PaymentTransactionType, BillingType } from '@hospital/database';
 
 @Injectable()
 export class BillingService {
@@ -213,5 +213,224 @@ export class BillingService {
         });
 
         return this.databaseService.repoBilling().findOne({ where: { id } });
+    }
+
+    async createConsultationBill(appointmentId: string, data: any) {
+        const { discountType, discount, additionalCharges, paymentMethod, paidAmount, receivedById } = data;
+
+        const dataSource = this.databaseService.getDataSource();
+        const queryRunner = dataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 1. Verify Appointment
+            const appointment = await queryRunner.manager.findOne(Appointment, { 
+                where: { id: appointmentId },
+                relations: { doctor: true, patient: true }
+            });
+
+            if (!appointment) {
+                throw new NotFoundException('Appointment not found');
+            }
+
+            // check if billing already exists
+            const existingBill = await queryRunner.manager.findOne(Billing, { where: { appointmentId } });
+            if (existingBill) {
+                throw new BadRequestException('A bill already exists for this appointment');
+            }
+
+            // 2. Calculate values
+            const subtotal = Number(appointment.consultationFee);
+            const discountValue = Number(discount) || 0;
+            let discountAmount = 0;
+            
+            if (discountType === 'PERCENTAGE') {
+                if (discountValue > 100 || discountValue < 0) throw new BadRequestException('Invalid discount percentage');
+                discountAmount = subtotal * (discountValue / 100);
+            } else {
+                if (discountValue < 0 || discountValue > subtotal) throw new BadRequestException('Invalid discount amount');
+                discountAmount = discountValue;
+            }
+
+            const additional = Number(additionalCharges) || 0;
+            const totalAmount = subtotal - discountAmount + additional;
+
+            if (totalAmount < 0) {
+                throw new BadRequestException('Total amount cannot be negative');
+            }
+
+            const paid = Number(paidAmount) || 0;
+            const due = Math.max(0, totalAmount - paid);
+            
+            let status = 'Unpaid';
+            if (paid >= totalAmount && totalAmount > 0) {
+                status = 'Paid';
+            } else if (paid > 0 && paid < totalAmount) {
+                status = 'Partial';
+            } else if (totalAmount === 0) {
+                status = 'Paid';
+            }
+
+            // 3. Generate Bill Number
+            const today = new Date();
+            const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+            const countResult = await queryRunner.query(
+                `SELECT COUNT(*) FROM billings WHERE DATE("createdAt") = CURRENT_DATE`
+            );
+            const count = Number(countResult[0].count) || 0;
+            const seq = String(count + 1).padStart(4, '0');
+            const billNumber = `CONS-${dateStr}-${seq}`; // distinct prefix for consultation bills
+
+            // 4. Create Billing Record
+            const newBilling = queryRunner.manager.create(Billing, {
+                billNumber,
+                patientId: appointment.patientId,
+                appointmentId: appointment.id,
+                doctorId: appointment.doctorId,
+                billingType: BillingType.CONSULTATION,
+                patientType: PatientType.IN_HOUSE,
+                subtotal,
+                discountType: discountType || 'FIXED',
+                discount: discountValue,
+                discountAmount,
+                additionalCharges: additional,
+                totalAmount,
+                paidAmount: paid,
+                dueAmount: due,
+                paymentMethod: paymentMethod || 'Cash',
+                paymentStatus: status
+            });
+
+            const savedBilling = await queryRunner.manager.save(newBilling);
+
+            // 5. Create Billing Item
+            const billingItem = queryRunner.manager.create(BillingItem, {
+                billingId: savedBilling.id,
+                description: `Consultation Fee - Dr. ${appointment.doctor.lastName}`,
+                price: subtotal
+            });
+            await queryRunner.manager.save(billingItem);
+
+            // 6. Optionally create initial payment transaction if paidAmount > 0
+            if (paid > 0) {
+                const transaction = queryRunner.manager.create(PaymentTransaction, {
+                    billingId: savedBilling.id,
+                    patientId: savedBilling.patientId,
+                    amount: paid,
+                    paymentMethod: paymentMethod || 'Cash',
+                    type: PaymentTransactionType.PAYMENT,
+                    receivedById: receivedById,
+                    status: 'Completed',
+                    notes: 'Initial Payment'
+                });
+                await queryRunner.manager.save(transaction);
+            }
+
+            // 7. Sync appointment payment status
+            appointment.paymentStatus = status;
+            await queryRunner.manager.save(appointment);
+
+            await queryRunner.commitTransaction();
+
+            return this.databaseService.repoBilling().findOne({ 
+                where: { id: savedBilling.id }, 
+                relations: { patient: true, items: true }
+            });
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async createPayment(billingId: string, data: any) {
+        const { amount, paymentMethod, receivedById, notes } = data;
+        
+        const payAmount = Number(amount);
+        if (payAmount <= 0) {
+            throw new BadRequestException('Payment amount must be greater than zero');
+        }
+
+        const dataSource = this.databaseService.getDataSource();
+        const queryRunner = dataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const billing = await queryRunner.manager.findOne(Billing, { where: { id: billingId } });
+            if (!billing) {
+                throw new NotFoundException('Billing record not found');
+            }
+
+            const totalAmount = Number(billing.totalAmount);
+            let currentPaid = Number(billing.paidAmount);
+            let currentDue = Number(billing.dueAmount);
+
+            if (payAmount > currentDue) {
+                throw new BadRequestException(`Cannot pay more than the due amount. Current due is ${currentDue}`);
+            }
+
+            // 1. Create Transaction Record
+            const transaction = queryRunner.manager.create(PaymentTransaction, {
+                billingId: billing.id,
+                patientId: billing.patientId,
+                amount: payAmount,
+                paymentMethod: paymentMethod || 'Cash',
+                type: PaymentTransactionType.PAYMENT,
+                receivedById: receivedById,
+                status: 'Completed',
+                notes: notes
+            });
+            await queryRunner.manager.save(transaction);
+
+            // 2. Update Billing
+            currentPaid += payAmount;
+            currentDue = Math.max(0, totalAmount - currentPaid);
+            
+            let status = 'Unpaid';
+            if (currentPaid >= totalAmount && totalAmount > 0) {
+                status = 'Paid';
+            } else if (currentPaid > 0 && currentPaid < totalAmount) {
+                status = 'Partial';
+            } else if (totalAmount === 0) {
+                status = 'Paid';
+            }
+
+            billing.paidAmount = currentPaid;
+            billing.dueAmount = currentDue;
+            billing.paymentStatus = status;
+            await queryRunner.manager.save(billing);
+
+            // 3. Sync with Appointment if linked
+            if (billing.appointmentId) {
+                const appointment = await queryRunner.manager.findOne(Appointment, { where: { id: billing.appointmentId } });
+                if (appointment) {
+                    appointment.paymentStatus = status;
+                    await queryRunner.manager.save(appointment);
+                }
+            }
+
+            await queryRunner.commitTransaction();
+
+            return transaction;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async getPayments(billingId: string) {
+        return this.databaseService.repoPaymentTransaction().find({
+            where: { billingId },
+            relations: { receivedBy: true },
+            order: { createdAt: 'DESC' }
+        });
     }
 }

@@ -55,4 +55,8 @@ export class CreateAppointmentDto {
     @IsString()
     @IsOptional()
     phone?: string;
+
+    @IsEnum(AppointmentType)
+    @IsOptional()
+    appointmentType?: AppointmentType;
 }

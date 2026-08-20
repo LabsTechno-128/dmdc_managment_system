@@ -9,7 +9,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import { Appointment, AppointmentStatus, AppointmentType, Patients, AppointmentBookingType } from '@hospital/database';
-import { Between, MoreThanOrEqual } from 'typeorm';
+import { And, Between, LessThan, MoreThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class AppointmentsService {
@@ -70,7 +70,7 @@ export class AppointmentsService {
                     throw new BadRequestException('Appointment date cannot be in the past');
                 }
                 appointmentTime = createAppointmentDto.appointmentTime || '00:00';
-                
+
                 // Check for duplicate future appointment (same doctor, same date, same time)
                 const existing = await repo.findOne({
                     where: {
@@ -85,7 +85,6 @@ export class AppointmentsService {
             }
 
             const apptType = createAppointmentDto.appointmentType || AppointmentType.New;
-            const fee = apptType === AppointmentType.FollowUp ? doctor.followUpFee : doctor.consultationFee;
 
             const appointment = repo.create({
                 doctorId: createAppointmentDto.doctorId,
@@ -94,11 +93,26 @@ export class AppointmentsService {
                 appointmentDate: appointmentDate,
                 appointmentTime: appointmentTime,
                 appointmentType: apptType,
-                consultationFee: fee,
                 paymentStatus: 'Unpaid',
             });
 
-            return await repo.save(appointment);
+            if (createAppointmentDto.status) {
+                appointment.status = createAppointmentDto.status;
+            }
+
+            if (createAppointmentDto.consultationFee !== undefined) {
+                appointment.consultationFee = createAppointmentDto.consultationFee;
+            }
+
+            if (createAppointmentDto.followUpFee !== undefined) {
+                appointment.followUpFee = createAppointmentDto.followUpFee;
+            }
+
+            const savedAppointment = await repo.save(appointment);
+
+
+
+            return savedAppointment;
         } catch (error) {
             console.log(error);
             throw error;
@@ -220,18 +234,30 @@ export class AppointmentsService {
         // if (updateAppointmentDto.patientId) {
         //     const patient = await this.databaseService.repoPatients().findOne({ where: { id: updateAppointmentDto.patientId } });
         //     if (!patient) {
-        //         throw new NotFoundException(`Patient with ID "${updateAppointmentDto.patientId}" not found`);
-        //     }
-        // }
+        const validKeys = [
+            'doctorId', 'patientId', 'appointmentDate', 'appointmentTime',
+            'appointmentType', 'status', 'bookingType', 'visitReason', 'notes',
+            'consultationFee', 'followUpFee', 'paymentStatus'
+        ];
 
-        // // Convert date string to Date object if provided
-        // const updateData: any = { ...updateAppointmentDto };
-        // if (updateAppointmentDto.appointmentDate) {
-        //     updateData.appointmentDate = new Date(updateAppointmentDto.appointmentDate);
-        // }
+        const updateData: any = {};
+        for (const key of validKeys) {
+            if ((updateAppointmentDto as any)[key] !== undefined) {
+                updateData[key] = (updateAppointmentDto as any)[key];
+            }
+        }
 
-        // await repo.update(id, updateData);
-        return repo.findOne({ where: { id }, relations: { doctor: true, patient: true } });
+        if (updateAppointmentDto.existingPatientId) {
+            updateData.patientId = updateAppointmentDto.existingPatientId;
+        }
+
+        await repo.update(id, updateData);
+
+        const updatedAppointment = await repo.findOne({ where: { id }, relations: { doctor: true, patient: true } });
+
+
+
+        return updatedAppointment;
     }
 
     async remove(id: string) {
@@ -259,15 +285,133 @@ export class AppointmentsService {
 
     async findByPatient(patientId: string) {
         const repo = this.databaseService.repoAppointment();
-        const patient = await this.databaseService.repoPatients().findOne({ where: { id: patientId } });
-        if (!patient) {
-            throw new NotFoundException(`Patient with ID "${patientId}" not found`);
-        }
         return repo.find({
             where: { patientId },
             relations: { doctor: true, patient: true },
-            order: { appointmentDate: 'ASC', appointmentTime: 'ASC' },
+            order: { appointmentDate: 'DESC', appointmentTime: 'DESC' },
         });
+    }
+
+    async getDailyIncome(dateStr?: string) {
+        const repo = this.databaseService.repoAppointment();
+        const targetDate = dateStr
+            ? new Date(`${dateStr}T00:00:00`)
+            : new Date();
+
+
+        targetDate.setHours(0, 0, 0, 0);
+
+
+        const nextDate = new Date(targetDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+
+        const appointments = await repo.find({
+            where: {
+                createdAt: And(
+                    MoreThanOrEqual(targetDate),
+                    LessThan(nextDate),
+                ),
+            },
+            relations: {
+                doctor: true,
+                patient: true,
+            },
+        });
+
+        const doctorRepo = this.databaseService.repoDoctor();
+        const allDoctors = await doctorRepo.find();
+
+        const doctorIncomes: Record<string, {
+            doctorName: string,
+            doctorId: string,
+            totalIncome: number,
+            consultationIncome: number,
+            followUpIncome: number,
+            patientCount: number,
+            appointmentCount: number,
+            appointments: any[],
+            uniquePatients: Set<string>,
+            date: string
+        }> = {};
+
+        const formattedDate = targetDate.toISOString().split('T')[0];
+
+        // Initialize all active doctors with 0 income
+        for (const doc of allDoctors) {
+            doctorIncomes[doc.id] = {
+                doctorId: doc.id,
+                doctorName: `${doc.firstName} ${doc.lastName}`,
+                totalIncome: 0,
+                consultationIncome: 0,
+                followUpIncome: 0,
+                patientCount: 0,
+                appointmentCount: 0,
+                appointments: [],
+                uniquePatients: new Set<string>(),
+                date: formattedDate
+            };
+        }
+
+        for (const appt of appointments) {
+            const docId = appt.doctorId;
+            if (!doctorIncomes[docId]) {
+                doctorIncomes[docId] = {
+                    doctorId: docId,
+                    doctorName: appt.doctor ? `${appt.doctor.firstName} ${appt.doctor.lastName}` : 'Unknown',
+                    totalIncome: 0,
+                    consultationIncome: 0,
+                    followUpIncome: 0,
+                    patientCount: 0,
+                    appointmentCount: 0,
+                    appointments: [],
+                    uniquePatients: new Set<string>(),
+                    date: formattedDate
+                };
+            }
+
+            const consultationFee = Number(appt.consultationFee || 0);
+            const followUpFee = Number(appt.followUpFee || 0);
+            const income = consultationFee + followUpFee;
+
+            doctorIncomes[docId].totalIncome += income;
+            doctorIncomes[docId].consultationIncome += consultationFee;
+            doctorIncomes[docId].followUpIncome += followUpFee;
+            doctorIncomes[docId].appointmentCount += 1;
+
+            const patientId = appt.patientId || (appt.patient as any)?.id;
+            if (patientId) {
+                doctorIncomes[docId].uniquePatients.add(patientId);
+            }
+            doctorIncomes[docId].patientCount = doctorIncomes[docId].uniquePatients.size;
+
+            doctorIncomes[docId].appointments.push({
+                appointmentId: appt.id,
+                patientName: appt.patient ? (appt.patient as any).name || (appt.patient as any).firstName || 'Unknown' : 'Unknown',
+                appointmentType: appt.appointmentType,
+                feeEarned: income,
+                consultationFee,
+                followUpFee
+            });
+        }
+
+        const doctorsList = Object.values(doctorIncomes).map(doc => {
+            const { uniquePatients, ...rest } = doc;
+            return rest;
+        });
+
+        const summary = {
+            totalIncome: doctorsList.reduce((sum, doc) => sum + doc.totalIncome, 0),
+            consultationIncome: doctorsList.reduce((sum, doc) => sum + doc.consultationIncome, 0),
+            followUpIncome: doctorsList.reduce((sum, doc) => sum + doc.followUpIncome, 0),
+            patientCount: doctorsList.reduce((sum, doc) => sum + doc.patientCount, 0),
+            appointmentCount: doctorsList.reduce((sum, doc) => sum + doc.appointmentCount, 0),
+            date: formattedDate
+        };
+        // console.log(doctorsList, "----");
+        return {
+            summary,
+            doctors: doctorsList
+        };
     }
 
     async findToday() {

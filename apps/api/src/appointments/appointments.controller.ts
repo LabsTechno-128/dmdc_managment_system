@@ -39,6 +39,11 @@ export class AppointmentsController {
         return this.appointmentsService.findToday();
     }
 
+    @Get('daily-income')
+    getDailyIncome(@Query('date') date?: string) {
+        return this.appointmentsService.getDailyIncome(date);
+    }
+
     @Get('upcoming')
     findUpcoming() {
         return this.appointmentsService.findUpcoming();

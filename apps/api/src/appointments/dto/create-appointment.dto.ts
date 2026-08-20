@@ -59,4 +59,18 @@ export class CreateAppointmentDto {
     @IsEnum(AppointmentType)
     @IsOptional()
     appointmentType?: AppointmentType;
+
+    @IsEnum(AppointmentStatus)
+    @IsOptional()
+    status?: AppointmentStatus;
+
+    @IsNumber()
+    @Min(0)
+    @IsOptional()
+    consultationFee?: number;
+
+    @IsNumber()
+    @Min(0)
+    @IsOptional()
+    followUpFee?: number;
 }

@@ -41,11 +41,11 @@ export class Appointment {
     @Column()
     patientId!: string;
 
-    @ManyToOne(() => Doctor, (doctor) => doctor.appointments)
+    @ManyToOne(() => Doctor, (doctor) => doctor.appointments, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'doctorId' })
     doctor!: Doctor;
 
-    @ManyToOne(() => Patients, (patient) => patient.appointments)
+    @ManyToOne(() => Patients, (patient) => patient.appointments, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
 
@@ -84,6 +84,9 @@ export class Appointment {
 
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     consultationFee!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    followUpFee!: number;
 
     @Column({ length: 50, default: 'Unpaid' })
     paymentStatus!: string;

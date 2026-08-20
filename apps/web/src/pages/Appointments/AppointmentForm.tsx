@@ -36,6 +36,8 @@ const appointmentSchema = z.object({
     bloodPresure: z.string().optional(),
     phone: z.string().optional(),
     notes: z.string().optional(),
+    consultationFee: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0, 'Must be positive').optional()),
+    followUpFee: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0, 'Must be positive').optional()),
 }).superRefine((data, ctx) => {
     if (data.bookingType === 'FUTURE') {
         if (!data.appointmentDate) {
@@ -77,6 +79,12 @@ const appointmentSchema = z.object({
             });
         }
     }
+    if (data.bookingType === 'LIVE') { // Only required when creating a new live appointment
+        if (data.consultationFee === undefined && data.followUpFee === undefined) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter at least one fee', path: ['consultationFee'] });
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter at least one fee', path: ['followUpFee'] });
+        }
+    }
 });
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
@@ -111,6 +119,7 @@ interface Doctor {
 // =========================
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
+    initialData,
     isEdit = false,
 }) => {
     const navigate = useNavigate();
@@ -138,30 +147,37 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 ...data,
             };
 
-            const response = await createMutation.mutateAsync(payload);
+            const targetId = (isEdit && initialData) ? initialData.id : appointmentId;
 
-            console.log(response);
+            if (targetId) {
+                await updateMutation.mutateAsync({ id: targetId, data: payload as any });
+                toast.success('Appointment updated successfully!');
+                if (isEdit || payload.bookingType === 'FUTURE') {
+                    setTimeout(() => navigate('/appointments'), 1500);
+                }
+            } else {
+                const response = await createMutation.mutateAsync(payload);
+                setAppointmentId(response.id);
 
-            setAppointmentId(response.id);
-
-            if (payload.bookingType === 'FUTURE') {
-                toast.success('Future appointment created successfully!');
-                // Wait briefly then navigate back
-                setTimeout(() => navigate('/appointments'), 1500);
+                if (payload.bookingType === 'FUTURE') {
+                    toast.success('Future appointment created successfully!');
+                    setTimeout(() => navigate('/appointments'), 1500);
+                } else {
+                    toast.success('Live appointment created successfully! You can now add OPD details.');
+                }
             }
         } catch (error) {
             console.log(error);
-
             toast.error(
-                'Failed to create appointment. Please try again.'
+                (isEdit || appointmentId) ? 'Failed to update appointment. Please try again.' : 'Failed to create appointment. Please try again.'
             );
         }
     };
 
-    const {
-        data: appointment,
-        isLoading,
-    } = useAppointment(appointmentId);
+    // If initialData is provided (Edit Mode), use it.
+    // Otherwise, if we just created a new one, we might fetch it via useAppointment(appointmentId).
+    const { data: fetchedAppointment, isLoading } = useAppointment(appointmentId);
+    const appointmentToEdit = initialData || fetchedAppointment;
 
     const mutationError = mutation.error as Error | null;
 
@@ -218,7 +234,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
             <DMDCRegistration
                 onSubmit={onSubmit}
                 doctors={Array.isArray(doctorsResponse) ? doctorsResponse : doctorsResponse?.data ?? []}
-                appointment={appointment}
+                appointment={appointmentToEdit}
                 isLoading={isLoading || createMutation.isPending}
             />
         </div>
@@ -264,11 +280,53 @@ function DMDCRegistration({
             weight: undefined,
             bloodPresure: '',
             notes: '',
+            consultationFee: undefined,
+            followUpFee: undefined,
         },
     });
 
     const bookingType = useWatch({ control, name: 'bookingType' });
     const isNewPatientMode = useWatch({ control, name: 'isNewPatientMode' });
+
+    React.useEffect(() => {
+        if (appointment) {
+            setValue('bookingType', appointment.bookingType);
+            
+            if (appointment.doctorId) {
+                setValue('doctorId', appointment.doctorId);
+                setSelectedDoctor(appointment.doctorId);
+            }
+
+            if (appointment.appointmentDate) {
+                const d = new Date(appointment.appointmentDate);
+                // Adjust to local date string to avoid timezone shifts
+                const dateString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                setValue('appointmentDate', dateString);
+            }
+            if (appointment.appointmentTime) {
+                setValue('appointmentTime', appointment.appointmentTime);
+            }
+            if (appointment.notes) {
+                setValue('notes', appointment.notes);
+            }
+
+            if ((appointment as any).consultationFee !== undefined) {
+                setValue('consultationFee', (appointment as any).consultationFee);
+            }
+            if ((appointment as any).followUpFee !== undefined) {
+                setValue('followUpFee', (appointment as any).followUpFee);
+            }
+
+            const pId = appointment.patientId || (appointment as any).patient?.id;
+            if (pId) {
+                setValue('isNewPatientMode', false);
+                setValue('existingPatientId', pId);
+                const pName = (appointment as any).patient?.name || (appointment as any).patient?.firstName || 'Unknown';
+                const pPhone = (appointment as any).patient?.phone || '';
+                setSelectedPatientOpt({ label: `${pName} - ${pPhone}`, value: pId });
+            }
+        }
+    }, [appointment, setValue]);
 
     const submitForm = (data: AppointmentFormValues) => {
         if (isNewPatientMode) {
@@ -298,18 +356,16 @@ function DMDCRegistration({
             <main className="p-4">
                 <form onSubmit={handleSubmit(submitForm)}>
                     {/* Booking Type Selection */}
-                    {!appointment && (
-                        <div className="mb-6 flex gap-4">
-                            <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'LIVE' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
-                                <input type="radio" value="LIVE" {...register('bookingType')} className="hidden" />
-                                <div className="font-semibold text-emerald-700">Live / Walk-in</div>
-                            </label>
-                            <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'FUTURE' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
-                                <input type="radio" value="FUTURE" {...register('bookingType')} className="hidden" />
-                                <div className="font-semibold text-blue-700">Future Appointment</div>
-                            </label>
-                        </div>
-                    )}
+                    <div className="mb-6 flex gap-4">
+                        <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'LIVE' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
+                            <input type="radio" value="LIVE" {...register('bookingType')} className="hidden" />
+                            <div className="font-semibold text-emerald-700">Live / Walk-in</div>
+                        </label>
+                        <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all ${bookingType === 'FUTURE' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                            <input type="radio" value="FUTURE" {...register('bookingType')} className="hidden" />
+                            <div className="font-semibold text-blue-700">Future Appointment</div>
+                        </label>
+                    </div>
 
                     {/* Patient Details */}
                     {!appointment && (
@@ -518,17 +574,43 @@ function DMDCRegistration({
                                 ))}
                             </div>
 
-                            {!appointment && (
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="cursor-pointer w-full mt-6 bg-emerald-600 text-white rounded px-4 py-3 font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading
-                                        ? 'Processing...'
-                                        : bookingType === 'LIVE' ? 'Generate OPD' : 'Book Appointment'}
-                                </button>
+                            {bookingType === 'LIVE' && (
+                                <div className="mt-6 bg-white p-4 rounded shadow-sm border border-emerald-100">
+                                    <h3 className="font-semibold text-emerald-800 mb-4">Consultation Details</h3>
+                                    <div className="flex gap-4">
+                                        <div className="w-1/2">
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">Consultation Fee (BDT)</label>
+                                            <input
+                                                type="number"
+                                                {...register('consultationFee', { valueAsNumber: true })}
+                                                className={`w-full bg-gray-50 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${errors.consultationFee ? 'border-red-500 focus:ring-red-500' : 'border-emerald-300 focus:ring-emerald-500'}`}
+                                                placeholder="e.g. 500"
+                                            />
+                                            {errors.consultationFee && <p className="text-red-500 text-[11px] mt-1">{errors.consultationFee.message}</p>}
+                                        </div>
+                                        <div className="w-1/2">
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">Follow-up Fee (BDT)</label>
+                                            <input
+                                                type="number"
+                                                {...register('followUpFee', { valueAsNumber: true })}
+                                                className={`w-full bg-gray-50 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${errors.followUpFee ? 'border-red-500 focus:ring-red-500' : 'border-emerald-300 focus:ring-emerald-500'}`}
+                                                placeholder="e.g. 300"
+                                            />
+                                            {errors.followUpFee && <p className="text-red-500 text-[11px] mt-1">{errors.followUpFee.message}</p>}
+                                        </div>
+                                    </div>
+                                </div>
                             )}
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className={`cursor-pointer w-full mt-6 text-white rounded px-4 py-3 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${bookingType === 'LIVE' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                            >
+                                {isLoading
+                                    ? 'Processing...'
+                                    : appointment ? 'Update Appointment' : bookingType === 'LIVE' ? 'Start Live Appointment' : 'Book Appointment'}
+                            </button>
                         </div>
 
                         {/* OPD Form */}

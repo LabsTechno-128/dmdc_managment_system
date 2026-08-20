@@ -27,6 +27,8 @@
     visibility: hidden !important;
   }
 
+  #doctor-income-print,
+  #doctor-income-print *,
   #prescription-print,
   #prescription-print *,
   #invoice-print,
@@ -51,6 +53,16 @@
     background: white;
     overflow: hidden;
   }
+
+  /* #doctor-income-print {
+    position: fixed;
+    inset: 0;
+    width: 210mm;
+    min-height: 297mm;
+    margin: auto;
+    background: white;
+    overflow: hidden;
+  } */
 
   .no-print {
     display: none !important;

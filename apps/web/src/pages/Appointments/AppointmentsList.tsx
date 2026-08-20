@@ -5,8 +5,10 @@ import { api } from '../../lib/api';
 import { useAppointments, useDeleteAppointment } from '../../hooks/useAppointments';
 import { AppointmentStatus, AppointmentType, AppointmentBookingType } from '../../types/appointment';
 import type { AppointmentQueryParams } from '../../types/appointment';
-import { Plus, Trash2, Edit, Eye, RefreshCw, Search, Calendar, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Eye, RefreshCw, Search, Calendar, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
+import { DeleteModal } from '../../components/DeleteModal';
+import { toast } from 'react-toastify';
 
 const statusColors: Record<string, string> = {
     Pending: 'bg-amber-100 text-amber-700',
@@ -43,6 +45,8 @@ export const AppointmentsList: React.FC = () => {
     const [dateFilter, setDateFilter] = useState('');
     const [sortBy, setSortBy] = useState('appointmentDate');
     const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+
+    const [deleteAppointment, setDeleteAppointment] = useState<any>(null);
 
     const queryParams: AppointmentQueryParams = {
         page,
@@ -87,10 +91,18 @@ export const AppointmentsList: React.FC = () => {
         setPage(1);
     };
 
-    const handleDelete = (id: string) => {
-        if (window.confirm('Are you sure you want to delete this appointment?')) {
-            deleteMutation.mutate(id);
-        }
+    const handleDeleteConfirm = () => {
+        if (!deleteAppointment) return;
+        deleteMutation.mutate(deleteAppointment.id, {
+            onSuccess: () => {
+                toast.success('Appointment deleted successfully!');
+                setDeleteAppointment(null);
+            },
+            onError: (error: any) => {
+                toast.error(error.message || 'Failed to delete appointment');
+                setDeleteAppointment(null);
+            }
+        });
     };
 
     const handleSort = (field: string) => {
@@ -357,14 +369,8 @@ export const AppointmentsList: React.FC = () => {
                                                     >
                                                         <Eye size={16} />
                                                     </button>
-                                                    <button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}
-                                                        className="p-2 text-slate-400 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(appointment.id)}
-                                                        disabled={deleteMutation.isPending}
+                                                    <button onClick={() => setDeleteAppointment(appointment)}
+                                                        disabled={deleteMutation.isPending && deleteAppointment?.id === appointment.id}
                                                         className="p-2 text-slate-400 hover:text-red-500 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
                                                         title="Delete"
                                                     >
@@ -419,6 +425,16 @@ export const AppointmentsList: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Delete Modal */}
+            <DeleteModal
+                isOpen={!!deleteAppointment}
+                onClose={() => setDeleteAppointment(null)}
+                onConfirm={handleDeleteConfirm}
+                isDeleting={deleteMutation.isPending}
+                title="Delete Appointment"
+                message="Are you sure you want to delete this appointment? This action cannot be undone."
+            />
         </div>
     );
 };

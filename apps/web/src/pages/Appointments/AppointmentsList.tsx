@@ -289,12 +289,12 @@ export const AppointmentsList: React.FC = () => {
                                     <th className="p-4">Time</th>
                                     <th className="p-4">Booking</th>
                                     <th className="p-4">Type</th>
-                                    <th className="p-4 cursor-pointer select-none hover:bg-slate-100" onClick={() => handleSort('status')}>
+                                    {/* <th className="p-4 cursor-pointer select-none hover:bg-slate-100" onClick={() => handleSort('status')}>
                                         <div className="flex items-center space-x-1">
                                             <span>Status</span>
                                             {sortBy === 'status' && <span className="text-xs">{sortOrder === 'ASC' ? '↑' : '↓'}</span>}
                                         </div>
-                                    </th>
+                                    </th> */}
                                     <th className="p-4 cursor-pointer select-none hover:bg-slate-100" onClick={() => handleSort('consultationFee')}>
                                         <div className="flex items-center space-x-1">
                                             <span>Fee</span>
@@ -353,13 +353,15 @@ export const AppointmentsList: React.FC = () => {
                                                     {appointment.appointmentType}
                                                 </span>
                                             </td>
-                                            <td className="p-4">
+                                            {/* <td className="p-4">
                                                 <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status] || 'bg-slate-100 text-slate-700'}`}>
                                                     {appointment.status}
                                                 </span>
-                                            </td>
+                                            </td> */}
                                             <td className="p-4 font-semibold text-slate-800 text-sm">
-                                                {Number(appointment.consultationFee).toLocaleString()} BDT
+                                                {Number(appointment.consultationFee) + Number(appointment.followUpFee)} BDT
+
+
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end space-x-2">

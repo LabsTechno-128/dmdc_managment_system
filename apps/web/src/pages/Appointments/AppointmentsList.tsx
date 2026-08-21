@@ -10,13 +10,13 @@ import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { DeleteModal } from '../../components/DeleteModal';
 import { toast } from 'react-toastify';
 
-const statusColors: Record<string, string> = {
-    Pending: 'bg-amber-100 text-amber-700',
-    Confirmed: 'bg-blue-100 text-blue-700',
-    Completed: 'bg-emerald-100 text-emerald-700',
-    Cancelled: 'bg-red-100 text-red-700',
-    NoShow: 'bg-slate-100 text-slate-700',
-};
+// const statusColors: Record<string, string> = {
+//     Pending: 'bg-amber-100 text-amber-700',
+//     Confirmed: 'bg-blue-100 text-blue-700',
+//     Completed: 'bg-emerald-100 text-emerald-700',
+//     Cancelled: 'bg-red-100 text-red-700',
+//     NoShow: 'bg-slate-100 text-slate-700',
+// };
 
 const typeColors: Record<string, string> = {
     New: 'bg-indigo-100 text-indigo-700',

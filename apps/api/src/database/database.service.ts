@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction } from '@hospital/database';
+import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
@@ -56,7 +56,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 Notification,
                 Appointment,
                 LabTest,
-                PaymentTransaction
+                PaymentTransaction,
+                Attendance,
+                Payroll
             ],
             synchronize: true,
             logging: false,
@@ -114,6 +116,15 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoPaymentTransaction(): Repository<PaymentTransaction> {
         return this.getDataSource().getRepository(PaymentTransaction);
+    }
+    repoEmployee(): Repository<Employee> {
+        return this.getDataSource().getRepository(Employee);
+    }
+    repoAttendance(): Repository<Attendance> {
+        return this.getDataSource().getRepository(Attendance);
+    }
+    repoPayroll(): Repository<Payroll> {
+        return this.getDataSource().getRepository(Payroll);
     }
 }
 // trigger recompile 2

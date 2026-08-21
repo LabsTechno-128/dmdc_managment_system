@@ -36,6 +36,18 @@ export class Employee {
     @Column({ default: true })
     isActive!: boolean;
 
+    @Column({ length: 200, nullable: true })
+    email!: string;
+
+    @Column({ length: 100, nullable: true })
+    designation!: string;
+
+    @Column({ length: 100, nullable: true })
+    department!: string;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    monthlySalary!: number;
+
     @OneToOne(() => User, (user) => user.employee, {
         nullable: true,
         onDelete: 'SET NULL',

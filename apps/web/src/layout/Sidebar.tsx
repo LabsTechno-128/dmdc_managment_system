@@ -14,7 +14,10 @@ import {
     Wallet,
     Package,
     PiggyBank,
-    CreditCard
+    CreditCard,
+    Contact,
+    Fingerprint,
+    Coins
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -45,6 +48,9 @@ const ITEMS: NavItem[] = [
     { label: "Doctor's List", path: '/doctors', icon: Stethoscope, role: [UserRole.SUPER_ADMIN] },
     { label: 'Tests List', path: '/lab-test', icon: FlaskConical, role: [UserRole.SUPER_ADMIN] },
     { label: "User's List", path: '/users', icon: Users, role: [UserRole.SUPER_ADMIN] },
+    { label: 'Employees', path: '/employees', icon: Contact, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+    { label: 'Attendance', path: '/attendance', icon: Fingerprint, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: 'Payroll', path: '/payroll', icon: Coins, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
     { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },

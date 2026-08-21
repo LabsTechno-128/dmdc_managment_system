@@ -51,6 +51,9 @@ import Labtest from './pages/Labtest/Labtest';
 import { Placeholder } from './pages/Placeholder';
 import { PatientDetails } from './pages/Patients/PatientDetails';
 import { DoctorFeesList } from './pages/DoctorFees/DoctorFeesList';
+import { EmployeesList } from './pages/Employees/EmployeesList';
+import { AttendanceList } from './pages/Attendance/AttendanceList';
+import { PayrollList } from './pages/Payroll/PayrollList';
 
 const queryClient = new QueryClient();
 
@@ -114,11 +117,16 @@ function App() {
               <Route path="/appointments/:id/edit" element={<EditAppointment />} />
               <Route path="/appointments/assign/:id" element={<AppointmentAssign />} />
               <Route path="/doctors-fee" element={<DoctorFeesList />} />
+              <Route path="/attendance" element={<AttendanceList />} />
+              <Route path="/payroll" element={<PayrollList />} />
+
             </Route>
 
             {/* Super Admin & Admin Shared Routes (No Receptionist) */}
             <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']} />}>
               <Route path="/inventory" element={<Placeholder title="Inventory" />} />
+              <Route path="/employees" element={<EmployeesList />} />
+              <Route path="/payroll" element={<PayrollList />} />
             </Route>
 
             {/* Admin Only Routes */}

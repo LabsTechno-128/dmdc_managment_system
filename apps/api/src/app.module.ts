@@ -13,8 +13,31 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { UsersModule } from './users/users.module';
 import { LabTestsModule } from './lab-tests/lab-tests.module';
+import { EmployeesModule } from './employees/employees.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { PayrollModule } from './payroll/payroll.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [LabTestsModule, DatabaseModule, PatientsModule, AuthModule, DoctorsModule, TestsModule, BillingModule, TestCounterModule, ReportsModule, DashboardModule, SettingsModule, NotificationsModule, AppointmentsModule, UsersModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    LabTestsModule,
+    DatabaseModule,
+    PatientsModule,
+    AuthModule,
+    DoctorsModule,
+    TestsModule,
+    BillingModule,
+    TestCounterModule,
+    ReportsModule,
+    DashboardModule,
+    SettingsModule,
+    NotificationsModule,
+    AppointmentsModule,
+    UsersModule,
+    EmployeesModule,
+    AttendanceModule,
+    PayrollModule
+  ],
 })
 export class AppModule { }

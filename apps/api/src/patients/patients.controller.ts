@@ -6,6 +6,7 @@ import { UserRole } from '@hospital/database';
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { PatientTestQueryDto } from './dto/patient-test-query.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
@@ -26,6 +27,16 @@ export class PatientsController {
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.patientsService.findOne(id);
+    }
+
+    @Get(':id/details')
+    getPatientDetails(@Param('id') id: string) {
+        return this.patientsService.getPatientDetails(id);
+    }
+
+    @Get(':id/tests')
+    getPatientTests(@Param('id') id: string, @Query() query: PatientTestQueryDto) {
+        return this.patientsService.getPatientTests(id, query);
     }
 
     @Patch(':id')

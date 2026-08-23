@@ -144,7 +144,7 @@ function App() {
               <Route path="/doctors/:id/edit" element={<EditDoctor />} />
               <Route path="/lab-test" element={<Labtest />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/accounts" element={<Placeholder title="Accounts" />} />
+              {/* <Route path="/accounts" element={<Placeholder title="Accounts" />} /> */}
             </Route>
 
             {/* Lab Technician Routes (Sample Collection) */}

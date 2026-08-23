@@ -68,6 +68,8 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
               <option value="Leave">Leave</option>
               <option value="Half Day">Half Day</option>
               <option value="Friday Off">Friday Off</option>
+              <option value="Weekly Off">Weekly Off</option>
+              <option value="Holiday">Holiday</option>
             </select>
           </div>
           <div>

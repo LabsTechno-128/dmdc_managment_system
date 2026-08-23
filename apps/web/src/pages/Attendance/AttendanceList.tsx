@@ -135,8 +135,8 @@ export const AttendanceList: React.FC = () => {
           <span className="text-2xl font-black text-orange-600 mt-1.5">{summary.halfDay}</span>
         </div>
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Friday Off</span>
-          <span className="text-2xl font-black text-slate-600 mt-1.5">{summary.fridayOff}</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Off / Holiday</span>
+          <span className="text-2xl font-black text-slate-600 mt-1.5">{(summary.fridayOff || 0) + (summary.weeklyOff || 0) + (summary.holiday || 0)}</span>
         </div>
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between bg-blue-50/10">
           <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">Not Marked</span>
@@ -214,7 +214,7 @@ export const AttendanceList: React.FC = () => {
                           item.status === 'Absent' ? 'bg-red-50 text-red-700 border-red-200' :
                           item.status === 'Leave' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                           item.status === 'Half Day' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                          item.status === 'Friday Off' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                          (item.status === 'Friday Off' || item.status === 'Weekly Off' || item.status === 'Holiday') ? 'bg-slate-100 text-slate-600 border-slate-200' :
                           'bg-blue-50/50 text-blue-600 border-blue-100'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
@@ -222,7 +222,7 @@ export const AttendanceList: React.FC = () => {
                             item.status === 'Absent' ? 'bg-red-500' :
                             item.status === 'Leave' ? 'bg-amber-500' :
                             item.status === 'Half Day' ? 'bg-orange-500' :
-                            item.status === 'Friday Off' ? 'bg-slate-400' :
+                            (item.status === 'Friday Off' || item.status === 'Weekly Off' || item.status === 'Holiday') ? 'bg-slate-400' :
                             'bg-blue-400'
                           }`}></span>
                           <span>{item.status}</span>
@@ -231,7 +231,7 @@ export const AttendanceList: React.FC = () => {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           {/* Check-In / Check-Out Actions */}
-                          {item.status !== 'Friday Off' && item.status !== 'Leave' && item.status !== 'Absent' && (
+                          {item.status !== 'Friday Off' && item.status !== 'Weekly Off' && item.status !== 'Holiday' && item.status !== 'Leave' && item.status !== 'Absent' && (
                             <>
                               {!hasCheckedIn && (
                                 <button

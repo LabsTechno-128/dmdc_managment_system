@@ -66,6 +66,8 @@ export class SalaryCalculationService {
     const leaveDays = attendances.filter(a => a.status === AttendanceStatus.Leave).length;
     const halfDays = attendances.filter(a => a.status === AttendanceStatus.HalfDay).length;
     const fridayOffDays = attendances.filter(a => a.status === AttendanceStatus.FridayOff).length;
+    const weeklyOffDays = attendances.filter(a => a.status === AttendanceStatus.WeeklyOff).length;
+    const holidayDays = attendances.filter(a => a.status === AttendanceStatus.Holiday).length;
 
     const { deductibleDays, totalDeduction } = this.calculateDeductions(
       dailyRate,
@@ -84,6 +86,8 @@ export class SalaryCalculationService {
       leaveDays,
       halfDays,
       fridayOffDays,
+      weeklyOffDays,
+      holidayDays,
       deductibleDays,
       totalDeduction,
       netSalary,

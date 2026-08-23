@@ -16,6 +16,8 @@ export enum AttendanceStatus {
     Leave = 'Leave',
     HalfDay = 'Half Day',
     FridayOff = 'Friday Off',
+    WeeklyOff = 'Weekly Off',
+    Holiday = 'Holiday',
 }
 
 @Entity({ name: 'attendance' })

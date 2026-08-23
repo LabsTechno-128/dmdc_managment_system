@@ -111,8 +111,8 @@ export const PrintDailyReportModal: React.FC<PrintDailyReportModalProps> = ({ is
                 <div className="text-xl font-black text-orange-700 mt-1">{reportData.summary.halfDay}</div>
               </div>
               <div className="p-4">
-                <div className="text-xs font-bold text-slate-500 uppercase">Friday Off</div>
-                <div className="text-xl font-black text-slate-700 mt-1">{reportData.summary.fridayOff}</div>
+                <div className="text-xs font-bold text-slate-500 uppercase">Off / Holiday</div>
+                <div className="text-xl font-black text-slate-700 mt-1">{(reportData.summary.fridayOff || 0) + ((reportData.summary as any).weeklyOff || 0) + ((reportData.summary as any).holiday || 0)}</div>
               </div>
             </div>
 

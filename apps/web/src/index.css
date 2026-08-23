@@ -27,6 +27,8 @@
     visibility: hidden !important;
   }
 
+  #print-payroll-slip-section,
+  #print-payroll-slip-section *,
   #doctor-income-print,
   #doctor-income-print *,
   #prescription-print,

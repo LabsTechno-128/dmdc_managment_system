@@ -43,25 +43,34 @@ interface NavItem {
 }
 
 const ITEMS: NavItem[] = [
+    // Core & Daily Operations
     { label: 'Dashboard', path: '/', icon: LayoutDashboard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+    { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+    
+    // Medical & Laboratory
     { label: "Doctor's List", path: '/doctors', icon: Stethoscope, role: [UserRole.SUPER_ADMIN] },
+    { label: "Doctor's Fee", path: '/doctors-fee', icon: CreditCard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: 'Tests List', path: '/lab-test', icon: FlaskConical, role: [UserRole.SUPER_ADMIN] },
-    { label: "User's List", path: '/users', icon: Users, role: [UserRole.SUPER_ADMIN] },
+    { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.LAB_TECHNICIAN] },
+    { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
+    
+    // Finance & Inventory
+    { label: 'Accounts', path: '/accounts', icon: Wallet, role: [UserRole.SUPER_ADMIN] },
+    { label: 'Income', path: '/income', icon: PiggyBank, role: [UserRole.ADMIN] },
+    { label: 'Expense', path: '/expense', icon: Receipt, role: [UserRole.ADMIN] },
+    { label: 'Inventory', path: '/inventory', icon: Package, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+    
+    // HR & Payroll
     { label: 'Employees', path: '/employees', icon: Contact, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
     { label: 'Attendance', path: '/attendance', icon: Fingerprint, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: 'Payroll', path: '/payroll', icon: Coins, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
-    { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-    { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-    { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-    { label: "Doctor's Fee", path: '/doctors-fee', icon: CreditCard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-    { label: 'Accounts', path: '/accounts', icon: Wallet, role: [UserRole.SUPER_ADMIN] },
-    { label: 'Inventory', path: '/inventory', icon: Package, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
-    { label: 'Income', path: '/income', icon: PiggyBank, role: [UserRole.ADMIN] },
-    { label: 'Expense', path: '/expense', icon: Receipt, role: [UserRole.ADMIN] },
+    
+    // System & Settings
+    { label: "User's List", path: '/users', icon: Users, role: [UserRole.SUPER_ADMIN] },
     { label: 'Setting', path: '/settings', icon: Settings, role: [UserRole.SUPER_ADMIN] },
-    { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.LAB_TECHNICIAN] },
-    { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
 ];
 
 export const Sidebar: FC = () => {

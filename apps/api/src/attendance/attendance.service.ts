@@ -169,7 +169,7 @@ export class AttendanceService {
         attendance.overtimeMinutes = workingMinutes > standardMinutes ? workingMinutes - standardMinutes : 0;
       }
     } else {
-      // Clear times for Absent, Leave, Friday Off
+      // Clear times for Absent, Leave, Friday Off, Weekly Off, Holiday
       attendance.checkIn = undefined;
       attendance.checkOut = undefined;
       attendance.workingMinutes = 0;
@@ -320,7 +320,9 @@ export class AttendanceService {
     const leave = reportDetails.filter(r => r.status === AttendanceStatus.Leave).length;
     const halfDay = reportDetails.filter(r => r.status === AttendanceStatus.HalfDay).length;
     const fridayOff = reportDetails.filter(r => r.status === AttendanceStatus.FridayOff).length;
-    const unmarked = total - (present + absent + leave + halfDay + fridayOff);
+    const weeklyOff = reportDetails.filter(r => r.status === AttendanceStatus.WeeklyOff).length;
+    const holiday = reportDetails.filter(r => r.status === AttendanceStatus.Holiday).length;
+    const unmarked = total - (present + absent + leave + halfDay + fridayOff + weeklyOff + holiday);
 
     return {
       date: targetDate,
@@ -331,6 +333,8 @@ export class AttendanceService {
         leave,
         halfDay,
         fridayOff,
+        weeklyOff,
+        holiday,
         unmarked,
       },
       details: reportDetails,
@@ -355,6 +359,8 @@ export class AttendanceService {
     const leaveDays = attendances.filter(a => a.status === AttendanceStatus.Leave).length;
     const halfDays = attendances.filter(a => a.status === AttendanceStatus.HalfDay).length;
     const fridayOffDays = attendances.filter(a => a.status === AttendanceStatus.FridayOff).length;
+    const weeklyOffDays = attendances.filter(a => a.status === AttendanceStatus.WeeklyOff).length;
+    const holidayDays = attendances.filter(a => a.status === AttendanceStatus.Holiday).length;
 
     return {
       employeeId,
@@ -365,6 +371,8 @@ export class AttendanceService {
       leaveDays,
       halfDays,
       fridayOffDays,
+      weeklyOffDays,
+      holidayDays,
       totalRecords: attendances.length,
     };
   }

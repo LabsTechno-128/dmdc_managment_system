@@ -45,6 +45,7 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
         {/* Printable Area */}
         <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
           <div
+            id="print-payroll-slip-section"
             ref={componentRef}
             className="bg-white p-12 shadow-sm max-w-210mm mx-auto text-slate-800 print:shadow-none print:p-0 print:m-0"
             style={{ minHeight: '297mm', fontFamily: 'Inter, sans-serif' }}
@@ -115,7 +116,7 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
                   <span className="text-slate-600">Basic Monthly Salary</span>
                   <span className="font-semibold text-slate-800">{Number(payroll.monthlySalary).toLocaleString()} BDT</span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm py-2 border-b border-slate-100">
                   <div>
                     <span className="text-slate-600">Deductions for Absentees</span>

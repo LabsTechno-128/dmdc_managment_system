@@ -11,21 +11,36 @@ const parseYMD = (ymd: string) => {
 export class IncomeService {
     constructor(private readonly databaseService: DatabaseService) {}
 
-    async getIncome(query: { startDate?: string, endDate?: string, page?: number, limit?: number }) {
-        const { startDate, endDate, page = 1, limit = 10 } = query;
+    async getIncome(query: { period?: string, startDate?: string, endDate?: string, page?: number, limit?: number }) {
+        const { period, startDate, endDate, page = 1, limit = 10 } = query;
+        let start: Date | undefined;
+        let end: Date | undefined;
+
+        if (period && period !== 'CUSTOM' && period !== 'ALL') {
+            const now = new Date();
+            if (period === 'DAILY') {
+                start = new Date(now); start.setHours(0,0,0,0);
+                end = new Date(now); end.setHours(23,59,59,999);
+            } else if (period === 'WEEKLY') {
+                start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0);
+                end = new Date(now); end.setHours(23,59,59,999);
+            } else if (period === 'MONTHLY') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1); start.setHours(0,0,0,0);
+                end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23,59,59,999);
+            }
+        } else if (startDate && endDate) {
+            start = parseYMD(startDate); start.setHours(0,0,0,0);
+            end = parseYMD(endDate); end.setHours(23,59,59,999);
+        }
+
         const qb = this.databaseService.repoPaymentTransaction()
             .createQueryBuilder('pt')
             .leftJoinAndSelect('pt.patient', 'patient')
             .leftJoinAndSelect('pt.billing', 'billing')
             .where('pt.type = :type', { type: PaymentTransactionType.PAYMENT })
-            .andWhere('pt.status = :status', { status: 'Completed' }); // Or 'Cash' depending on how status is tracked, wait PaymentTransaction has status='Completed' by default.
+            .andWhere('pt.status = :status', { status: 'Completed' });
 
-        if (startDate && endDate) {
-            const start = parseYMD(startDate);
-            start.setHours(0,0,0,0);
-            const end = parseYMD(endDate);
-            end.setHours(23,59,59,999);
-            
+        if (start && end) {
             qb.andWhere('pt.createdAt >= :startDate', { startDate: start })
               .andWhere('pt.createdAt <= :endDate', { endDate: end });
         }
@@ -44,11 +59,7 @@ export class IncomeService {
             .where('pt.type = :type', { type: PaymentTransactionType.PAYMENT })
             .andWhere('pt.status = :status', { status: 'Completed' });
             
-        if (startDate && endDate) {
-            const start = parseYMD(startDate);
-            start.setHours(0,0,0,0);
-            const end = parseYMD(endDate);
-            end.setHours(23,59,59,999);
+        if (start && end) {
             totalsQb.andWhere('pt.createdAt >= :startDate', { startDate: start })
                     .andWhere('pt.createdAt <= :endDate', { endDate: end });
         }

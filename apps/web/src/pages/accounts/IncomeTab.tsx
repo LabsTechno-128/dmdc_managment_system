@@ -14,24 +14,10 @@ export const IncomeTab: React.FC = () => {
 
     const fetchIncome = async () => {
         const params = new URLSearchParams();
+        params.append('period', period);
         if (period === 'CUSTOM' && startDate && endDate) {
             params.append('startDate', startDate);
             params.append('endDate', endDate);
-        } else if (period === 'DAILY') {
-            const today = format(new Date(), 'yyyy-MM-dd');
-            params.append('startDate', today);
-            params.append('endDate', today);
-        } else if (period === 'WEEKLY') {
-            const now = new Date();
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay());
-            params.append('startDate', format(weekStart, 'yyyy-MM-dd'));
-            params.append('endDate', format(new Date(), 'yyyy-MM-dd'));
-        } else if (period === 'MONTHLY') {
-            const now = new Date();
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            params.append('startDate', format(monthStart, 'yyyy-MM-dd'));
-            params.append('endDate', format(new Date(), 'yyyy-MM-dd'));
         }
         
         const { data } = await api.get('/accounts/income?' + params.toString());

@@ -14,6 +14,7 @@ export class IncomeController {
     @Get()
     getIncome(@Query() query: any) {
         return this.incomeService.getIncome({
+            period: query.period,
             startDate: query.startDate,
             endDate: query.endDate,
             page: query.page ? parseInt(query.page) : 1,

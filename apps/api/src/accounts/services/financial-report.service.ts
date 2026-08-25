@@ -15,7 +15,7 @@ const parseYMD = (ymd: string) => {
 export class FinancialReportService {
     constructor(private readonly databaseService: DatabaseService) {}
 
-    private async getTotalsForDateRange(startDate: Date, endDate: Date) {
+    private async getTotalsForDateRange(startDate: Date, endDate: Date, utcStart: Date, utcEnd: Date) {
         const incomeResult = await this.databaseService.repoPaymentTransaction()
             .createQueryBuilder('pt')
             .select("SUM(pt.amount)", "total")
@@ -30,8 +30,8 @@ export class FinancialReportService {
             .createQueryBuilder('e')
             .select("SUM(e.amount)", "total")
             .addSelect("COUNT(e.id)", "count")
-            .where('e.expenseDate >= :startDate', { startDate })
-            .andWhere('e.expenseDate <= :endDate', { endDate })
+            .where('e.expenseDate >= :startDate', { startDate: utcStart })
+            .andWhere('e.expenseDate <= :endDate', { endDate: utcEnd })
             .getRawOne();
 
         const incomeTotal = Number(incomeResult?.total || 0);
@@ -48,39 +48,52 @@ export class FinancialReportService {
     }
 
     private getDateRangeForPeriod(period: string, dateStr?: string) {
+        const refDate = dateStr ? new Date(dateStr) : new Date();
+        const now = refDate;
+        
+        let sDate = '';
+        let eDate = '';
         let startDate: Date;
         let endDate: Date;
-        const refDate = dateStr ? new Date(dateStr) : new Date();
 
         switch (period) {
             case 'DAILY':
-                startDate = new Date(refDate);
-                endDate = new Date(startDate);
+                startDate = new Date(now); startDate.setHours(0,0,0,0);
+                endDate = new Date(now); endDate.setHours(23,59,59,999);
+                sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                eDate = sDate;
                 break;
             case 'WEEKLY':
-                startDate = new Date(refDate);
-                startDate.setDate(startDate.getDate() - startDate.getDay());
-                endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6);
+                startDate = new Date(now); startDate.setDate(now.getDate() - now.getDay()); startDate.setHours(0,0,0,0);
+                endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6); endDate.setHours(23,59,59,999);
+                sDate = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+                eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
                 break;
             case 'MONTHLY':
-                startDate = new Date(refDate);
-                startDate.setDate(1);
-                endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1); startDate.setHours(0,0,0,0);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+                sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
                 break;
             default:
-                startDate = new Date(refDate);
-                endDate = new Date(startDate);
+                startDate = new Date(now); startDate.setHours(0,0,0,0);
+                endDate = new Date(now); endDate.setHours(23,59,59,999);
+                sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                eDate = sDate;
         }
 
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-        return { startDate, endDate };
+        const utcStart = new Date(sDate);
+        const utcEnd = new Date(eDate);
+        utcEnd.setUTCHours(23, 59, 59, 999);
+
+        return { startDate, endDate, utcStart, utcEnd };
     }
 
     async getReport(queryDto: { period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM', startDate?: string, endDate?: string, date?: string }) {
         let startDate: Date;
         let endDate: Date;
+        let utcStart: Date;
+        let utcEnd: Date;
 
         if (queryDto.period === 'CUSTOM') {
             if (!queryDto.startDate || !queryDto.endDate) throw new BadRequestException('startDate and endDate required');
@@ -88,13 +101,18 @@ export class FinancialReportService {
             endDate = parseYMD(queryDto.endDate);
             startDate.setHours(0,0,0,0);
             endDate.setHours(23,59,59,999);
+            utcStart = new Date(queryDto.startDate);
+            utcEnd = new Date(queryDto.endDate);
+            utcEnd.setUTCHours(23, 59, 59, 999);
         } else {
             const range = this.getDateRangeForPeriod(queryDto.period || 'DAILY', queryDto.date);
             startDate = range.startDate;
             endDate = range.endDate;
+            utcStart = range.utcStart;
+            utcEnd = range.utcEnd;
         }
 
-        const data = await this.getTotalsForDateRange(startDate, endDate);
+        const data = await this.getTotalsForDateRange(startDate, endDate, utcStart, utcEnd);
         
         return {
             period: {
@@ -121,8 +139,8 @@ export class FinancialReportService {
 
         const prevRange = this.getDateRangeForPeriod(period, prevRef.toISOString());
 
-        const current = await this.getTotalsForDateRange(currentRange.startDate, currentRange.endDate);
-        const previous = await this.getTotalsForDateRange(prevRange.startDate, prevRange.endDate);
+        const current = await this.getTotalsForDateRange(currentRange.startDate, currentRange.endDate, currentRange.utcStart, currentRange.utcEnd);
+        const previous = await this.getTotalsForDateRange(prevRange.startDate, prevRange.endDate, prevRange.utcStart, prevRange.utcEnd);
 
         const calculateChange = (curr: number, prev: number) => {
             if (prev === 0) return curr > 0 ? 100 : 0; // If prev 0, return 100% if current > 0
@@ -170,8 +188,8 @@ export class FinancialReportService {
             .createQueryBuilder('e')
             .select("SUM(e.amount)", "amount")
             .addSelect("DATE(e.expenseDate)", "date")
-            .where('e.expenseDate >= :startDate', { startDate })
-            .andWhere('e.expenseDate <= :endDate', { endDate })
+            .where('e.expenseDate >= :startDate', { startDate: new Date(startStr) })
+            .andWhere('e.expenseDate <= :endDate', { endDate: (() => { const d = new Date(endStr); d.setUTCHours(23,59,59,999); return d; })() })
             .groupBy("DATE(e.expenseDate)")
             .getRawMany();
 

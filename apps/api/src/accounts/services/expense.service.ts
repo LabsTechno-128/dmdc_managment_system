@@ -12,8 +12,38 @@ const parseYMD = (ymd: string) => {
 export class ExpenseService {
     constructor(private readonly databaseService: DatabaseService) {}
 
-    async getExpenses(query: { startDate?: string, endDate?: string, expenseType?: string, page?: number, limit?: number }) {
-        const { startDate, endDate, expenseType, page = 1, limit = 10 } = query;
+    async getExpenses(query: { period?: string, startDate?: string, endDate?: string, expenseType?: string, page?: number, limit?: number }) {
+        const { period, startDate, endDate, expenseType, page = 1, limit = 10 } = query;
+        let start: Date | undefined;
+        let end: Date | undefined;
+
+        if (period && period !== 'CUSTOM' && period !== 'ALL') {
+            const now = new Date();
+            // Generate standard YYYY-MM-DD strings based on local time
+            let sDate = '';
+            let eDate = '';
+            if (period === 'DAILY') {
+                sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                eDate = sDate;
+            } else if (period === 'WEEKLY') {
+                const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay());
+                sDate = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
+                eDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            } else if (period === 'MONTHLY') {
+                sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                eDate = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-${String(nextMonth.getDate()).padStart(2, '0')}`;
+            }
+            // new Date('YYYY-MM-DD') parses as UTC midnight, matching how createExpense stores it!
+            start = new Date(sDate);
+            end = new Date(eDate);
+            end.setUTCHours(23, 59, 59, 999);
+        } else if (startDate && endDate) {
+            start = new Date(startDate);
+            end = new Date(endDate);
+            end.setUTCHours(23, 59, 59, 999);
+        }
+
         const qb = this.databaseService.repoExpense().createQueryBuilder('e')
             .leftJoinAndSelect('e.createdBy', 'user');
 
@@ -21,11 +51,7 @@ export class ExpenseService {
             qb.andWhere('e.expenseType = :expenseType', { expenseType });
         }
 
-        if (startDate && endDate) {
-            const start = parseYMD(startDate);
-            start.setHours(0,0,0,0);
-            const end = parseYMD(endDate);
-            end.setHours(23,59,59,999);
+        if (start && end) {
             qb.andWhere('e.expenseDate >= :startDate', { startDate: start })
               .andWhere('e.expenseDate <= :endDate', { endDate: end });
         }
@@ -45,11 +71,7 @@ export class ExpenseService {
         if (expenseType) {
             totalsQb.andWhere('e.expenseType = :expenseType', { expenseType });
         }
-        if (startDate && endDate) {
-            const start = parseYMD(startDate);
-            start.setHours(0,0,0,0);
-            const end = parseYMD(endDate);
-            end.setHours(23,59,59,999);
+        if (start && end) {
             totalsQb.andWhere('e.expenseDate >= :startDate', { startDate: start })
                     .andWhere('e.expenseDate <= :endDate', { endDate: end });
         }

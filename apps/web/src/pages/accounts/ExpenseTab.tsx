@@ -26,26 +26,12 @@ export const ExpenseTab: React.FC = () => {
 
     const fetchExpenses = async () => {
         const params = new URLSearchParams();
+        params.append('period', period);
         if (expenseTypeFilter) params.append('expenseType', expenseTypeFilter);
 
         if (period === 'CUSTOM' && startDate && endDate) {
             params.append('startDate', startDate);
             params.append('endDate', endDate);
-        } else if (period === 'DAILY') {
-            const today = format(new Date(), 'yyyy-MM-dd');
-            params.append('startDate', today);
-            params.append('endDate', today);
-        } else if (period === 'WEEKLY') {
-            const now = new Date();
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay());
-            params.append('startDate', format(weekStart, 'yyyy-MM-dd'));
-            params.append('endDate', format(new Date(), 'yyyy-MM-dd'));
-        } else if (period === 'MONTHLY') {
-            const now = new Date();
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            params.append('startDate', format(monthStart, 'yyyy-MM-dd'));
-            params.append('endDate', format(new Date(), 'yyyy-MM-dd'));
         }
         
         const { data } = await api.get('/accounts/expenses?' + params.toString());
@@ -135,10 +121,16 @@ export const ExpenseTab: React.FC = () => {
                         >
                             <option value="">All Types</option>
                             <option value="EMPLOYEE_SALARY">Employee Salary</option>
+                            <option value="EMPLOYEE_FOOD">Employee Food</option>
+                            <option value="EMPLOYEE_BREAKFAST">Employee Breakfast</option>
                             <option value="MEDICAL_SUPPLIES">Medical Supplies</option>
                             <option value="OFFICE_SUPPLIES">Office Supplies</option>
                             <option value="ELECTRICITY">Electricity</option>
+                            <option value="INTERNET">Internet</option>
                             <option value="RENT">Rent</option>
+                            <option value="EQUIPMENT">Equipment</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                            <option value="TRANSPORTATION">Transportation</option>
                             <option value="OTHER">Other</option>
                         </select>
                     </div>

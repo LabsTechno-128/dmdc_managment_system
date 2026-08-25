@@ -16,6 +16,7 @@ export class ExpenseController {
     @Get()
     getExpenses(@Query() query: any) {
         return this.expenseService.getExpenses({
+            period: query.period,
             startDate: query.startDate,
             endDate: query.endDate,
             expenseType: query.expenseType,

@@ -54,6 +54,7 @@ import { DoctorFeesList } from './pages/DoctorFees/DoctorFeesList';
 import { EmployeesList } from './pages/Employees/EmployeesList';
 import { AttendanceList } from './pages/Attendance/AttendanceList';
 import { PayrollList } from './pages/Payroll/PayrollList';
+import { AccountsPage } from './pages/accounts/AccountsPage';
 
 const queryClient = new QueryClient();
 
@@ -144,7 +145,7 @@ function App() {
               <Route path="/doctors/:id/edit" element={<EditDoctor />} />
               <Route path="/lab-test" element={<Labtest />} />
               <Route path="/settings" element={<Settings />} />
-              {/* <Route path="/accounts" element={<Placeholder title="Accounts" />} /> */}
+              <Route path="/accounts" element={<AccountsPage />} />
             </Route>
 
             {/* Lab Technician Routes (Sample Collection) */}

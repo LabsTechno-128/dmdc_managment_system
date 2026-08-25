@@ -13,7 +13,6 @@ import {
     LogOut,
     Wallet,
     Package,
-    PiggyBank,
     CreditCard,
     Contact,
     Fingerprint,
@@ -59,8 +58,6 @@ const ITEMS: NavItem[] = [
     
     // Finance & Inventory
     { label: 'Accounts', path: '/accounts', icon: Wallet, role: [UserRole.SUPER_ADMIN] },
-    { label: 'Income', path: '/income', icon: PiggyBank, role: [UserRole.ADMIN] },
-    { label: 'Expense', path: '/expense', icon: Receipt, role: [UserRole.ADMIN] },
     { label: 'Inventory', path: '/inventory', icon: Package, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
     
     // HR & Payroll

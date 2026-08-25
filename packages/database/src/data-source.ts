@@ -16,6 +16,7 @@ import { LabTest } from './entities/LabTest'
 import { PaymentTransaction } from './entities/PaymentTransaction'
 import { Attendance } from './entities/Attendance'
 import { Payroll } from './entities/Payroll'
+import { Expense } from './entities/Expense'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
@@ -35,7 +36,8 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         LabTest,
         PaymentTransaction,
         Attendance,
-        Payroll
+        Payroll,
+        Expense
     ],
     synchronize: true,
     logging: false,

@@ -14,4 +14,5 @@ export * from './entities/LabTest';
 export * from './entities/PaymentTransaction';
 export * from './entities/Attendance';
 export * from './entities/Payroll';
+export * from './entities/Expense';
 export * from './enums';

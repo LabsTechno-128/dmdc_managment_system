@@ -17,6 +17,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AccountsModule } from './accounts/accounts.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     UsersModule,
     EmployeesModule,
     AttendanceModule,
-    PayrollModule
+    PayrollModule,
+    AccountsModule
   ],
 })
 export class AppModule { }

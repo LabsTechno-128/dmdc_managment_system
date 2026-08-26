@@ -4,11 +4,11 @@ import { Billing, BillingItem, TestOrder, PatientType, Patients, LabTest, Appoin
 
 @Injectable()
 export class BillingService {
-    constructor(private readonly databaseService: DatabaseService) {}
+    constructor(private readonly databaseService: DatabaseService) { }
 
     async create(data: any) {
         const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount } = data;
-        
+
         if (!items || items.length === 0) {
             throw new BadRequestException('Billing items are required');
         }
@@ -45,7 +45,7 @@ export class BillingService {
             // 3. Calculate Discount & Total
             const discountValue = Number(discount) || 0;
             let discountAmount = 0;
-            
+
             if (discountType === 'PERCENTAGE') {
                 if (discountValue > 100 || discountValue < 0) throw new BadRequestException('Invalid discount percentage');
                 discountAmount = subtotal * (discountValue / 100);
@@ -64,7 +64,7 @@ export class BillingService {
             // Determine paidAmount, dueAmount and paymentStatus
             const paid = Number(paidAmount) || 0;
             const due = Math.max(0, totalAmount - paid);
-            
+
             let status = 'Unpaid';
             if (paid >= totalAmount && totalAmount > 0) {
                 status = 'Paid';
@@ -123,9 +123,12 @@ export class BillingService {
 
             await queryRunner.commitTransaction();
 
-            return this.databaseService.repoBilling().findOne({ 
-                where: { id: savedBilling.id }, 
-                relations: { patient: { appointments: true } }
+            return this.databaseService.repoBilling().findOne({
+                where: { id: savedBilling.id },
+                relations: { 
+                    patient: { appointments: true },
+                    items: { test: true }
+                }
             });
 
         } catch (error) {
@@ -144,20 +147,22 @@ export class BillingService {
         const qb = this.databaseService.repoBilling()
             .createQueryBuilder('billing')
             .leftJoinAndSelect('billing.patient', 'patient')
+            .leftJoinAndSelect('billing.items', 'item')
+            .leftJoinAndSelect('item.test', 'test')
             .orderBy('billing.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
         if (search) {
             qb.where('billing.billNumber ILIKE :search', { search: `%${search}%` })
-              .orWhere('billing.id::text ILIKE :search', { search: `%${search}%` })
-              .orWhere('patient.firstName ILIKE :search', { search: `%${search}%` })
-              .orWhere('patient.lastName ILIKE :search', { search: `%${search}%` })
-              .orWhere('patient.name ILIKE :search', { search: `%${search}%` });
+                .orWhere('billing.id::text ILIKE :search', { search: `%${search}%` })
+                .orWhere('patient.firstName ILIKE :search', { search: `%${search}%` })
+                .orWhere('patient.lastName ILIKE :search', { search: `%${search}%` })
+                .orWhere('patient.name ILIKE :search', { search: `%${search}%` });
         }
 
         const [data, total] = await qb.getManyAndCount();
-        
+
         return {
             data,
             meta: {
@@ -170,15 +175,15 @@ export class BillingService {
     }
 
     async findOne(id: string) {
-        const billing = await this.databaseService.repoBilling().findOne({ 
-            where: { id }, 
-            relations: { patient: true } 
+        const billing = await this.databaseService.repoBilling().findOne({
+            where: { id },
+            relations: { patient: true, items: true }
         });
         if (!billing) throw new BadRequestException('Billing not found');
-        
-        const items = await this.databaseService.repoBillingItem().find({ 
-            where: { billingId: id }, 
-            relations: { test: true } 
+
+        const items = await this.databaseService.repoBillingItem().find({
+            where: { billingId: id },
+            relations: { test: true }
         });
         return { ...billing, items };
     }
@@ -196,7 +201,7 @@ export class BillingService {
         const addAmount = Number(additionalAmount) || 0;
         const paid = Number(billing.paidAmount) + addAmount;
         const due = Math.max(0, totalAmount - paid);
-        
+
         let status = 'Unpaid';
         if (paid >= totalAmount && totalAmount > 0) {
             status = 'Paid';
@@ -206,10 +211,10 @@ export class BillingService {
             status = 'Paid';
         }
 
-        await this.databaseService.repoBilling().update(id, { 
-            paidAmount: paid, 
-            dueAmount: due, 
-            paymentStatus: status 
+        await this.databaseService.repoBilling().update(id, {
+            paidAmount: paid,
+            dueAmount: due,
+            paymentStatus: status
         });
 
         return this.databaseService.repoBilling().findOne({ where: { id } });
@@ -226,7 +231,7 @@ export class BillingService {
 
         try {
             // 1. Verify Appointment
-            const appointment = await queryRunner.manager.findOne(Appointment, { 
+            const appointment = await queryRunner.manager.findOne(Appointment, {
                 where: { id: appointmentId },
                 relations: { doctor: true, patient: true }
             });
@@ -245,7 +250,7 @@ export class BillingService {
             const subtotal = Number(appointment.consultationFee);
             const discountValue = Number(discount) || 0;
             let discountAmount = 0;
-            
+
             if (discountType === 'PERCENTAGE') {
                 if (discountValue > 100 || discountValue < 0) throw new BadRequestException('Invalid discount percentage');
                 discountAmount = subtotal * (discountValue / 100);
@@ -263,7 +268,7 @@ export class BillingService {
 
             const paid = Number(paidAmount) || 0;
             const due = Math.max(0, totalAmount - paid);
-            
+
             let status = 'Unpaid';
             if (paid >= totalAmount && totalAmount > 0) {
                 status = 'Paid';
@@ -334,8 +339,8 @@ export class BillingService {
 
             await queryRunner.commitTransaction();
 
-            return this.databaseService.repoBilling().findOne({ 
-                where: { id: savedBilling.id }, 
+            return this.databaseService.repoBilling().findOne({
+                where: { id: savedBilling.id },
                 relations: { patient: true, items: true }
             });
 
@@ -349,7 +354,7 @@ export class BillingService {
 
     async createPayment(billingId: string, data: any) {
         const { amount, paymentMethod, receivedById, notes } = data;
-        
+
         const payAmount = Number(amount);
         if (payAmount <= 0) {
             throw new BadRequestException('Payment amount must be greater than zero');
@@ -391,7 +396,7 @@ export class BillingService {
             // 2. Update Billing
             currentPaid += payAmount;
             currentDue = Math.max(0, totalAmount - currentPaid);
-            
+
             let status = 'Unpaid';
             if (currentPaid >= totalAmount && totalAmount > 0) {
                 status = 'Paid';

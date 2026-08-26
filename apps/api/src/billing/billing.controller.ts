@@ -9,7 +9,7 @@ import { BillingService } from './billing.service';
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
 @Controller('billing')
 export class BillingController {
-    constructor(private readonly billingService: BillingService) {}
+    constructor(private readonly billingService: BillingService) { }
 
     @Post()
     create(@Body() data: any) {

@@ -125,10 +125,7 @@ export class BillingService {
 
             return this.databaseService.repoBilling().findOne({
                 where: { id: savedBilling.id },
-                relations: { 
-                    patient: { appointments: true },
-                    items: { test: true }
-                }
+                relations: { patient: { appointments: true } }
             });
 
         } catch (error) {

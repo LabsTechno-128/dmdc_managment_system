@@ -139,7 +139,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
                 <option value="doctor">Doctor</option>
                 <option value="lab_technician">Lab Technician</option>
                 <option value="accountant">Accountant</option>
-                <option value="pharmacist">Sample Collection</option>
+                <option value="pharmacist">Pharmacist</option>
+                <option value="usg_report">USG Report</option>
+                <option value="xray_report">X-Ray Report</option>
+                <option value="sample_collection">Sample Collection</option>
               </select>
               {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>}
             </div>

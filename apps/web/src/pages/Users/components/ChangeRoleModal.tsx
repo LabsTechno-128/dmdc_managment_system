@@ -20,6 +20,9 @@ const ROLES = [
   { value: 'lab_technician', label: 'Lab Technician' },
   { value: 'accountant', label: 'Accountant' },
   { value: 'pharmacist', label: 'Pharmacist' },
+  { value: 'usg_report', label: 'USG Report' },
+  { value: 'xray_report', label: 'X-Ray Report' },
+  { value: 'sample_collection', label: 'Sample Collection' },
 ];
 
 export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({ isOpen, onClose, user }) => {

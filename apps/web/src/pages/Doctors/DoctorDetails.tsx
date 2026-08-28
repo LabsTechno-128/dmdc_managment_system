@@ -42,6 +42,15 @@ export const DoctorDetails: React.FC = () => {
         enabled: !!id,
     });
 
+    const { data: allAppointments, isLoading: isAppointmentsLoading } = useQuery({
+        queryKey: ['doctor-all-appointments', id],
+        queryFn: async () => {
+            const { data } = await api.get(`/appointments/doctor/${id}`);
+            return data;
+        },
+        enabled: !!id,
+    });
+
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: `Doctor_Daily_Report_${doctor?.firstName}_${statsDate}`,
@@ -207,13 +216,13 @@ export const DoctorDetails: React.FC = () => {
                             onChange={(e) => setStatsDate(e.target.value)}
                             className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                         />
-                        <button
+                        {/* <button
                             onClick={() => handlePrint()}
                             className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 hover:bg-primary hover:text-white rounded-xl transition-colors font-medium text-sm"
                         >
                             <Printer size={16} />
                             Print Report
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
@@ -234,7 +243,7 @@ export const DoctorDetails: React.FC = () => {
                             <p className="text-lg text-slate-600 mt-2">Daily Consultation Report - {statsDate}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl flex items-center gap-4">
                                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
                                     <DollarSign size={24} />
@@ -244,7 +253,7 @@ export const DoctorDetails: React.FC = () => {
                                     <h3 className="text-2xl font-bold text-emerald-900">{Number(stats?.totalIncome || 0).toLocaleString()} BDT</h3>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl flex items-center gap-4">
                                 <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
                                     <Users size={24} />
@@ -266,7 +275,7 @@ export const DoctorDetails: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                        {/* <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
@@ -308,7 +317,80 @@ export const DoctorDetails: React.FC = () => {
                                     )}
                                 </tbody>
                             </table>
+                        </div> */}
+                    </div>
+                )}
+            </div>
+
+            {/* All Patients / Appointments Section */}
+            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden mt-8 p-6 sm:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <Users className="text-primary" size={24} />
+                            All Patients & Appointments
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-1">Complete history of patients seen by this doctor.</p>
+                    </div>
+                </div>
+
+                {isAppointmentsLoading ? (
+                    <div className="animate-pulse flex space-x-4">
+                        <div className="flex-1 space-y-4 py-1">
+                            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                            <div className="space-y-2">
+                                <div className="h-4 bg-slate-200 rounded"></div>
+                                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                            </div>
                         </div>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
+                                    <th className="p-4">Date</th>
+                                    <th className="p-4">Patient Name</th>
+                                    <th className="p-4">Phone</th>
+                                    <th className="p-4">Visit Type</th>
+                                    <th className="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {!allAppointments || allAppointments.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="p-6 text-center text-slate-500">No appointments found for this doctor.</td>
+                                    </tr>
+                                ) : (
+                                    allAppointments.map((appt: any) => (
+                                        <tr key={appt.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                                            <td className="p-4 text-sm text-slate-700 whitespace-nowrap">
+                                                <div className="font-medium text-slate-900">{appt.appointmentDate}</div>
+                                                <div className="text-xs text-slate-500">{appt.appointmentTime}</div>
+                                            </td>
+                                            <td className="p-4 font-medium text-slate-800">
+                                                {appt.patient?.name || `${appt.patient?.firstName || ''} ${appt.patient?.lastName || ''}`}
+                                            </td>
+                                            <td className="p-4 text-sm text-slate-600">{appt.patient?.phone || '-'}</td>
+                                            <td className="p-4 text-sm text-slate-600">
+                                                <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-medium border border-slate-200">
+                                                    {appt.appointmentType}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded text-xs font-medium ${appt.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                    appt.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                        appt.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                    {appt.status || 'Pending'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </div>

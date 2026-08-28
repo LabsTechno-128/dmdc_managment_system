@@ -19,6 +19,9 @@ export enum UserRole {
     LAB_TECHNICIAN = 'lab_technician',
     ACCOUNTANT = 'accountant',
     PHARMACIST = 'pharmacist',
+    USG_REPORT = 'usg_report',
+    XRAY_REPORT = 'xray_report',
+    SAMPLE_COLLECTION = 'sample_collection',
 }
 
 @Entity({ name: 'users' })

@@ -52,10 +52,10 @@ export function AppointmentOdpForm({
                 <MedicalForm data={appointment} />
             </div>
             <button onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handlePrint();
-                }}
+                e.preventDefault();
+                e.stopPropagation();
+                handlePrint();
+            }}
                 className="w-[210mm] bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium  text-lg"
             >
                 Print OPD
@@ -86,10 +86,10 @@ function MedicalForm({ data }: { data: Appointment }) {
     return (
         <div className="w-full font-serif flex flex-col p-6 flex-1">
             {/* Header */}
-            <div className="bg-green-600 text-white px-6 py-4 flex items-center gap-4">
+            <div className="bg-green-600 text-white px-5 py-3 flex items-center gap-3">
                 {/* Logo */}
-                <div className="shrink-0 w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center border-2 border-white">
-                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-red-600" fill="currentColor">
+                <div className="shrink-0 w-12 h-12 rounded-full bg-white flex flex-col items-center justify-center border-2 border-white shadow-sm">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-red-600" fill="currentColor">
                         <path
                             d="M12 2l1.5 3.5L17 7l-3.5 1.5L12 12l-1.5-3.5L7 7l3.5-1.5L12 2zM12 12v9M9 15h6M8 18h8"
                             stroke="currentColor"
@@ -97,19 +97,19 @@ function MedicalForm({ data }: { data: Appointment }) {
                             fill="none"
                         />
                     </svg>
-                    <span className="text-[8px] font-bold tracking-wide text-green-700 leading-none mt-0.5">
+                    <span className="text-[7px] font-bold tracking-wider text-green-700 leading-none mt-0.5">
                         DMDC
                     </span>
                 </div>
 
                 <div className="flex-1">
-                    <h1 className="text-2xl md:text-3xl font-bold leading-tight">
+                    <h1 className="text-xl md:text-2xl font-bold leading-tight">
                         Dr. Muazzem Medical Diagnostic Center
                     </h1>
-                    <p className="text-sm md:text-[15px] mt-1">
+                    <p className="text-xs md:text-sm mt-0.5 opacity-95">
                         82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka.
                     </p>
-                    <div className="flex flex-wrap items-baseline gap-x-6 text-sm md:text-[15px]">
+                    <div className="flex flex-wrap items-baseline gap-x-4 text-xs md:text-[13px] mt-0.5 opacity-95">
                         <span>Phone: 01234567890, 01234567899</span>
                         <span>E-mail: dmdc.contact@gmail.com</span>
                     </div>
@@ -117,107 +117,87 @@ function MedicalForm({ data }: { data: Appointment }) {
             </div>
 
             {/* Patient / Doctor */}
-            <div className="grid grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-400 border-b border-slate-400">
-                <div className="p-6">
-                    <h2 className="text-xl font-semibold underline decoration-1 underline-offset-4 mb-4">
+            <div className="grid grid-cols-2 divide-x divide-slate-400 border-b border-slate-400 text-sm">
+                <div className="px-5 py-3 flex flex-col">
+                    <h2 className="text-[15px] font-bold underline decoration-1 underline-offset-2 mb-3">
                         Patient Details
                     </h2>
 
-                    <div className="space-y-1 text-slate-800">
-                        <FormRow label="Name">
+                    <div className="flex flex-col gap-y-2 text-slate-800">
+                        {/* Name Row */}
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold w-12 shrink-0">Name:</span>
                             <input
                                 type="text"
                                 value={data?.patient?.name}
                                 defaultValue={data?.patient?.name}
-                                className="flex-1 bg-transparent   border-slate-400 focus:border-green-600 outline-none px-1 py-0.5 font-sans text-base"
+                                className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none px-1 py-0 font-sans w-full text-sm"
                             />
-                        </FormRow>
-
-
-                        <div className="flex gap-x-1 gap-y-2">
-                            <FormRow label="Age" >
-                                {data?.patient?.age}
-                            </FormRow>
-                            <FormRow label="Sex"  >
-
-                                {data?.patient?.gender ?? "none"}
-
-                            </FormRow>
-                            <FormRow label="Weight"  >
-                                {
-                                    data?.patient?.weight ?? "none"
-                                }
-
-                            </FormRow>
-                            <FormRow label="B/P" >
-
-                                {
-                                    data?.patient?.bloodPresure ?? "none"
-                                }
-                            </FormRow>
                         </div>
 
-                        <FormRow label="Phone">
+                        {/* Info Row (Age, Sex, Wt, B/P) */}
+                        <div className="flex items-center gap-x-4 gap-y-1 text-sm">
+                            <span><span className="text-slate-500 text-xs font-bold">Age:</span> {data?.patient?.age || "-"}</span>
+                            <span><span className="text-slate-500 text-xs font-bold">Sex:</span> {data?.patient?.gender || "-"}</span>
+                            <span><span className="text-slate-500 text-xs font-bold">Wt:</span> {data?.patient?.weight || "-"}</span>
+                            <span><span className="text-slate-500 text-xs font-bold">B/P:</span> {data?.patient?.bloodPresure || "-"}</span>
+                        </div>
 
-                            {
-                                data?.patient?.phone ?? "none"
-                            }
-                        </FormRow>
+                        {/* Phone & Date Row */}
+                        <div className="flex items-center gap-2 w-full">
+                            <span className="font-semibold w-12 shrink-0">Phone:</span>
+                            <span className="px-1">{data?.patient?.phone || "-"}</span>
 
-                        <FormRow label="Date">
-                            <input
-                                type="date"
-                                value={data?.appointmentDate ? new Date(data.appointmentDate).toISOString().slice(0, 10) : patient.date}
-                                readOnly
-                                onChange={handleChange("date")}
-                                className="flex-1 bg-transparent border-b border-slate-400 focus:border-green-600 outline-none px-1 py-0.5 font-sans text-base"
-                            />
-                        </FormRow>
-                        <FormRow label="Type">
-                            <span className="font-semibold text-emerald-700">
-                                {data?.bookingType === 'FUTURE' ? 'Future Appointment' : 'Live / Walk-in'}
-                            </span>
-                        </FormRow>
-                        {data?.patient?.patientId && <Barcode value={data?.patient?.patientId} />}
+                            <div className="flex items-center gap-2 ml-auto">
+                                <span className="font-semibold">Date:</span>
+                                <input
+                                    type="date"
+                                    value={data?.appointmentDate ? new Date(data.appointmentDate).toISOString().slice(0, 10) : patient.date}
+                                    readOnly
+                                    onChange={handleChange("date")}
+                                    className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none px-1 py-0 font-sans w-[120px] text-sm"
+                                />
+                            </div>
+                        </div>
 
+                        {/* Barcode */}
+                        {data?.patient?.patientId && (
+                            <div className="pt-2 pb-1">
+                                <Barcode value={data?.patient?.patientId} />
+                            </div>
+                        )}
                     </div>
 
 
                 </div>
 
-                <div className="p-6">
-                    <h2 className="text-xl font-semibold underline decoration-1 underline-offset-4 mb-4">
+                <div className="px-5 py-3 flex flex-col">
+                    <h2 className="text-[15px] font-bold underline decoration-1 underline-offset-2 mb-1">
                         Doctor Details
                     </h2>
 
-                    <div className="flex gap-4">
-                        <span className="font-semibold text-slate-800 shrink-0">Name</span>
-                        <div className="text-slate-800">
-                            <p>:  {
-                                (data?.doctor?.firstName || "") + " " + (data?.doctor?.lastName || "")
-                            }</p>
-                            <p>
-                                {
-                                    data?.doctor?.specialization ?? "none"
-                                }
-                            </p>
-                            <p>BCS Health</p>
+                    <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-slate-800 items-start">
+                        <span className="font-semibold mt-0.5">Name:</span>
+                        <div className="leading-tight px-1">
+                            <div className="font-bold text-[14px]">
+                                {(data?.doctor?.firstName || "") + " " + (data?.doctor?.lastName || "")}
+                            </div>
+                            <div className="text-[12px] text-slate-600 mt-0.5">
+                                {data?.doctor?.specialization || "none"}
+                            </div>
+                            <div className="text-[12px] text-slate-600 mt-0.5">
+                                BCS Health
+                            </div>
                         </div>
+
                     </div>
 
-                    <p className="mt-10 text-slate-800 font-sans">
-                        Call for Serial :{" "}
-                        <span className="font-semibold">01234567890</span>
-                    </p>
+                    <div className="mt-auto pt-1 text-slate-800 text-[13px]">
+                        Call for Serial: <span className="font-bold text-sm ml-1">01234567890</span>
+                    </div>
                 </div>
             </div>
         </div>
-    );
-}
-
-function FormRow({ label, children }: { label: string, children?: React.ReactNode }) {
-    return (
-        <span className="  text-slate-900 flex flex-wrap flex-1 text-sm items-center">{label} : {children}</span>
     );
 }
 
@@ -240,20 +220,20 @@ function Barcode({ value }: { value: string }) {
     const totalWidth = bars.reduce((a, b) => a + b, 0) + bars.length * 1.5;
 
     return (
-        <div className="flex flex-col items-center">
-            <svg width={220} height={64} viewBox={`0 0 ${totalWidth} 40`}>
+        <div className="flex flex-col items-start bg-slate-50/50 w-fit">
+            <svg width={140} height={36} viewBox={`0 0 ${totalWidth} 40`}>
                 {(() => {
                     let x = 0;
                     return bars.map((w, i) => {
                         const rect = (
-                            <rect key={i} x={x} y={0} width={w} height={40} fill="black" />
+                            <rect key={i} x={x} y={0} width={w} height={40} fill="#1e293b" />
                         );
                         x += w + 1.5;
                         return rect;
                     });
                 })()}
             </svg>
-            <span className="font-mono text-sm tracking-widest mt-1">{value}</span>
+            <span className="font-mono text-[8px] font-medium tracking-widest   text-slate-700 text-center w-full">{value}</span>
         </div>
     );
 }

@@ -51,23 +51,23 @@ const ITEMS: NavItem[] = [
     { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-    
+
     // Medical & Laboratory
     { label: "Doctor's List", path: '/doctors', icon: Stethoscope, role: [UserRole.SUPER_ADMIN] },
     { label: "Doctor's Fee", path: '/doctors-fee', icon: CreditCard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: 'Tests List', path: '/lab-test', icon: FlaskConical, role: [UserRole.SUPER_ADMIN] },
     { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.LAB_TECHNICIAN] },
     { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
-    
+
     // Finance & Inventory
     { label: 'Accounts', path: '/accounts', icon: Wallet, role: [UserRole.SUPER_ADMIN] },
     { label: 'Inventory', path: '/inventory', icon: Package, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
-    
+
     // HR & Payroll
     { label: 'Employees', path: '/employees', icon: Contact, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
     { label: 'Attendance', path: '/attendance', icon: Fingerprint, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
     { label: 'Payroll', path: '/payroll', icon: Coins, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
-    
+
     // System & Settings
     { label: "User's List", path: '/users', icon: Users, role: [UserRole.SUPER_ADMIN] },
     { label: 'Setting', path: '/settings', icon: Settings, role: [UserRole.SUPER_ADMIN] },
@@ -97,17 +97,17 @@ export const Sidebar: FC = () => {
             {/* Logo / Brand */}
             <div className="flex items-center px-6 py-6 border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white font-black shadow-inner shadow-white/20">
-                        DP
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl  text-white font-black shadow-inner shadow-white/20">
+                        <img src="/dmdc_logo.jpeg" alt="Logo" />
                     </div>
 
                     <div>
                         <h1 className="text-[17px] font-black text-slate-900 tracking-tight">
-                            Diagnostic Pro
+                            DMDC
                         </h1>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        {/* <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                             Center
-                        </p>
+                        </p> */}
                     </div>
                 </div>
             </div>

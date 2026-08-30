@@ -14,6 +14,7 @@ export const Header: FC = () => {
             {/* Mobile Sidebar Toggle would go here if implemented, for now hidden on md */}
             <div className="flex items-center font-black text-blue-600 tracking-tight text-xl md:hidden">
                 DMDC
+
             </div>
 
             {/* Left side empty for Desktop as Logo is in Sidebar */}

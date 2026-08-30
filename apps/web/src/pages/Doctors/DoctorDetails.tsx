@@ -11,11 +11,10 @@ import {
     Clock,
     DollarSign,
     Users,
-    Printer,
     FileText,
 } from 'lucide-react';
 import { DetailsSkeleton } from '../../components/skeleton/DetailsSkeleton';
-import { useReactToPrint } from 'react-to-print';
+// import { useReactToPrint } from 'react-to-print';
 
 export const DoctorDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -49,11 +48,6 @@ export const DoctorDetails: React.FC = () => {
             return data;
         },
         enabled: !!id,
-    });
-
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: `Doctor_Daily_Report_${doctor?.firstName}_${statsDate}`,
     });
 
     if (isLoading) {

@@ -10,6 +10,7 @@ export interface Employee {
   designation?: string;
   department?: string;
   monthlySalary: number;
+  avatar?: string;
   joiningDate: string;
   isActive: boolean;
   user?: any;

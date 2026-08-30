@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { employeeService } from '../../../services/employee.service';
 import { userService } from '../../../services/user.service';
 import { toast } from 'react-toastify';
+import { ImageUpload } from '../../../components/ImageUpload';
 
 const createEmployeeSchema = z.object({
   employeeId: z.string().min(1, 'Employee ID is required'),
@@ -19,6 +20,7 @@ const createEmployeeSchema = z.object({
   monthlySalary: z.coerce.number().min(0, 'Salary must be positive'),
   joiningDate: z.string().min(1, 'Joining date is required'),
   userId: z.string().optional().or(z.literal('')),
+  avatar: z.string().optional(),
 });
 
 type CreateEmployeeFormValues = z.infer<typeof createEmployeeSchema>;
@@ -31,13 +33,14 @@ interface CreateEmployeeModalProps {
 export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateEmployeeFormValues>({
+  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<CreateEmployeeFormValues>({
     resolver: zodResolver(createEmployeeSchema) as any,
     defaultValues: {
       monthlySalary: 0,
       joiningDate: new Date().toISOString().split('T')[0],
       email: '',
       userId: '',
+      avatar: '',
     }
   });
 
@@ -83,7 +86,16 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               userId: data.userId === '' ? undefined : data.userId,
             };
             mutation.mutate(formatted);
-          })} className="space-y-4">
+          })} className="space-y-6">
+            
+            <div className="flex justify-center mb-6">
+              <ImageUpload
+                value={watch('avatar') || undefined}
+                onChange={(url) => setValue('avatar', url, { shouldValidate: true })}
+                label="Profile Picture"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>

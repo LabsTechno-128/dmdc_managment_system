@@ -40,4 +40,8 @@ export class CreateEmployeeDto {
   @IsUUID()
   @IsOptional()
   userId?: string;
+
+  @IsString()
+  @IsOptional()
+  avatar?: string;
 }

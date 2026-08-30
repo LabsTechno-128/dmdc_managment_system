@@ -169,8 +169,12 @@ export const EmployeesList: React.FC = () => {
                     <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold uppercase shrink-0">
-                            {emp.firstName[0]}{emp.lastName[0]}
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold uppercase shrink-0 overflow-hidden">
+                            {emp.avatar ? (
+                              <img src={emp.avatar} alt={`${emp.firstName} ${emp.lastName}`} className="w-full h-full object-cover" />
+                            ) : (
+                              <>{emp.firstName[0]}{emp.lastName[0]}</>
+                            )}
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900">{emp.firstName} {emp.lastName}</p>

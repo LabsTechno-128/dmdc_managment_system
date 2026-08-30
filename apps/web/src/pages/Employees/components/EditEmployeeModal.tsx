@@ -8,6 +8,7 @@ import { employeeService } from '../../../services/employee.service';
 import type { Employee } from '../../../services/employee.service';
 import { userService } from '../../../services/user.service';
 import { toast } from 'react-toastify';
+import { ImageUpload } from '../../../components/ImageUpload';
 
 const editEmployeeSchema = z.object({
   employeeId: z.string().min(1, 'Employee ID is required'),
@@ -20,6 +21,7 @@ const editEmployeeSchema = z.object({
   monthlySalary: z.coerce.number().min(0, 'Salary must be positive'),
   joiningDate: z.string().min(1, 'Joining date is required'),
   userId: z.string().optional().or(z.literal('')),
+  avatar: z.string().optional(),
 });
 
 type EditEmployeeFormValues = z.infer<typeof editEmployeeSchema>;
@@ -33,7 +35,7 @@ interface EditEmployeeModalProps {
 export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, employee }) => {
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<EditEmployeeFormValues>({
+  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<EditEmployeeFormValues>({
     resolver: zodResolver(editEmployeeSchema) as any
   });
 
@@ -58,6 +60,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
         monthlySalary: Number(employee.monthlySalary),
         joiningDate: employee.joiningDate ? employee.joiningDate.split('T')[0] : '',
         userId: employee.user?.id || '',
+        avatar: employee.avatar || '',
       });
     }
   }, [employee, reset]);
@@ -95,7 +98,16 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
               userId: data.userId === '' ? null : data.userId,
             };
             mutation.mutate(formatted);
-          })} className="space-y-4">
+          })} className="space-y-6">
+
+            <div className="flex justify-center mb-6">
+              <ImageUpload
+                value={watch('avatar') || undefined}
+                onChange={(url) => setValue('avatar', url, { shouldValidate: true })}
+                label="Profile Picture"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>

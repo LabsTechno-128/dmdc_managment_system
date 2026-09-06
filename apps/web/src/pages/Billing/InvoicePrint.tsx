@@ -94,7 +94,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         <TableOfTestList billing={billing} count={7} start={0} />
 
         {/* Totals */}
-        <div className="flex justify-end mb-4  ">
+        <div className="flex justify-end mb-4 pt-4 ">
           <div className="w-72 space-y-3">
             <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal</span>
@@ -148,7 +148,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
       </div>
 
-      <TableOfTestList billing={billing} count={999} start={7} />
+      {billing.items.length > 7 && <TableOfTestList billing={billing} count={999} start={7} />}
     </div>
   );
 });

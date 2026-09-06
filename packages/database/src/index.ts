@@ -22,3 +22,5 @@ export * from './entities/InventoryBatch';
 export * from './entities/InventoryStockEntry';
 export * from './entities/InventoryUsageLog';
 export * from './entities/SampleCollection';
+export * from './entities/ResultTemplate';
+export * from './entities/LabResult';

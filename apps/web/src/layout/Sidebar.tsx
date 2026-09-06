@@ -70,6 +70,7 @@ const ITEMS: NavItem[] = [
             { label: 'Tests List', path: '/lab-test', icon: FlaskConical, role: [UserRole.SUPER_ADMIN] },
             { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.LAB_TECHNICIAN] },
             { label: 'Sample Collection', path: '/sample-collection', icon: FlaskConical, role: [UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION] },
+            { label: 'Lab Technician Workspace', path: '/lab-technician', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN] },
             { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
         ]
     },

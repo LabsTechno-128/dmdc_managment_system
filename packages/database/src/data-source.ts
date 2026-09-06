@@ -23,6 +23,8 @@ import { InventoryBatch } from './entities/InventoryBatch'
 import { InventoryStockEntry } from './entities/InventoryStockEntry'
 import { InventoryUsageLog } from './entities/InventoryUsageLog'
 import { SampleCollection } from './entities/SampleCollection'
+import { ResultTemplate } from './entities/ResultTemplate'
+import { LabResult } from './entities/LabResult'
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
     url: databaseUrl,
@@ -48,7 +50,9 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         InventoryBatch,
         InventoryStockEntry,
         InventoryUsageLog,
-        SampleCollection
+        SampleCollection,
+        ResultTemplate,
+        LabResult
     ],
     synchronize: true,
     logging: false,

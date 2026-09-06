@@ -148,7 +148,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
       </div>
 
-      {billing.items.length > 7 && <TableOfTestList billing={billing} count={999} start={7} />}
+      {billing?.items?.length > 7 && <TableOfTestList billing={billing} count={999} start={7} />}
     </div>
   );
 });

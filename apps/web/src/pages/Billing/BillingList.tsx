@@ -186,7 +186,7 @@ export const BillingList: React.FC = () => {
                         )}
                         <button
                           onClick={() => setPrintingBilling(billing)}
-                          className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
+                          className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors cursor-pointer"
                           title="Print Invoice"
                         >
                           <Printer size={16} />
@@ -220,8 +220,8 @@ export const BillingList: React.FC = () => {
                   <button key={p}
                     onClick={() => setCurrentPage(p)}
                     className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === currentPage
-                        ? 'bg-blue-600 text-white shadow-blue-600/20'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'bg-blue-600 text-white shadow-blue-600/20'
+                      : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
                   >
                     {p}

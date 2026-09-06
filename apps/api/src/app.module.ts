@@ -20,6 +20,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AccountsModule } from './accounts/accounts.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { SampleCollectionModule } from './sample-collection/sample-collection.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { InventoryModule } from './inventory/inventory.module';
     AccountsModule,
     CloudinaryModule,
     InventoryModule,
+    SampleCollectionModule,
   ],
 })
 export class AppModule { }

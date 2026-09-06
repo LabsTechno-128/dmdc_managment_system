@@ -60,6 +60,8 @@ import { InventoryItems } from './pages/Inventory/InventoryItems';
 import { StockEntry } from './pages/Inventory/StockEntry';
 import { StockUsage } from './pages/Inventory/StockUsage';
 import { InventoryReports } from './pages/Inventory/InventoryReports';
+import { SampleCollectionDashboard, SampleCollectionInterface } from './pages/SampleCollection';
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -140,6 +142,8 @@ function App() {
               <Route path="/inventory" element={<InventoryDashboard />} />
               <Route path="/inventory/stock-out" element={<StockUsage />} />
               <Route path="/inventory/reports" element={<InventoryReports />} />
+              <Route path="/sample-collection" element={<SampleCollectionDashboard />} />
+              <Route path="/sample-collection/:id" element={<SampleCollectionInterface />} />
             </Route>
 
             {/* Admin Only Routes */}

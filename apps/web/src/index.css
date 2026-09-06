@@ -36,7 +36,9 @@
   #invoice-print,
   #invoice-print *,
   #inventory-print,
-  #inventory-print * {
+  #inventory-print *,
+  #print-barcode,
+  #print-barcode * {
     visibility: visible !important;
   }
 

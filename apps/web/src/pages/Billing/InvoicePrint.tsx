@@ -16,7 +16,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         `}
       </style>
-      <div className="p-10">
+      <div className="p-5">
         {/* Header */}
         <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 mb-6">
           <div className="flex items-center space-x-4">

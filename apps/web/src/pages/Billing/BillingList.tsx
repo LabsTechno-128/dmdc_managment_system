@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, CheckCircle, Clock, Search, Printer } from 'lucide-react';
+import { FileText, Plus, CheckCircle, Clock, Search, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
@@ -201,24 +201,38 @@ export const BillingList: React.FC = () => {
         )}
 
         {totalPages > 1 && !isLoading && !isError && (
-          <div className="flex justify-between items-center p-4 border-t border-slate-200 bg-slate-50">
-            <span className="text-sm text-slate-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+          <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 bg-slate-50 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
+              Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span>–{' '}
+              <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
+              <span className="font-bold text-slate-700">{totalItems}</span>
+            </p>
+            <div className="flex items-center gap-1">
+              <button disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Previous
+                <ChevronLeft size={15} />
               </button>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const p = i + 1;
+                return (
+                  <button key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === currentPage
+                        ? 'bg-blue-600 text-white shadow-blue-600/20'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+              <button disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Next
+                <ChevronRight size={15} />
               </button>
             </div>
           </div>

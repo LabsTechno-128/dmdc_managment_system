@@ -153,9 +153,9 @@ export class BillingService {
         if (search) {
             qb.where('billing.billNumber ILIKE :search', { search: `%${search}%` })
                 .orWhere('billing.id::text ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.firstName ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.lastName ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.name ILIKE :search', { search: `%${search}%` });
+                .orWhere('patient.patientId ILIKE :search', { search: `%${search}%` })
+                .orWhere('patient.name ILIKE :search', { search: `%${search}%` })
+                .orWhere('patient.phone ILIKE :search', { search: `%${search}%` });
         }
 
         const [data, total] = await qb.getManyAndCount();

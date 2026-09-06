@@ -16,3 +16,8 @@ export * from './entities/Attendance';
 export * from './entities/Payroll';
 export * from './entities/Expense';
 export * from './enums';
+export * from './entities/InventoryCategory';
+export * from './entities/InventoryItem';
+export * from './entities/InventoryBatch';
+export * from './entities/InventoryStockEntry';
+export * from './entities/InventoryUsageLog';

@@ -19,6 +19,7 @@ import { PayrollModule } from './payroll/payroll.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AccountsModule } from './accounts/accounts.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     PayrollModule,
     AccountsModule,
     CloudinaryModule,
+    InventoryModule,
   ],
 })
 export class AppModule { }

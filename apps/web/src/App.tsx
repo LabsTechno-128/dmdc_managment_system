@@ -55,7 +55,11 @@ import { EmployeesList } from './pages/Employees/EmployeesList';
 import { AttendanceList } from './pages/Attendance/AttendanceList';
 import { PayrollList } from './pages/Payroll/PayrollList';
 import { AccountsPage } from './pages/accounts/AccountsPage';
-
+import { InventoryDashboard } from './pages/Inventory/InventoryDashboard';
+import { InventoryItems } from './pages/Inventory/InventoryItems';
+import { StockEntry } from './pages/Inventory/StockEntry';
+import { StockUsage } from './pages/Inventory/StockUsage';
+import { InventoryReports } from './pages/Inventory/InventoryReports';
 const queryClient = new QueryClient();
 
 function App() {
@@ -125,9 +129,17 @@ function App() {
 
             {/* Super Admin & Admin Shared Routes (No Receptionist) */}
             <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']} />}>
-              <Route path="/inventory" element={<Placeholder title="Inventory" />} />
+              <Route path="/inventory/items" element={<InventoryItems />} />
+              <Route path="/inventory/stock-in" element={<StockEntry />} />
               <Route path="/employees" element={<EmployeesList />} />
               <Route path="/payroll" element={<PayrollList />} />
+            </Route>
+
+            {/* Inventory Routes (Shared by Lab Tech, Sample Collection, Admin, Super Admin) */}
+            <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'lab_technician', 'sample_collection']} />}>
+              <Route path="/inventory" element={<InventoryDashboard />} />
+              <Route path="/inventory/stock-out" element={<StockUsage />} />
+              <Route path="/inventory/reports" element={<InventoryReports />} />
             </Route>
 
             {/* Admin Only Routes */}

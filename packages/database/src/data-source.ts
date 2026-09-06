@@ -17,7 +17,11 @@ import { PaymentTransaction } from './entities/PaymentTransaction'
 import { Attendance } from './entities/Attendance'
 import { Payroll } from './entities/Payroll'
 import { Expense } from './entities/Expense'
-
+import { InventoryCategory } from './entities/InventoryCategory'
+import { InventoryItem } from './entities/InventoryItem'
+import { InventoryBatch } from './entities/InventoryBatch'
+import { InventoryStockEntry } from './entities/InventoryStockEntry'
+import { InventoryUsageLog } from './entities/InventoryUsageLog'
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
     url: databaseUrl,
@@ -37,7 +41,12 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         PaymentTransaction,
         Attendance,
         Payroll,
-        Expense
+        Expense,
+        InventoryCategory,
+        InventoryItem,
+        InventoryBatch,
+        InventoryStockEntry,
+        InventoryUsageLog
     ],
     synchronize: true,
     logging: false,

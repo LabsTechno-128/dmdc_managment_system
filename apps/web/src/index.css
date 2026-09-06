@@ -34,7 +34,9 @@
   #prescription-print,
   #prescription-print *,
   #invoice-print,
-  #invoice-print * {
+  #invoice-print *,
+  #inventory-print,
+  #inventory-print * {
     visibility: visible !important;
   }
 

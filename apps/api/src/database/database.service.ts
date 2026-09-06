@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense } from '@hospital/database';
+import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
@@ -59,7 +59,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 PaymentTransaction,
                 Attendance,
                 Payroll,
-                Expense
+                Expense,
+                InventoryCategory,
+                InventoryItem,
+                InventoryBatch,
+                InventoryStockEntry,
+                InventoryUsageLog
             ],
             synchronize: true,
             logging: false,

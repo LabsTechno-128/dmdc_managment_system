@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
 
 // Schema for outside patient
@@ -169,7 +170,7 @@ export const NewBilling: React.FC = () => {
       }
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to create billing');
+      toast.error(error.response?.data?.message || 'Failed to create billing');
     }
   });
 
@@ -191,7 +192,7 @@ export const NewBilling: React.FC = () => {
         finalPatientId = res.data?.data?.id || res.data?.id;
         setSelectedPatient(res.data?.data || res.data); // Keep for print
       } catch (e: any) {
-        alert('Failed to create outside patient');
+        toast.error('Failed to create outside patient');
         return;
       }
     }
@@ -210,7 +211,7 @@ export const NewBilling: React.FC = () => {
 
     // Check if already added
     if (billingItems.some(i => i.testId === testId)) {
-      alert('Test already added');
+      toast.warning('Test already added');
       e.target.value = '';
       return;
     }

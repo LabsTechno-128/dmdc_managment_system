@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Activity, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 const fetchTestQueue = async () => {
   const { data } = await api.get('/test-counter');
@@ -11,6 +12,7 @@ const fetchTestQueue = async () => {
 
 export const TestCounter: React.FC = () => {
   const queryClient = useQueryClient();
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ id: string; status: string } | null>(null);
 
   const { data: queue, isLoading, isError } = useQuery({
     queryKey: ['test-queue'],
@@ -34,9 +36,7 @@ export const TestCounter: React.FC = () => {
     else if (currentStatus === 'In Progress') newStatus = 'Completed';
     else return; // If already completed, do nothing for now
 
-    if (window.confirm(`Update test status to ${newStatus}?`)) {
-      updateStatusMutation.mutate({ id, status: newStatus });
-    }
+    setPendingStatusUpdate({ id, status: newStatus });
   };
 
   const getStatusColor = (status: string) => {
@@ -133,6 +133,22 @@ export const TestCounter: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!pendingStatusUpdate}
+        onClose={() => setPendingStatusUpdate(null)}
+        onConfirm={() => {
+            if (pendingStatusUpdate) {
+                updateStatusMutation.mutate(pendingStatusUpdate, {
+                    onSettled: () => setPendingStatusUpdate(null)
+                });
+            }
+        }}
+        title="Update Test Status"
+        message={`Are you sure you want to update the test status to ${pendingStatusUpdate?.status}?`}
+        isConfirming={updateStatusMutation.isPending}
+        confirmText="Update Status"
+      />
     </div>
   );
 };

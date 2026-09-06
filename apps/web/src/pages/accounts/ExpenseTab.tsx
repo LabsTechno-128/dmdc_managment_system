@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { format } from 'date-fns';
 import { Plus, X } from 'lucide-react';
+import { DeleteModal } from '../../components/DeleteModal';
 
 const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -15,6 +16,7 @@ export const ExpenseTab: React.FC = () => {
     const [endDate, setEndDate] = useState('');
     const [expenseTypeFilter, setExpenseTypeFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
 
     // Form state
     const [formType, setFormType] = useState('EMPLOYEE_SALARY');
@@ -208,11 +210,7 @@ export const ExpenseTab: React.FC = () => {
                                             <td className="px-4 py-3 text-right font-black text-red-600">{formatMoney(tx.amount)}</td>
                                             <td className="px-4 py-3 text-center">
                                                 <button
-                                                    onClick={() => {
-                                                        if (window.confirm('Are you sure you want to delete this expense?')) {
-                                                            deleteMutation.mutate(tx.id);
-                                                        }
-                                                    }}
+                                                    onClick={() => setExpenseToDelete(tx)}
                                                     className="text-xs font-bold text-red-500 hover:text-red-700 underline"
                                                 >
                                                     Delete
@@ -323,6 +321,20 @@ export const ExpenseTab: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <DeleteModal
+                isOpen={!!expenseToDelete}
+                onClose={() => setExpenseToDelete(null)}
+                onConfirm={() => {
+                    deleteMutation.mutate(expenseToDelete.id, {
+                        onSettled: () => setExpenseToDelete(null)
+                    });
+                }}
+                title="Delete Expense"
+                message="Are you sure you want to delete this expense?"
+                itemName={expenseToDelete ? `${expenseToDelete.expenseType} - ${formatMoney(expenseToDelete.amount)}` : undefined}
+                isDeleting={deleteMutation.isPending}
+            />
         </div>
     );
 };

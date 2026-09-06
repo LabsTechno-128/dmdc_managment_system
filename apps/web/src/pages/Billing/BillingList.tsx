@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Plus, CheckCircle, Clock, Search, Printer } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
 
 const fetchBillings = async (page: number, limit: number, search: string) => {
@@ -66,7 +67,7 @@ export const BillingList: React.FC = () => {
   const handleSubmitPayment = () => {
     const amt = Number(paymentInput);
     if (isNaN(amt) || amt <= 0 || amt > paymentModalData.dueAmount) {
-      alert(`Invalid amount. Please enter a value between 1 and ${paymentModalData.dueAmount}`);
+      toast.error(`Invalid amount. Please enter a value between 1 and ${paymentModalData.dueAmount}`);
       return;
     }
     updatePaymentMutation.mutate({ id: paymentModalData.id, paidAmount: amt });

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, Clock } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 const fetchReports = async () => {
   const { data } = await api.get('/reports');
@@ -11,6 +12,7 @@ const fetchReports = async () => {
 
 export const ReportsList: React.FC = () => {
   const queryClient = useQueryClient();
+  const [reportToDeliver, setReportToDeliver] = useState<string | null>(null);
 
   const { data: reports, isLoading, isError } = useQuery({
     queryKey: ['reports'],
@@ -25,9 +27,7 @@ export const ReportsList: React.FC = () => {
   });
 
   const handleDeliver = (id: string) => {
-    if (window.confirm('Mark this report as delivered to the patient?')) {
-      deliverMutation.mutate(id);
-    }
+    setReportToDeliver(id);
   };
 
   return (
@@ -115,6 +115,22 @@ export const ReportsList: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!reportToDeliver}
+        onClose={() => setReportToDeliver(null)}
+        onConfirm={() => {
+            if (reportToDeliver) {
+                deliverMutation.mutate(reportToDeliver, {
+                    onSettled: () => setReportToDeliver(null)
+                });
+            }
+        }}
+        title="Deliver Report"
+        message="Mark this report as delivered to the patient?"
+        isConfirming={deliverMutation.isPending}
+        confirmText="Mark Delivered"
+      />
     </div>
   );
 };

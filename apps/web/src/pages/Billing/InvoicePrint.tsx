@@ -18,7 +18,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
       </style>
       <div className="p-5">
         {/* Header */}
-        <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 mb-6">
+        <div className="flex justify-between items-start border-b-2 border-slate-200 pb-3 mb-3">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-blue-600/10 rounded-2xl">
               <Hospital className="w-10 h-10 text-blue-600" />
@@ -36,7 +36,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Title & Info */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex justify-between items-end mb-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
               <FileText size={24} className="text-blue-600" />
@@ -60,7 +60,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Patient Information Box */}
-        <div className="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-100">
+        <div className="bg-slate-50 rounded-xl p-5 mb-4 border border-slate-100">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Patient Details</h3>
           <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-sm">
             <div className="flex justify-between border-b border-slate-200/60 pb-1">
@@ -85,39 +85,16 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             </div>
             <div className="flex justify-between border-b border-slate-200/60 pb-1">
               <span className="text-slate-500">Referred By:</span>
-              <span className="font-semibold text-slate-800">Self / Walk-in</span>
+              <span className="font-semibold text-slate-800">{billing.referredBy || 'Self / Walk-in'}</span>
             </div>
           </div>
         </div>
 
         {/* Billing Items Table */}
-        <div className="mb-8">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-800 text-white text-sm">
-                <th className="py-3 px-4 rounded-tl-lg font-medium w-16 text-center">SL</th>
-                <th className="py-3 px-4 font-medium">Test / Service Description</th>
-                <th className="py-3 px-4 font-medium text-center w-24">Qty</th>
-                <th className="py-3 px-4 font-medium text-right w-32">Rate (BDT)</th>
-                <th className="py-3 px-4 rounded-tr-lg font-medium text-right w-32">Amount (BDT)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {billing.items?.map((item: any, index: number) => (
-                <tr key={item.id || index} className="border-b border-slate-200 text-sm">
-                  <td className="py-3 px-4 text-center text-slate-500">{index + 1}</td>
-                  <td className="py-3 px-4 font-medium text-slate-800">{item.test?.name || item.name || item.description || 'Service / Consultation'}</td>
-                  <td className="py-3 px-4 text-center text-slate-600">1</td>
-                  <td className="py-3 px-4 text-right text-slate-600">{Number(item.price).toFixed(2)}</td>
-                  <td className="py-3 px-4 text-right font-medium text-slate-800">{Number(item.price).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TableOfTestList billing={billing} count={7} start={0} />
 
         {/* Totals */}
-        <div className="flex justify-end mb-12">
+        <div className="flex justify-end mb-4  ">
           <div className="w-72 space-y-3">
             <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal</span>
@@ -158,7 +135,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Footer */}
-        <div className="mt-auto border-t-2 border-slate-200 pt-8 flex justify-between items-end">
+        <div className="mt-auto border-t-2 border-slate-200 pt-4 flex justify-between items-end pl-8 ">
           <div className="text-xs text-slate-400 space-y-1">
             <p>1. Please collect report within 3 days.</p>
             <p>2. Bring this invoice at the time of report delivery.</p>
@@ -170,10 +147,46 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           </div>
         </div>
       </div>
+
+      <TableOfTestList billing={billing} count={999} start={7} />
     </div>
   );
 });
 InvoicePrint.displayName = 'InvoicePrint';
+
+const TableOfTestList = ({ billing, count = 7, start = 0 }: {
+  billing: any,
+  count?: number,
+  start?: number
+}) => {
+
+  return (
+    <div className="  pt-4">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="bg-slate-800 text-white text-sm">
+            <th className="py-3 px-4 rounded-tl-lg font-medium w-16 text-center">SL</th>
+            <th className="py-3 px-4 font-medium">Test / Service Description</th>
+            <th className="py-3 px-4 font-medium text-center w-24">Qty</th>
+            <th className="py-3 px-4 font-medium text-right w-32">Rate (BDT)</th>
+            <th className="py-3 px-4 rounded-tr-lg font-medium text-right w-32">Amount (BDT)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {billing.items?.slice(start, count).map((item: any, index: number) => (
+            <tr key={item.id || index} className="border-b border-slate-200 text-sm">
+              <td className="py-3 px-4 text-center text-slate-500">{index + 1 + start}</td>
+              <td className="py-3 px-4 font-medium text-slate-800">{item.test?.name || item.name || item.description || 'Service / Consultation'}</td>
+              <td className="py-3 px-4 text-center text-slate-600">1</td>
+              <td className="py-3 px-4 text-right text-slate-600">{Number(item.price).toFixed(2)}</td>
+              <td className="py-3 px-4 text-right font-medium text-slate-800">{Number(item.price).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 
 function Barcode({ value }: { value: string }) {

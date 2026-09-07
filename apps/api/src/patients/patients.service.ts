@@ -3,6 +3,7 @@ import { DatabaseService } from '../database/database.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PatientTestQueryDto } from './dto/patient-test-query.dto';
+import { SampleStatus } from '@hospital/database';
 
 @Injectable()
 export class PatientsService {
@@ -51,7 +52,7 @@ export class PatientsService {
           doctor: true,
         },
         reports: {
-          testOrder: true,
+          labResult: true,
         },
         billings: true,
       },
@@ -98,16 +99,16 @@ export class PatientsService {
       dueAmount += Number(bill.dueAmount) || 0;
     }
 
-    const assignedTests = await this.databaseService.repoTestOrder().find({
+    const assignedTests = await this.databaseService.repoSampleCollection().find({
       where: { patientId: id },
       relations: { test: true, billing: true },
       order: { createdAt: 'DESC' },
       take: 5
     });
 
-    const totalTests = await this.databaseService.repoTestOrder().count({ where: { patientId: id } });
-    const completedTests = await this.databaseService.repoTestOrder().count({ where: { patientId: id, status: 'Completed' } });
-    const pendingTests = await this.databaseService.repoTestOrder().count({ where: { patientId: id, status: 'Pending' } });
+    const totalTests = await this.databaseService.repoSampleCollection().count({ where: { patientId: id } });
+    const completedTests = await this.databaseService.repoSampleCollection().count({ where: { patientId: id, status: SampleStatus.COLLECTED } });
+    const pendingTests = await this.databaseService.repoSampleCollection().count({ where: { patientId: id, status: SampleStatus.PENDING } });
 
     // Timeline logic
     const timeline = [];
@@ -115,8 +116,8 @@ export class PatientsService {
     
     assignedTests.forEach(test => {
         timeline.push({ type: 'TEST_ASSIGNED', date: test.createdAt, details: `${test.test?.name} assigned` });
-        if (test.status === 'Completed' && test.updatedAt) {
-             timeline.push({ type: 'TEST_COMPLETED', date: test.updatedAt, details: `${test.test?.name} completed` });
+        if (test.status === 'COLLECTED' && test.updatedAt) {
+             timeline.push({ type: 'TEST_COMPLETED', date: test.updatedAt, details: `${test.test?.name} sample collected` });
         }
     });
 
@@ -152,11 +153,11 @@ export class PatientsService {
   async getPatientTests(id: string, query: PatientTestQueryDto) {
     const { page = 1, limit = 10, search, status, startDate, endDate, paymentStatus } = query;
     
-    const qb = this.databaseService.repoTestOrder().createQueryBuilder('testOrder')
-      .leftJoinAndSelect('testOrder.test', 'test')
-      .leftJoinAndSelect('testOrder.billing', 'billing')
-      .where('testOrder.patientId = :patientId', { patientId: id })
-      .orderBy('testOrder.createdAt', 'DESC')
+    const qb = this.databaseService.repoSampleCollection().createQueryBuilder('sample')
+      .leftJoinAndSelect('sample.test', 'test')
+      .leftJoinAndSelect('sample.billing', 'billing')
+      .where('sample.patientId = :patientId', { patientId: id })
+      .orderBy('sample.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -165,11 +166,11 @@ export class PatientsService {
     }
 
     if (status) {
-      qb.andWhere('testOrder.status = :status', { status });
+      qb.andWhere('sample.status = :status', { status });
     }
 
     if (startDate && endDate) {
-      qb.andWhere('testOrder.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+      qb.andWhere('sample.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
     }
 
     if (paymentStatus) {

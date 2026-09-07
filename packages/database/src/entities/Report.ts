@@ -9,7 +9,7 @@ import {
     JoinColumn
 } from 'typeorm';
 import { Patients } from './Patients';
-import { TestOrder } from './TestOrder';
+import { LabResult } from './LabResult';
 
 @Entity({ name: 'reports' })
 export class Report {
@@ -23,12 +23,12 @@ export class Report {
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
 
-    @Column()
-    testOrderId!: string;
+    @Column({ nullable: true })
+    labResultId?: string;
 
-    @ManyToOne(() => TestOrder)
-    @JoinColumn({ name: 'testOrderId' })
-    testOrder!: TestOrder;
+    @ManyToOne(() => LabResult)
+    @JoinColumn({ name: 'labResultId' })
+    labResult?: LabResult;
 
     @Column('text', { nullable: true })
     reportData?: string;

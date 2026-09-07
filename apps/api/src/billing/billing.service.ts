@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Billing, BillingItem, TestOrder, PatientType, Patients, LabTest, Appointment, PaymentTransaction, PaymentTransactionType, BillingType } from '@hospital/database';
+import { Billing, BillingItem, PatientType, Patients, LabTest, Appointment, PaymentTransaction, PaymentTransactionType, BillingType } from '@hospital/database';
 
 @Injectable()
 export class BillingService {
@@ -112,14 +112,7 @@ export class BillingService {
             }));
             await queryRunner.manager.save(billingItemsToSave);
 
-            // 7. Create Test Orders
-            const testOrdersToSave = validItems.map(item => queryRunner.manager.create(TestOrder, {
-                patientId: savedBilling.patientId,
-                billingId: savedBilling.id,
-                testId: item.testId,
-                status: 'Waiting'
-            }));
-            await queryRunner.manager.save(testOrdersToSave);
+
 
             await queryRunner.commitTransaction();
 

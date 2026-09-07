@@ -7,7 +7,6 @@ import { Doctor } from './entities/Doctor'
 import { DiagnosticTest } from './entities/DiagnosticTest'
 import { Billing } from './entities/Billing'
 import { BillingItem } from './entities/BillingItem'
-import { TestOrder } from './entities/TestOrder'
 import { Report } from './entities/Report'
 import { Notification } from './entities/Notification'
 import { Employee } from './entities/employee'
@@ -35,7 +34,6 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         DiagnosticTest,
         Billing,
         BillingItem,
-        TestOrder,
         Report,
         Notification,
         Employee,

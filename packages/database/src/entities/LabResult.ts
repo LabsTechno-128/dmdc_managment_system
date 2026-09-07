@@ -59,6 +59,10 @@ export class LabResult {
     @Column({ type: 'jsonb', default: {} })
     resultData!: any;
 
+    // Snapshot of the ResultTemplate at the time of entry to preserve clinical context (reference ranges, units, etc.)
+    @Column({ type: 'jsonb', nullable: true })
+    templateSnapshot?: any;
+
     @Column({
         type: 'enum',
         enum: LabResultStatus,

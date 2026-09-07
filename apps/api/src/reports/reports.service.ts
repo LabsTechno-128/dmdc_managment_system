@@ -8,14 +8,14 @@ export class ReportsService {
 
     async findAll() {
         return this.databaseService.repoReport().find({
-            relations: { patient: true, testOrder: { test: true } }
+            relations: { patient: true, labResult: { test: true } }
         });
     }
 
     async findOne(id: string) {
         return this.databaseService.repoReport().findOne({
             where: { id },
-            relations: { patient: true, testOrder: { test: true } }
+            relations: { patient: true, labResult: { test: true } }
         });
     }
 

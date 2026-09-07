@@ -5,7 +5,6 @@ export * from './entities/Doctor';
 export * from './entities/DiagnosticTest';
 export * from './entities/Billing';
 export * from './entities/BillingItem';
-export * from './entities/TestOrder';
 export * from './entities/Report';
 export * from './entities/Notification';
 export * from './entities/employee';

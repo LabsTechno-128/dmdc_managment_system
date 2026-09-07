@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { SampleStatus } from '@hospital/database';
+import { SampleStatus, SampleCollection } from '@hospital/database';
 import { Like, ILike } from 'typeorm';
 
 @Injectable()
@@ -80,7 +80,7 @@ export class SampleCollectionService {
             samples: billing.items.filter(item => item.test).map((item, index) => ({
                 test: item.test,
                 billingItem: item,
-                sampleType: 'General', // Default mapped generic
+                sampleType: item.test?.sampleType || 'General',
                 status: SampleStatus.PENDING,
                 barcodePreview: `${billing.patient.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`
             }))
@@ -90,8 +90,7 @@ export class SampleCollectionService {
     // Initialize sample collections for a billing
     async initializeSamples(billingId: string) {
         const billingRepo = this.db.repoBilling();
-        const sampleRepo = this.db.repoSampleCollection();
-
+        
         const billing = await billingRepo.findOne({
             where: { id: billingId },
             relations: {
@@ -106,10 +105,8 @@ export class SampleCollectionService {
             throw new NotFoundException('Billing not found');
         }
 
-        // Check if already initialized
-        const count = await sampleRepo.count({ where: { billingId: billing.id } });
-        if (count > 0) {
-            throw new BadRequestException('Samples for this billing are already initialized');
+        if (billing.paymentStatus === 'Unpaid') {
+            throw new BadRequestException('Cannot initialize sample collection for Unpaid billings.');
         }
 
         const validItems = billing.items.filter(item => item.test);
@@ -117,21 +114,39 @@ export class SampleCollectionService {
             throw new BadRequestException('No lab tests found in this billing to collect samples for.');
         }
 
-        const samplesToCreate = validItems.map((item, index) => {
-            const barcode = `${billing.patient.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`;
-            
-            return sampleRepo.create({
-                billingId: billing.id,
-                billingItemId: item.id,
-                patientId: billing.patientId,
-                testId: item.test!.id,
-                barcode: barcode,
-                status: SampleStatus.PENDING,
-                sampleType: 'General'
-            });
-        });
+        const queryRunner = this.db.getDataSource().createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction('SERIALIZABLE');
 
-        await sampleRepo.save(samplesToCreate);
+        try {
+            const count = await queryRunner.manager.count(SampleCollection, { where: { billingId: billing.id } });
+            if (count > 0) {
+                throw new BadRequestException('Samples for this billing are already initialized');
+            }
+
+            const samplesToCreate = validItems.map((item, index) => {
+                const barcode = `${billing.patient.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`;
+                
+                return queryRunner.manager.create(SampleCollection, {
+                    billingId: billing.id,
+                    billingItemId: item.id,
+                    patientId: billing.patientId,
+                    testId: item.test!.id,
+                    barcode: barcode,
+                    status: SampleStatus.PENDING,
+                    sampleType: item.test!.sampleType || 'General'
+                });
+            });
+
+            await queryRunner.manager.save(samplesToCreate);
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+
         return await this.getSamplesForBilling(billingId);
     }
 

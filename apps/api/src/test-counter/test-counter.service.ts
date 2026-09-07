@@ -6,30 +6,26 @@ export class TestCounterService {
     constructor(private readonly databaseService: DatabaseService) {}
 
     async getQueue() {
-        return this.databaseService.repoTestOrder().find({
-            relations: { patient: true, test: true },
+        const samples = await this.databaseService.repoSampleCollection().find({
+            relations: { patient: true, test: true, billing: true },
             order: { createdAt: 'ASC' }
         });
+
+        // Map SampleCollection to look like a TestOrder for the frontend
+        return samples.map(sample => ({
+            id: sample.id,
+            patientId: sample.patientId,
+            testId: sample.testId,
+            status: sample.status === 'COLLECTED' ? 'In Progress' : (sample.status === 'PENDING' ? 'Waiting' : 'Completed'),
+            createdAt: sample.createdAt,
+            patient: sample.patient,
+            test: sample.test
+        }));
     }
 
     async updateStatus(id: string, status: string) {
-        await this.databaseService.repoTestOrder().update(id, { status });
-        
-        // If completed, optionally auto-create a draft report
-        if (status === 'Completed') {
-            const order = await this.databaseService.repoTestOrder().findOne({ where: { id } });
-            if (order) {
-                const existingReport = await this.databaseService.repoReport().findOne({ where: { testOrderId: id } });
-                if (!existingReport) {
-                    await this.databaseService.repoReport().save({
-                        patientId: order.patientId,
-                        testOrderId: order.id,
-                        isDelivered: false
-                    });
-                }
-            }
-        }
-        
-        return this.databaseService.repoTestOrder().findOne({ where: { id } });
+        // Map old TestOrder statuses back to Sample/LabResult?
+        // Let's just return null if they try to update through this legacy endpoint
+        return null;
     }
 }

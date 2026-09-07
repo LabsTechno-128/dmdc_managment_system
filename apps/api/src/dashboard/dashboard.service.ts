@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { MoreThanOrEqual, Between } from 'typeorm';
+import { SampleStatus } from '@hospital/database';
 
 @Injectable()
 export class DashboardService {
@@ -31,9 +32,9 @@ export class DashboardService {
             thisMonthAppointment,
             userListCount
         ] = await Promise.all([
-            this.databaseService.repoTestOrder().count({ where: { createdAt: MoreThanOrEqual(today) } }),
-            this.databaseService.repoTestOrder().count({ where: { status: 'Waiting' } }),
-            this.databaseService.repoTestOrder().count({ where: { status: 'Completed', createdAt: MoreThanOrEqual(today) } }),
+            this.databaseService.repoSampleCollection().count({ where: { createdAt: MoreThanOrEqual(today) } }),
+            this.databaseService.repoSampleCollection().count({ where: { status: SampleStatus.PENDING } }),
+            this.databaseService.repoSampleCollection().count({ where: { status: SampleStatus.COLLECTED, createdAt: MoreThanOrEqual(today) } }),
             this.databaseService.repoBilling().find({ where: { createdAt: MoreThanOrEqual(today) } }),
             this.databaseService.repoBilling().find({ where: { createdAt: MoreThanOrEqual(firstDayThisMonth) } }),
             this.databaseService.repoBilling().find({ where: { createdAt: Between(firstDayLastMonth, lastDayLastMonth) } }),

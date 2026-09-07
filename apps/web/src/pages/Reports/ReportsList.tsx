@@ -81,7 +81,7 @@ export const ReportsList: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-4 font-medium text-slate-700">
-                        {report.testOrder?.test?.name || 'Unknown Test'}
+                        {report.labResult?.test?.name || 'Unknown Test'}
                       </td>
                       <td className="p-4 text-sm text-slate-600">
                         {new Date(report.createdAt).toLocaleDateString()}

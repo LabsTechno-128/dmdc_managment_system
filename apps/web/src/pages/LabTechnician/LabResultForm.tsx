@@ -42,7 +42,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
     }, [testId]);
 
     const handleInputChange = (name: string, value: string) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData((prev: any) => ({ ...prev, [name]: value }));
     };
 
     const handleSaveDraft = async () => {

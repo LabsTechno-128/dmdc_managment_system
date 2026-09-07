@@ -14,6 +14,12 @@ export class LabTest {
   @Column({ length: 180, nullable: true })
   name!: string;
 
+  @Column({ length: 100, nullable: true })
+  sampleType?: string;
+
+  @Column({ length: 100, nullable: true })
+  department?: string;
+
   @Column({ type: 'float', default: 0, nullable: true })
   billRate!: number;
 

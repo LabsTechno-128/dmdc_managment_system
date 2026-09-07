@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, TestOrder, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog, SampleCollection, ResultTemplate, LabResult } from '@hospital/database';
+import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog, SampleCollection, ResultTemplate, LabResult } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
@@ -51,7 +51,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 DiagnosticTest,
                 Billing,
                 BillingItem,
-                TestOrder,
                 Report,
                 Notification,
                 Appointment,
@@ -107,9 +106,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoBillingItem(): Repository<BillingItem> {
         return this.getDataSource().getRepository(BillingItem);
-    }
-    repoTestOrder(): Repository<TestOrder> {
-        return this.getDataSource().getRepository(TestOrder);
     }
     repoReport(): Repository<Report> {
         return this.getDataSource().getRepository(Report);

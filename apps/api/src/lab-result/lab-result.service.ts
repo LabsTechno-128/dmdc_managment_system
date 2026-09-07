@@ -145,9 +145,10 @@ export class LabResultService implements OnModuleInit {
             throw new BadRequestException('Result is already verified and cannot be modified');
         }
 
+        const template = await this.getTemplateByTestId(sample.testId);
+
         if (status === LabResultStatus.COMPLETED) {
             // Validate required fields
-            const template = await this.getTemplateByTestId(sample.testId);
             const fields: any[] = template.fields || [];
             for (const field of fields) {
                 if (field.required && (resultData[field.name] === undefined || resultData[field.name] === null || resultData[field.name] === '')) {
@@ -163,6 +164,7 @@ export class LabResultService implements OnModuleInit {
                 sampleId: sample.id,
                 patientId: sample.patientId,
                 resultData,
+                templateSnapshot: template,
                 status,
                 remarks,
                 performedById,
@@ -170,6 +172,7 @@ export class LabResultService implements OnModuleInit {
             });
         } else {
             labResult.resultData = resultData;
+            labResult.templateSnapshot = template;
             labResult.status = status;
             if (remarks) labResult.remarks = remarks;
             labResult.performedById = performedById;

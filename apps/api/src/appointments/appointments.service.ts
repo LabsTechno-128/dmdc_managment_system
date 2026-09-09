@@ -164,8 +164,8 @@ export class AppointmentsService {
         }
 
         // Sorting
-        const sortBy = query.sortBy ?? 'appointmentDate';
-        const sortOrder = query.sortOrder ?? 'ASC';
+        const sortBy = query.sortBy ?? 'createdAt';
+        const sortOrder = query.sortOrder ?? 'DESC';
         const validSortFields = ['appointmentDate', 'appointmentTime', 'createdAt', 'updatedAt', 'consultationFee', 'status'];
         const sortField = validSortFields.includes(sortBy) ? sortBy : 'appointmentDate';
         qb.orderBy(`appointment.${sortField}`, sortOrder);

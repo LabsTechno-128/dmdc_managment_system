@@ -43,8 +43,8 @@ export const AppointmentsList: React.FC = () => {
     const [doctorFilter, setDoctorFilter] = useState('');
     const [patientFilter, setPatientFilter] = useState('');
     const [dateFilter, setDateFilter] = useState('');
-    const [sortBy, setSortBy] = useState('appointmentDate');
-    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+    const [sortBy, setSortBy] = useState('createdAt');
+    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
 
     const [deleteAppointment, setDeleteAppointment] = useState<any>(null);
 
@@ -123,8 +123,8 @@ export const AppointmentsList: React.FC = () => {
         setDoctorFilter('');
         setPatientFilter('');
         setDateFilter('');
-        setSortBy('appointmentDate');
-        setSortOrder('ASC');
+        setSortBy('createdAt');
+        setSortOrder('DESC');
         setPage(1);
     };
 

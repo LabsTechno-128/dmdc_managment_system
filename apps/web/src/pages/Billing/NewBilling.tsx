@@ -16,7 +16,6 @@ const outsidePatientSchema = z.object({
   phone: z.string().min(1, 'Phone is required'),
   age: z.number().min(0).optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-  referredBy: z.string().optional(),
 });
 
 const billingSchema = z.object({
@@ -31,6 +30,7 @@ const billingSchema = z.object({
   paidAmount: z.number().min(0),
   paymentMethod: z.string(),
   paymentStatus: z.string(),
+  referredBy: z.string().optional(),
 });
 
 export const NewBilling: React.FC = () => {
@@ -58,7 +58,7 @@ export const NewBilling: React.FC = () => {
   // Forms
   const outsideForm = useForm({
     resolver: zodResolver(outsidePatientSchema),
-    defaultValues: { name: '', phone: '', age: undefined, gender: 'MALE', referredBy: '' }
+    defaultValues: { name: '', phone: '', age: undefined, gender: 'MALE' }
   });
 
   const billingForm = useForm({
@@ -70,7 +70,8 @@ export const NewBilling: React.FC = () => {
       additionalCharges: 0,
       paidAmount: 0,
       paymentMethod: 'Cash',
-      paymentStatus: 'Unpaid'
+      paymentStatus: 'Unpaid',
+      referredBy: ''
     }
   });
 
@@ -340,6 +341,7 @@ export const NewBilling: React.FC = () => {
                       </div>
                     </div>
                   )}
+
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
@@ -367,6 +369,20 @@ export const NewBilling: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="border-t border-slate-100 bg-slate-50/80 p-6">
+              <label className="block text-sm font-bold text-slate-800 mb-2">Referred By <span className="text-slate-400 font-normal">(Optional)</span></label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Enter referring doctor's name (e.g. Dr. John Doe)"
+                  {...billingForm.register('referredBy')}
+                  className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none transition-all bg-white shadow-sm"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2 font-medium">This referral will be printed on the patient's invoice.</p>
             </div>
           </div>
 

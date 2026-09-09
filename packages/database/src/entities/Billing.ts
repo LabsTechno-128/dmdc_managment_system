@@ -83,6 +83,9 @@ export class Billing {
     @Column({ length: 50, default: 'Unpaid' })
     paymentStatus!: string;
 
+    @Column({ nullable: true })
+    referredBy?: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

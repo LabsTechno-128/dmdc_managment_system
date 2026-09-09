@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Hospital, MapPin, Phone, Mail, FileText } from 'lucide-react';
+import JsBarcode from 'jsbarcode';
 
 interface InvoicePrintProps {
   billing: any;
@@ -16,27 +17,41 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         `}
       </style>
-      <div className="p-5">
+      <div  >
         {/* Header */}
-        <div className="flex justify-between items-start border-b-2 border-slate-200 pb-3 mb-3">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-600/10 rounded-2xl">
-              <Hospital className="w-10 h-10 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">DMDC Hospital</h1>
-              <p className="text-slate-500 font-medium tracking-wide">Diagnostic & Medical Center</p>
-            </div>
+
+        <div className="flex justify-between bg-green-600 text-white px-3 py-1 flex items-center gap-3">
+          {/* Logo */}
+          <div className="shrink-0 w-12 h-12 rounded-full bg-white flex flex-col items-center justify-center border-2 border-white shadow-sm">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-red-600" fill="currentColor">
+              <path
+                d="M12 2l1.5 3.5L17 7l-3.5 1.5L12 12l-1.5-3.5L7 7l3.5-1.5L12 2zM12 12v9M9 15h6M8 18h8"
+                stroke="currentColor"
+                strokeWidth="1"
+                fill="none"
+              />
+            </svg>
+            <span className="text-[7px] font-bold tracking-wider text-green-700 leading-none mt-0.5">
+              DMDC
+            </span>
           </div>
-          <div className="text-right text-sm text-slate-500 space-y-1">
-            <p className="flex items-center justify-end gap-1"><MapPin size={14} /> 123 Health Avenue, Medical District</p>
-            <p className="flex items-center justify-end gap-1"><Phone size={14} /> +880 1234 567 890</p>
-            <p className="flex items-center justify-end gap-1"><Mail size={14} /> billing@dmdchospital.com</p>
+
+          <div className="flex-1">
+            <h1 className="text-xl md:text-2xl font-bold leading-tight">
+              Dr. Muazzem Medical Diagnostic Center
+            </h1>
+            <p className="text-xs md:text-sm mt-0.5 opacity-95">
+              82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka.
+            </p>
+            <div className="flex flex-wrap items-baseline gap-x-4 text-xs md:text-[13px] mt-0.5 opacity-95">
+              <span>Phone: 01234567890, 01234567899</span>
+              <span>E-mail: dmdc.contact@gmail.com</span>
+            </div>
           </div>
         </div>
 
         {/* Title & Info */}
-        <div className="flex justify-between items-end mb-4">
+        <div className="flex justify-between items-end px-5">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
               <FileText size={24} className="text-blue-600" />
@@ -48,7 +63,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           </div>
           <div className="flex items-end gap-8 text-right">
             {billing.patient?.patientId && (
-              <div className="mb-1">
+              <div className="pt-2">
                 <Barcode value={billing.patient.patientId} />
               </div>
             )}
@@ -60,30 +75,30 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Patient Information Box */}
-        <div className="bg-slate-50 rounded-xl p-5 mb-4 border border-slate-100">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Patient Details</h3>
-          <div className="grid grid-cols-2 gap-y-3 gap-x-8 text-sm">
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+        <div className="bg-slate-50 rounded-xl px-5  border border-slate-100">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider  ">Patient Details</h3>
+          <div className="grid grid-cols-2 gap-y-1 gap-x-8 text-sm">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Patient ID:</span>
               <span className="font-semibold text-slate-800">{billing.patient?.patientId || 'N/A'}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Name:</span>
               <span className="font-semibold text-slate-800">{billing.patient?.name || `${billing.patient?.firstName || ''} ${billing.patient?.lastName || ''}`.trim() || 'Unknown'}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Age / Sex:</span>
               <span className="font-semibold text-slate-800">{billing.patient?.age || '-'} / {billing.patient?.gender || '-'}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Phone:</span>
               <span className="font-semibold text-slate-800">{billing.patient?.phone || 'N/A'}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Patient Type:</span>
               <span className="font-semibold text-slate-800">{billing.patientType === 'OUTSIDE' ? 'Outside / Walk-in' : 'In-House'}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-200/60 pb-1">
+            <div className="flex justify-between border-b border-slate-200/60 ">
               <span className="text-slate-500">Referred By:</span>
               <span className="font-semibold text-slate-800">{billing.referredBy || 'Self / Walk-in'}</span>
             </div>
@@ -91,10 +106,10 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Billing Items Table */}
-        <TableOfTestList billing={billing} count={7} start={0} />
+        <TableOfTestList billing={billing} count={10} start={0} />
 
         {/* Totals */}
-        <div className="flex justify-end mb-4 pt-4 ">
+        <div className="flex justify-end mb-4 pt-4 px-5">
           <div className="w-72 space-y-3">
             <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal</span>
@@ -135,7 +150,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Footer */}
-        <div className="mt-auto border-t-2 border-slate-200 pt-4 flex justify-between items-end pl-8 ">
+        <div className="mt-auto border-t-2 border-slate-200 pt-4 flex justify-between items-end pl-8 pr-5  fixed bottom-5 w-full">
           <div className="text-xs text-slate-400 space-y-1">
             <p>1. Please collect report within 3 days.</p>
             <p>2. Bring this invoice at the time of report delivery.</p>
@@ -148,13 +163,13 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
       </div>
 
-      {billing?.items?.length > 7 && <TableOfTestList billing={billing} count={999} start={7} />}
+      {billing?.items?.length > 10 && <TableOfTestList billing={billing} count={999} start={10} />}
     </div>
   );
 });
 InvoicePrint.displayName = 'InvoicePrint';
 
-const TableOfTestList = ({ billing, count = 7, start = 0 }: {
+const TableOfTestList = ({ billing, count = 10, start = 0 }: {
   billing: any,
   count?: number,
   start?: number
@@ -164,7 +179,7 @@ const TableOfTestList = ({ billing, count = 7, start = 0 }: {
     <div className="  pt-4">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-slate-800 text-white text-sm">
+          <tr className="bg-green-600 text-white text-sm">
             <th className="py-3 px-4 rounded-tl-lg font-medium w-16 text-center">SL</th>
             <th className="py-3 px-4 font-medium">Test / Service Description</th>
             <th className="py-3 px-4 font-medium text-center w-24">Qty</th>
@@ -190,37 +205,62 @@ const TableOfTestList = ({ billing, count = 7, start = 0 }: {
 
 
 function Barcode({ value }: { value: string }) {
-  const bars = [];
-  let seed = 0;
-  for (let i = 0; i < value.length; i++) seed += value.charCodeAt(i);
+  const barcodeRef = useRef<SVGSVGElement>(null);
 
-  let s = seed;
-  const rand = () => {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
-
-  for (let i = 0; i < 45; i++) {
-    bars.push(rand() > 0.5 ? 2.5 : 1.2);
-  }
-
-  const totalWidth = bars.reduce((a, b) => a + b, 0) + bars.length * 1.2;
+  useEffect(() => {
+    if (barcodeRef.current && value) {
+      JsBarcode(barcodeRef.current, value, {
+        format: "CODE128",
+        width: 1.5,
+        height: 40,
+        displayValue: true,
+        fontSize: 12,
+        margin: 0,
+        background: "transparent",
+        lineColor: "#1e293b",
+      });
+    }
+  }, [value]);
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <svg width={180} height={32} viewBox={`0 0 ${totalWidth} 28`} className="print:h-6">
-        {(() => {
-          let x = 0;
-          return bars.map((w, i) => {
-            const rect = (
-              <rect key={i} x={x} y={0} width={w} height={28} fill="black" />
-            );
-            x += w + 1.2;
-            return rect;
-          });
-        })()}
-      </svg>
-      <span className="font-mono text-[9px] tracking-widest text-slate-500 mt-0.5">{value}</span>
+    <div className="flex flex-col items-start w-fit">
+      <svg ref={barcodeRef}></svg>
     </div>
   );
 }
+
+// function Barcode({ value }: { value: string }) {
+//   const bars = [];
+//   let seed = 0;
+//   for (let i = 0; i < value.length; i++) seed += value.charCodeAt(i);
+
+//   let s = seed;
+//   const rand = () => {
+//     s = (s * 9301 + 49297) % 233280;
+//     return s / 233280;
+//   };
+
+//   for (let i = 0; i < 45; i++) {
+//     bars.push(rand() > 0.5 ? 2.5 : 1.2);
+//   }
+
+//   const totalWidth = bars.reduce((a, b) => a + b, 0) + bars.length * 1.2;
+
+//   return (
+//     <div className="flex flex-col items-center select-none">
+//       <svg width={180} height={32} viewBox={`0 0 ${totalWidth} 28`} className="print:h-6">
+//         {(() => {
+//           let x = 0;
+//           return bars.map((w, i) => {
+//             const rect = (
+//               <rect key={i} x={x} y={0} width={w} height={28} fill="black" />
+//             );
+//             x += w + 1.2;
+//             return rect;
+//           });
+//         })()}
+//       </svg>
+//       <span className="font-mono text-[9px] tracking-widest text-slate-500 mt-0.5">{value}</span>
+//     </div>
+//   );
+// }

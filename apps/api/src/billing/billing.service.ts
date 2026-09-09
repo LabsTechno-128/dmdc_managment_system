@@ -7,7 +7,7 @@ export class BillingService {
     constructor(private readonly databaseService: DatabaseService) { }
 
     async create(data: any) {
-        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount } = data;
+        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount, referredBy } = data;
 
         if (!items || items.length === 0) {
             throw new BadRequestException('Billing items are required');
@@ -99,7 +99,8 @@ export class BillingService {
                 paidAmount: paid,
                 dueAmount: due,
                 paymentMethod: paymentMethod || 'Cash',
-                paymentStatus: status
+                paymentStatus: status,
+                referredBy: referredBy || null
             });
 
             const savedBilling = await queryRunner.manager.save(newBilling);
@@ -211,7 +212,7 @@ export class BillingService {
     }
 
     async createConsultationBill(appointmentId: string, data: any) {
-        const { discountType, discount, additionalCharges, paymentMethod, paidAmount, receivedById } = data;
+        const { discountType, discount, additionalCharges, paymentMethod, paidAmount, receivedById, referredBy } = data;
 
         const dataSource = this.databaseService.getDataSource();
         const queryRunner = dataSource.createQueryRunner();
@@ -295,7 +296,8 @@ export class BillingService {
                 paidAmount: paid,
                 dueAmount: due,
                 paymentMethod: paymentMethod || 'Cash',
-                paymentStatus: status
+                paymentStatus: status,
+                referredBy: referredBy || null
             });
 
             const savedBilling = await queryRunner.manager.save(newBilling);

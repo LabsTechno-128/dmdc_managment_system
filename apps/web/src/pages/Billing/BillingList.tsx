@@ -52,10 +52,11 @@ export const BillingList: React.FC = () => {
   const updatePaymentMutation = useMutation({
     mutationFn: ({ id, paidAmount }: { id: string; paidAmount: number }) =>
       api.patch(`/billing/${id}/payment`, { paidAmount }),
-    onSuccess: (res) => {
+    onSuccess: (res, variables) => {
       queryClient.invalidateQueries({ queryKey: ['billings'] });
       const updatedBilling = res.data?.data || res.data;
-      setPrintingBilling(updatedBilling);
+      const originalBilling = billings.find((b: any) => b.id === variables.id);
+      setPrintingBilling({ ...originalBilling, ...updatedBilling });
     },
   });
 

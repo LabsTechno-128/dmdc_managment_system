@@ -1,6 +1,5 @@
 import type { FC } from 'react';
-import { UserPlus, FileText, Send, Calendar, Users, CheckCircle, CreditCard, ChevronRight, TrendingUp, Stethoscope, Clock, Activity, FileDigit, BadgeDollarSign, UserCog } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar, Users, CheckCircle, CreditCard, TrendingUp, Stethoscope, Clock, Activity, FileDigit, BadgeDollarSign, UserCog } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { DashboardSkeleton } from '../components/skeleton/DashboardSkeleton';
@@ -11,7 +10,7 @@ const fetchStats = async () => {
 };
 
 export const Dashboard: FC = () => {
-    const navigate = useNavigate();
+    
 
     const { data: stats, isLoading } = useQuery({
         queryKey: ['dashboard-stats'],

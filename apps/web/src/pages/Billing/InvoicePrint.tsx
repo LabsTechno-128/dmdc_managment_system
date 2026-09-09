@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Hospital, MapPin, Phone, Mail, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 
 interface InvoicePrintProps {

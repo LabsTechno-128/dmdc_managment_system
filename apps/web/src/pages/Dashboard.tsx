@@ -49,7 +49,7 @@ export const Dashboard: FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <section>
+            {/* <section>
                 <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
                     <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mr-2">⚡</span>
                     Quick Actions
@@ -100,7 +100,7 @@ export const Dashboard: FC = () => {
                         <ChevronRight className="text-slate-300 group-hover:text-emerald-500 transition-colors" />
                     </button>
                 </div>
-            </section>
+            </section> */}
 
             {/* Income & Billing Analytics */}
             <section>
@@ -159,15 +159,15 @@ export const Dashboard: FC = () => {
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-center">
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-500 flex items-center"><CheckCircle size={14} className="mr-1 text-emerald-500"/> Paid Bills</span>
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><CheckCircle size={14} className="mr-1 text-emerald-500" /> Paid Bills</span>
                                 <span className="font-bold text-slate-700">{displayStats.completePatientBillingCount}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-500 flex items-center"><FileDigit size={14} className="mr-1 text-amber-500"/> Partial Bills</span>
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><FileDigit size={14} className="mr-1 text-amber-500" /> Partial Bills</span>
                                 <span className="font-bold text-slate-700">{displayStats.partialBillingCount}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-500 flex items-center"><Activity size={14} className="mr-1 text-red-500"/> Unpaid Bills</span>
+                                <span className="text-sm font-medium text-slate-500 flex items-center"><Activity size={14} className="mr-1 text-red-500" /> Unpaid Bills</span>
                                 <span className="font-bold text-slate-700">{displayStats.unpaidBillingCount}</span>
                             </div>
                         </div>
@@ -230,7 +230,7 @@ export const Dashboard: FC = () => {
                         </div>
                         <div className="text-2xl font-bold text-slate-800">{displayStats.totalAppointment}</div>
                     </div>
-                    
+
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                         <div className="flex items-center space-x-3 mb-2">
                             <Clock size={18} className="text-emerald-500" />

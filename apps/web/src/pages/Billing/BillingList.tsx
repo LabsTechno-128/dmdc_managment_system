@@ -175,7 +175,7 @@ export const BillingList: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        {billing.paymentStatus === 'Partial' && (
+                        {(billing.paymentStatus === 'Partial' || billing.paymentStatus === 'Unpaid') && (
                           <button
                             onClick={() => handleOpenPaymentModal(billing)}
                             disabled={updatePaymentMutation.isPending}

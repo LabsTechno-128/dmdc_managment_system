@@ -1,5 +1,6 @@
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import JsBarcode from "jsbarcode";
 // import { useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import type { Appointment } from "../types/appointment";
@@ -47,7 +48,7 @@ export function AppointmentOdpForm({
             <div
                 id="prescription-print"
                 ref={printRef}
-                className="w-[210mm] min-h-[290mm] bg-white  mx-auto text-black flex flex-col"
+                className="w-full min-h-[90mm] bg-white  mx-auto text-black flex flex-col"
             >
                 <MedicalForm data={appointment} />
             </div>
@@ -56,7 +57,7 @@ export function AppointmentOdpForm({
                 e.stopPropagation();
                 handlePrint();
             }}
-                className="w-[210mm] bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium  text-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium  text-lg"
             >
                 Print OPD
             </button>
@@ -84,9 +85,9 @@ function MedicalForm({ data }: { data: Appointment }) {
 
 
     return (
-        <div className="w-full font-serif flex flex-col p-6 flex-1">
+        <div className="w-full font-serif flex flex-col  flex-1">
             {/* Header */}
-            <div className="bg-green-600 text-white px-5 py-3 flex items-center gap-3">
+            <div className="flex justify-between bg-green-600 text-white px-3 py-1 flex items-center gap-3">
                 {/* Logo */}
                 <div className="shrink-0 w-12 h-12 rounded-full bg-white flex flex-col items-center justify-center border-2 border-white shadow-sm">
                     <svg viewBox="0 0 24 24" className="w-5 h-5 text-red-600" fill="currentColor">
@@ -118,14 +119,14 @@ function MedicalForm({ data }: { data: Appointment }) {
 
             {/* Patient / Doctor */}
             <div className="grid grid-cols-2 divide-x divide-slate-400 border-b border-slate-400 text-sm">
-                <div className="px-5 py-3 flex flex-col">
+                <div className="px-3 py-1 flex flex-col">
                     <h2 className="text-[15px] font-bold underline decoration-1 underline-offset-2 mb-3">
                         Patient Details
                     </h2>
 
-                    <div className="flex flex-col gap-y-2 text-slate-800">
+                    <div className="flex flex-col gap-y-1 text-slate-800">
                         {/* Name Row */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <span className="font-bold w-12 shrink-0">Name:</span>
                             <input
                                 type="text"
@@ -171,7 +172,7 @@ function MedicalForm({ data }: { data: Appointment }) {
 
                 </div>
 
-                <div className="px-5 py-3 flex flex-col">
+                <div className="px-3 py-1 flex flex-col">
                     <h2 className="text-[15px] font-bold underline decoration-1 underline-offset-2 mb-1">
                         Doctor Details
                     </h2>
@@ -203,37 +204,26 @@ function MedicalForm({ data }: { data: Appointment }) {
 
 
 function Barcode({ value }: { value: string }) {
-    const bars = [];
-    let seed = 0;
-    for (let i = 0; i < value.length; i++) seed += value.charCodeAt(i);
+    const barcodeRef = useRef<SVGSVGElement>(null);
 
-    let s = seed;
-    const rand = () => {
-        s = (s * 9301 + 49297) % 233280;
-        return s / 233280;
-    };
-
-    for (let i = 0; i < 45; i++) {
-        bars.push(rand() > 0.5 ? 3 : 1.5);
-    }
-
-    const totalWidth = bars.reduce((a, b) => a + b, 0) + bars.length * 1.5;
+    useEffect(() => {
+        if (barcodeRef.current && value) {
+            JsBarcode(barcodeRef.current, value, {
+                format: "CODE128",
+                width: 1.5,
+                height: 40,
+                displayValue: true,
+                fontSize: 12,
+                margin: 0,
+                background: "transparent",
+                lineColor: "#1e293b",
+            });
+        }
+    }, [value]);
 
     return (
-        <div className="flex flex-col items-start bg-slate-50/50 w-fit">
-            <svg width={140} height={36} viewBox={`0 0 ${totalWidth} 40`}>
-                {(() => {
-                    let x = 0;
-                    return bars.map((w, i) => {
-                        const rect = (
-                            <rect key={i} x={x} y={0} width={w} height={40} fill="#1e293b" />
-                        );
-                        x += w + 1.5;
-                        return rect;
-                    });
-                })()}
-            </svg>
-            <span className="font-mono text-[8px] font-medium tracking-widest   text-slate-700 text-center w-full">{value}</span>
+        <div className="flex flex-col items-start w-fit">
+            <svg ref={barcodeRef}></svg>
         </div>
     );
 }

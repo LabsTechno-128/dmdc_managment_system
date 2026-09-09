@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { ArrowLeft, Printer, FlaskConical, CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useReactToPrint } from 'react-to-print';
+import JsBarcode from 'jsbarcode';
 
 export const SampleCollectionInterface: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -205,16 +206,29 @@ export const SampleCollectionInterface: React.FC = () => {
 
       {/* Hidden Print Area */}
       <div className="hidden">
-        <div ref={printRef} className="p-4 print:p-0" id='print-barcode'>
-          <div className="flex flex-wrap gap-4">
+        <div ref={printRef} className="print:p-0" id='print-barcode'>
+          <div className="flex flex-wrap gap-2">
             {initialized && samples.map((sample: any) => (
-              <div key={sample.id} className="border-2 border-black p-2 w-[50mm] h-[25mm] flex flex-col justify-center items-center text-[10px] break-inside-avoid">
-                <div className="font-bold truncate w-full text-center">{billing.patient?.name}</div>
-                <div className="text-[8px]">{billing.patient?.patientId} | {billing.billNumber}</div>
-                <div className="text-[9px] font-bold mt-1 truncate w-full text-center">{sample.test?.name}</div>
-                {/* Fallback to text if actual barcode rendering library not installed */}
-                <div className="mt-1 font-mono font-bold border-t border-black w-full text-center pt-1">
-                  *{sample.barcode}*
+              <div key={sample.id} className="w-[50mm] h-[25mm] p-1.5 flex flex-col break-inside-avoid bg-white text-black font-sans box-border overflow-hidden leading-tight border border-gray-200 print:border-none relative rounded-sm">
+                
+                {/* Top section: Patient Name & Age/Sex */}
+                <div className="flex justify-between items-start w-full">
+                  <div className="font-bold text-[10px] truncate pr-1 max-w-[70%] leading-none">{billing.patient?.name}</div>
+                  <div className="text-[8px] font-semibold leading-none">{billing.patient?.age ? `${billing.patient.age}y` : ''} {billing.patient?.gender ? billing.patient.gender.charAt(0) : ''}</div>
+                </div>
+                
+                {/* Second row: Patient ID and Invoice No */}
+                <div className="flex justify-between w-full text-[8px] font-medium text-gray-800 mt-1 leading-none">
+                  <span>ID: {billing.patient?.patientId}</span>
+                  <span>INV: {billing.billNumber}</span>
+                </div>
+                
+                {/* Third row: Test Name */}
+                <div className="font-bold text-[9px] truncate w-full mt-1 leading-none pb-0.5 border-b border-gray-300 border-dashed">{sample.test?.name}</div>
+                
+                {/* Barcode component rendering */}
+                <div className="w-full flex-grow flex items-end justify-center mt-0.5">
+                  <Barcode value={sample.barcode} />
                 </div>
               </div>
             ))}
@@ -224,3 +238,29 @@ export const SampleCollectionInterface: React.FC = () => {
     </div>
   );
 };
+
+function Barcode({ value }: { value: string }) {
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (barcodeRef.current && value) {
+      JsBarcode(barcodeRef.current, value, {
+        format: "CODE128",
+        width: 1.1,
+        height: 24,
+        displayValue: true,
+        fontSize: 10,
+        textMargin: 1,
+        margin: 0,
+        background: "transparent",
+        lineColor: "#000000",
+      });
+    }
+  }, [value]);
+
+  return (
+    <div className="flex flex-col items-center justify-center w-full overflow-hidden">
+      <svg ref={barcodeRef} className="max-w-full max-h-full"></svg>
+    </div>
+  );
+}

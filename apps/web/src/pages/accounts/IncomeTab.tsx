@@ -11,6 +11,13 @@ export const IncomeTab: React.FC = () => {
     const [period, setPeriod] = useState<'ALL' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'>('ALL');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
+    // Reset page when filters change
+    React.useEffect(() => {
+        setPage(1);
+    }, [period, startDate, endDate]);
 
     const fetchIncome = async () => {
         const params = new URLSearchParams();
@@ -19,13 +26,15 @@ export const IncomeTab: React.FC = () => {
             params.append('startDate', startDate);
             params.append('endDate', endDate);
         }
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
         
         const { data } = await api.get('/accounts/income?' + params.toString());
         return data;
     };
 
     const { data: incomeData, isLoading } = useQuery({
-        queryKey: ['income', period, startDate, endDate],
+        queryKey: ['income', period, startDate, endDate, page],
         queryFn: fetchIncome,
     });
 
@@ -120,7 +129,7 @@ export const IncomeTab: React.FC = () => {
                                         <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
                                             <td className="px-4 py-3 font-medium text-slate-900">{format(new Date(tx.createdAt), 'dd MMM yyyy, HH:mm')}</td>
                                             <td className="px-4 py-3 font-medium">
-                                                {tx.patient ? `${tx.patient.firstName} ${tx.patient.lastName}` : 'Walk-in Patient'}
+                                                {tx.patient ? tx.patient.name : 'Walk-in Patient'}
                                             </td>
                                             <td className="px-4 py-3 font-mono text-xs">{tx.billing?.billNumber || 'N/A'}</td>
                                             <td className="px-4 py-3 text-right font-black text-slate-900">{formatMoney(tx.amount)}</td>
@@ -134,6 +143,32 @@ export const IncomeTab: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {!isLoading && incomeData?.total > 0 && (
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
+                        <div className="text-sm text-slate-500 font-medium">
+                            Showing <span className="font-bold text-slate-900">{((page - 1) * limit) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(page * limit, incomeData.total)}</span> of <span className="font-bold text-slate-900">{incomeData.total}</span> entries
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+                            <div className="text-sm font-bold text-slate-900 px-2">Page {page}</div>
+                            <button
+                                onClick={() => setPage(p => p + 1)}
+                                disabled={page * limit >= incomeData.total}
+                                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

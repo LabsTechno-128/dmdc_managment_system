@@ -17,6 +17,13 @@ export const ExpenseTab: React.FC = () => {
     const [expenseTypeFilter, setExpenseTypeFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
+    // Reset page when filters change
+    React.useEffect(() => {
+        setPage(1);
+    }, [period, startDate, endDate, expenseTypeFilter]);
 
     // Form state
     const [formType, setFormType] = useState('EMPLOYEE_SALARY');
@@ -35,13 +42,15 @@ export const ExpenseTab: React.FC = () => {
             params.append('startDate', startDate);
             params.append('endDate', endDate);
         }
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
         
         const { data } = await api.get('/accounts/expenses?' + params.toString());
         return data;
     };
 
     const { data: expenseData, isLoading } = useQuery({
-        queryKey: ['expenses', period, startDate, endDate, expenseTypeFilter],
+        queryKey: ['expenses', period, startDate, endDate, expenseTypeFilter, page],
         queryFn: fetchExpenses,
     });
 
@@ -221,6 +230,32 @@ export const ExpenseTab: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {!isLoading && expenseData?.total > 0 && (
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
+                        <div className="text-sm text-slate-500 font-medium">
+                            Showing <span className="font-bold text-slate-900">{((page - 1) * limit) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(page * limit, expenseData.total)}</span> of <span className="font-bold text-slate-900">{expenseData.total}</span> entries
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+                            <div className="text-sm font-bold text-slate-900 px-2">Page {page}</div>
+                            <button
+                                onClick={() => setPage(p => p + 1)}
+                                disabled={page * limit >= expenseData.total}
+                                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

@@ -113,7 +113,19 @@ export class BillingService {
             }));
             await queryRunner.manager.save(billingItemsToSave);
 
-
+            if (paid > 0) {
+                const transaction = queryRunner.manager.create(PaymentTransaction, {
+                    billingId: savedBilling.id,
+                    patientId: savedBilling.patientId,
+                    amount: paid,
+                    paymentMethod: paymentMethod || 'Cash',
+                    type: PaymentTransactionType.PAYMENT,
+                    receivedById: data.receivedById,
+                    status: 'Completed',
+                    notes: 'Initial Payment'
+                });
+                await queryRunner.manager.save(transaction);
+            }
 
             await queryRunner.commitTransaction();
 
@@ -207,6 +219,19 @@ export class BillingService {
             dueAmount: due,
             paymentStatus: status
         });
+
+        if (addAmount > 0) {
+            const transaction = this.databaseService.repoPaymentTransaction().create({
+                billingId: billing.id,
+                patientId: billing.patientId,
+                amount: addAmount,
+                paymentMethod: 'Cash',
+                type: PaymentTransactionType.PAYMENT,
+                status: 'Completed',
+                notes: 'Update Payment'
+            });
+            await this.databaseService.repoPaymentTransaction().save(transaction);
+        }
 
         return this.databaseService.repoBilling().findOne({ where: { id } });
     }

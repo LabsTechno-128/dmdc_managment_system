@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Patch, Param, Body } from '@nestjs/common';
+import { Controller, UseGuards, Get, Patch, Param, Body, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
@@ -12,8 +12,8 @@ export class TestCounterController {
     constructor(private readonly testCounterService: TestCounterService) {}
 
     @Get()
-    getQueue() {
-        return this.testCounterService.getQueue();
+    getQueue(@Query() query: any) {
+        return this.testCounterService.getQueue(query);
     }
 
     @Patch(':id/status')

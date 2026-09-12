@@ -3,7 +3,7 @@ import { DatabaseService } from '../../database/database.service';
 import { PaymentTransactionType } from '@hospital/database';
 
 const formatYMD = (d: Date) => {
-    return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 };
 
 const parseYMD = (ymd: string) => {
@@ -13,7 +13,7 @@ const parseYMD = (ymd: string) => {
 
 @Injectable()
 export class FinancialReportService {
-    constructor(private readonly databaseService: DatabaseService) {}
+    constructor(private readonly databaseService: DatabaseService) { }
 
     private async getTotalsForDateRange(startDate: Date, endDate: Date, utcStart: Date, utcEnd: Date) {
         const incomeResult = await this.databaseService.repoPaymentTransaction()
@@ -36,7 +36,7 @@ export class FinancialReportService {
 
         const incomeTotal = Number(incomeResult?.total || 0);
         const incomeCount = Number(incomeResult?.count || 0);
-        
+
         const expenseTotal = Number(expenseResult?.total || 0);
         const expenseCount = Number(expenseResult?.count || 0);
 
@@ -50,7 +50,7 @@ export class FinancialReportService {
     private getDateRangeForPeriod(period: string, dateStr?: string) {
         const refDate = dateStr ? new Date(dateStr) : new Date();
         const now = refDate;
-        
+
         let sDate = '';
         let eDate = '';
         let startDate: Date;
@@ -58,26 +58,26 @@ export class FinancialReportService {
 
         switch (period) {
             case 'DAILY':
-                startDate = new Date(now); startDate.setHours(0,0,0,0);
-                endDate = new Date(now); endDate.setHours(23,59,59,999);
+                startDate = new Date(now); startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(now); endDate.setHours(23, 59, 59, 999);
                 sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                 eDate = sDate;
                 break;
             case 'WEEKLY':
-                startDate = new Date(now); startDate.setDate(now.getDate() - now.getDay()); startDate.setHours(0,0,0,0);
-                endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6); endDate.setHours(23,59,59,999);
+                startDate = new Date(now); startDate.setDate(now.getDate() - now.getDay()); startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6); endDate.setHours(23, 59, 59, 999);
                 sDate = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
                 eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
                 break;
             case 'MONTHLY':
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1); startDate.setHours(0,0,0,0);
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1); startDate.setHours(0, 0, 0, 0);
                 endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
                 sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
                 eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
                 break;
             default:
-                startDate = new Date(now); startDate.setHours(0,0,0,0);
-                endDate = new Date(now); endDate.setHours(23,59,59,999);
+                startDate = new Date(now); startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(now); endDate.setHours(23, 59, 59, 999);
                 sDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                 eDate = sDate;
         }
@@ -99,8 +99,8 @@ export class FinancialReportService {
             if (!queryDto.startDate || !queryDto.endDate) throw new BadRequestException('startDate and endDate required');
             startDate = parseYMD(queryDto.startDate);
             endDate = parseYMD(queryDto.endDate);
-            startDate.setHours(0,0,0,0);
-            endDate.setHours(23,59,59,999);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
             utcStart = new Date(queryDto.startDate);
             utcEnd = new Date(queryDto.endDate);
             utcEnd.setUTCHours(23, 59, 59, 999);
@@ -113,7 +113,7 @@ export class FinancialReportService {
         }
 
         const data = await this.getTotalsForDateRange(startDate, endDate, utcStart, utcEnd);
-        
+
         return {
             period: {
                 startDate: formatYMD(startDate),
@@ -128,7 +128,7 @@ export class FinancialReportService {
     async getComparison(period: 'DAILY' | 'WEEKLY' | 'MONTHLY', date?: string) {
         const currentRange = this.getDateRangeForPeriod(period, date);
         const prevRef = new Date(currentRange.startDate);
-        
+
         if (period === 'DAILY') {
             prevRef.setDate(prevRef.getDate() - 1);
         } else if (period === 'WEEKLY') {
@@ -169,9 +169,9 @@ export class FinancialReportService {
     async getChartData(startStr: string, endStr: string, groupBy: 'DAY' | 'WEEK' | 'MONTH') {
         // Simple manual generation of dates and querying to avoid complex DB grouping differences
         const startDate = parseYMD(startStr);
-        startDate.setHours(0,0,0,0);
+        startDate.setHours(0, 0, 0, 0);
         const endDate = parseYMD(endStr);
-        endDate.setHours(23,59,59,999);
+        endDate.setHours(23, 59, 59, 999);
 
         const incomeResult = await this.databaseService.repoPaymentTransaction()
             .createQueryBuilder('pt')
@@ -189,7 +189,7 @@ export class FinancialReportService {
             .select("SUM(e.amount)", "amount")
             .addSelect("DATE(e.expenseDate)", "date")
             .where('e.expenseDate >= :startDate', { startDate: new Date(startStr) })
-            .andWhere('e.expenseDate <= :endDate', { endDate: (() => { const d = new Date(endStr); d.setUTCHours(23,59,59,999); return d; })() })
+            .andWhere('e.expenseDate <= :endDate', { endDate: (() => { const d = new Date(endStr); d.setUTCHours(23, 59, 59, 999); return d; })() })
             .groupBy("DATE(e.expenseDate)")
             .getRawMany();
 
@@ -228,7 +228,7 @@ export class FinancialReportService {
 
         // If grouping by WEEK or MONTH, we need to aggregate the daily `data` array
         if (groupBy === 'DAY') return data;
-        
+
         // Very basic aggregation for WEEK/MONTH (summing adjacent items based on period string matching could work, but lets just return daily for now or group properly)
         const groupedMap = new Map();
         for (const item of data) {

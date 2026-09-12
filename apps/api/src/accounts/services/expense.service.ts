@@ -10,7 +10,7 @@ const parseYMD = (ymd: string) => {
 
 @Injectable()
 export class ExpenseService {
-    constructor(private readonly databaseService: DatabaseService) {}
+    constructor(private readonly databaseService: DatabaseService) { }
 
     async getExpenses(query: { period?: string, startDate?: string, endDate?: string, expenseType?: string, page?: number, limit?: number }) {
         const { period, startDate, endDate, expenseType, page = 1, limit = 10 } = query;
@@ -53,12 +53,12 @@ export class ExpenseService {
 
         if (start && end) {
             qb.andWhere('e.expenseDate >= :startDate', { startDate: start })
-              .andWhere('e.expenseDate <= :endDate', { endDate: end });
+                .andWhere('e.expenseDate <= :endDate', { endDate: end });
         }
 
         qb.orderBy('e.expenseDate', 'DESC')
-          .addOrderBy('e.createdAt', 'DESC');
-        
+            .addOrderBy('e.createdAt', 'DESC');
+
         const [data, total] = await qb
             .skip((page - 1) * limit)
             .take(limit)
@@ -73,7 +73,7 @@ export class ExpenseService {
         }
         if (start && end) {
             totalsQb.andWhere('e.expenseDate >= :startDate', { startDate: start })
-                    .andWhere('e.expenseDate <= :endDate', { endDate: end });
+                .andWhere('e.expenseDate <= :endDate', { endDate: end });
         }
         const filteredTotalResult = await totalsQb.getRawOne();
         const filteredTotal = Number(filteredTotalResult?.total || 0);

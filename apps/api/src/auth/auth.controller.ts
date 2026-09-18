@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Patch, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -36,5 +36,20 @@ export class AuthController {
     @Patch('change-password')
     changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
         return this.authService.changePassword(req.user.id, changePasswordDto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('impersonate/:id')
+    impersonateUser(@Request() req: any, @Param('id') targetUserId: string) {
+        return this.authService.impersonateUser(req.user.id, targetUserId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('impersonation/stop')
+    stopImpersonating(@Request() req: any) {
+        if (!req.user.is_impersonating || !req.user.original_user_id) {
+            throw new BadRequestException('Not currently impersonating');
+        }
+        return this.authService.stopImpersonating(req.user.original_user_id);
     }
 }

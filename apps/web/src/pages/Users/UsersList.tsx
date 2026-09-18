@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search, Plus, Shield, Power,
   Trash2, Edit2, ChevronLeft, ChevronRight,
-  MoreVertical, ShieldAlert, KeyRound
+  MoreVertical, ShieldAlert, KeyRound, VenetianMask
 } from 'lucide-react';
 import { userService } from '../../services/user.service';
 import type { User, UserQueryParams } from '../../services/user.service';
@@ -12,9 +12,12 @@ import { EditUserModal } from './components/EditUserModal';
 import { ChangeRoleModal } from './components/ChangeRoleModal';
 import { ChangeStatusModal } from './components/ChangeStatusModal';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { ConfirmImpersonateModal } from './components/ConfirmImpersonateModal';
 import { DeleteModal } from '../../components/DeleteModal';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { toast } from 'react-toastify';
+import { useAuthStore } from '../../store/authStore';
+import { useNavigate } from 'react-router-dom';
 
 export const UsersList: React.FC = () => {
   const queryClient = useQueryClient();
@@ -35,6 +38,9 @@ export const UsersList: React.FC = () => {
   const [statusUser, setStatusUser] = useState<User | null>(null);
   const [passwordUser, setPasswordUser] = useState<User | null>(null);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const [impersonateUserTarget, setImpersonateUserTarget] = useState<User | null>(null);
+  const { startImpersonation, user: currentUser } = useAuthStore();
+  const navigate = useNavigate();
 
   // Debounce search
   useEffect(() => {
@@ -58,6 +64,20 @@ export const UsersList: React.FC = () => {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to delete user');
+    }
+  });
+
+  const impersonateMutation = useMutation({
+    mutationFn: (id: string) => userService.impersonateUser(id),
+    onSuccess: (data) => {
+      startImpersonation(data.accessToken, data.user, data.originalUserId);
+      toast.success(`Started impersonating ${data.user.firstName} ${data.user.lastName}`);
+      setImpersonateUserTarget(null);
+      navigate('/');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to start impersonation');
+      setImpersonateUserTarget(null);
     }
   });
 
@@ -233,6 +253,14 @@ export const UsersList: React.FC = () => {
                         >
                           <KeyRound size={18} />
                         </button>
+                        {user.role !== 'super_admin' && user.id !== currentUser?.id && (
+                          <button onClick={() => setImpersonateUserTarget(user)}
+                            className="p-1.5 cursor-pointer text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                            title="Impersonate User"
+                          >
+                            <VenetianMask size={18} />
+                          </button>
+                        )}
                         <div className="w-px h-4 bg-slate-200 mx-1"></div>
                         <button onClick={() => setDeleteUser(user)}
                           className="p-1.5 cursor-pointer text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -317,6 +345,14 @@ export const UsersList: React.FC = () => {
         isOpen={!!passwordUser}
         onClose={() => setPasswordUser(null)}
         user={passwordUser}
+      />
+
+      <ConfirmImpersonateModal
+        isOpen={!!impersonateUserTarget}
+        onClose={() => setImpersonateUserTarget(null)}
+        onConfirm={() => impersonateMutation.mutate(impersonateUserTarget!.id)}
+        isImpersonating={impersonateMutation.isPending}
+        user={impersonateUserTarget}
       />
 
       <DeleteModal

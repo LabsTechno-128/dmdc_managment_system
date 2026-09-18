@@ -51,4 +51,12 @@ export const userService = {
     const response = await api.delete(`/users/${id}`);
     return response.data;
   },
+  impersonateUser: async (id: string) => {
+    const response = await api.post(`/auth/impersonate/${id}`);
+    return response.data;
+  },
+  stopImpersonation: async () => {
+    const response = await api.post('/auth/impersonation/stop');
+    return response.data;
+  }
 };

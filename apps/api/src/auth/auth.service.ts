@@ -6,7 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-
+import { UserRole } from '@hospital/database';
 @Injectable()
 export class AuthService {
     constructor(
@@ -115,5 +115,65 @@ export class AuthService {
         await this.databaseService.repoUser().save(user);
 
         return { message: 'Password changed successfully' };
+    }
+
+    async impersonateUser(adminUserId: string, targetUserId: string) {
+        if (adminUserId === targetUserId) {
+            throw new BadRequestException('Cannot impersonate yourself');
+        }
+
+        const admin = await this.databaseService.repoUser().findOne({ where: { id: adminUserId } });
+        if (!admin || (admin.role !== UserRole.SUPER_ADMIN && admin.role !== UserRole.ADMIN)) {
+            throw new UnauthorizedException('Insufficient permission to impersonate');
+        }
+
+        const target = await this.databaseService.repoUser().findOne({ where: { id: targetUserId } });
+        if (!target) {
+            throw new NotFoundException('Target user not found');
+        }
+        if (!target.isActive) {
+            throw new BadRequestException('Target account cannot be impersonated (inactive)');
+        }
+        if (target.role === UserRole.SUPER_ADMIN) {
+            throw new BadRequestException('Cannot impersonate a super admin');
+        }
+
+        console.log(`[AUDIT] IMPERSONATION_STARTED: Admin ${adminUserId} (${admin.email}) started impersonating Target ${targetUserId} (${target.email}) at ${new Date().toISOString()}`);
+
+        const payload = { 
+            sub: target.id, 
+            email: target.email, 
+            name: `${target.firstName} ${target.lastName}`, 
+            role: target.role,
+            is_impersonating: true,
+            original_user_id: admin.id
+        };
+
+        return {
+            accessToken: this.jwtService.sign(payload, { expiresIn: '30m' }), // Short-lived impersonation token
+            user: { id: target.id, name: `${target.firstName} ${target.lastName}`, email: target.email, firstName: target.firstName, lastName: target.lastName, role: target.role, isActive: target.isActive },
+            originalUserId: admin.id
+        };
+    }
+
+    async stopImpersonating(originalUserId: string) {
+        const admin = await this.databaseService.repoUser().findOne({ where: { id: originalUserId } });
+        if (!admin) {
+            throw new UnauthorizedException('Original admin user not found');
+        }
+
+        console.log(`[AUDIT] IMPERSONATION_STOPPED: Admin ${originalUserId} (${admin.email}) stopped impersonating at ${new Date().toISOString()}`);
+
+        const payload = { 
+            sub: admin.id, 
+            email: admin.email, 
+            name: `${admin.firstName} ${admin.lastName}`, 
+            role: admin.role 
+        };
+
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: { id: admin.id, name: `${admin.firstName} ${admin.lastName}`, email: admin.email, firstName: admin.firstName, lastName: admin.lastName, role: admin.role, isActive: admin.isActive }
+        };
     }
 }

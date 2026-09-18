@@ -263,6 +263,7 @@ function DMDCRegistration({
         handleSubmit,
         setValue,
         control,
+        setFocus,
         formState: { errors },
     } = useForm<AppointmentFormValues>({
         resolver: zodResolver(appointmentSchema) as any,
@@ -351,6 +352,15 @@ function DMDCRegistration({
         });
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>, nextField?: keyof AppointmentFormValues) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (nextField) {
+                setFocus(nextField);
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 text-gray-800 text-sm">
             <main className="p-4">
@@ -435,6 +445,7 @@ function DMDCRegistration({
                                     <div className="col-span-3">
                                         <input
                                             {...register('name')}
+                                            onKeyDown={(e) => handleKeyDown(e, 'phone')}
                                             className={`w-full bg-gray-50 border rounded px-3 py-2 placeholder-gray-500 text-xs focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                             placeholder="Name:"
                                         />
@@ -446,6 +457,7 @@ function DMDCRegistration({
                                         <input
                                             type="tel"
                                             {...register('phone')}
+                                            onKeyDown={(e) => handleKeyDown(e, 'age')}
                                             className={`w-full bg-gray-50 border rounded px-3 py-2 placeholder-gray-500 text-xs focus:outline-none focus:ring-2 ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                             placeholder="Phone:"
                                         />
@@ -459,6 +471,7 @@ function DMDCRegistration({
                                                 type="number"
                                                 min="0"
                                                 {...register('age', { valueAsNumber: true })}
+                                                onKeyDown={(e) => handleKeyDown(e, 'gender')}
                                                 className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
                                                 placeholder="Age:"
                                             />
@@ -470,6 +483,7 @@ function DMDCRegistration({
                                     <div className="col-span-2">
                                         <select
                                             {...register('gender')}
+                                            onKeyDown={(e) => handleKeyDown(e as any, 'weight')}
                                             className={`w-full bg-gray-50 border rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 ${errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                         >
                                             <option value="">Select Gender</option>
@@ -487,6 +501,7 @@ function DMDCRegistration({
                                                 type="number"
                                                 min="0"
                                                 {...register('weight', { valueAsNumber: true })}
+                                                onKeyDown={(e) => handleKeyDown(e, 'bloodPresure')}
                                                 className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
                                                 placeholder="Weight:"
                                             />
@@ -500,6 +515,7 @@ function DMDCRegistration({
                                         <div className={`flex items-center gap-1 bg-gray-50 border rounded px-3 py-2 ${errors.bloodPresure ? 'border-red-500' : 'border-gray-300'}`}>
                                             <input
                                                 {...register('bloodPresure')}
+                                                onKeyDown={(e) => handleKeyDown(e)}
                                                 className="bg-transparent placeholder-gray-500 text-xs w-full focus:outline-none"
                                                 placeholder="BP:"
                                             />

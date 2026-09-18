@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Patch, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, UseGuards, Request, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -48,7 +48,7 @@ export class AuthController {
     @Post('impersonation/stop')
     stopImpersonating(@Request() req: any) {
         if (!req.user.is_impersonating || !req.user.original_user_id) {
-            throw new BadRequestException('Not currently impersonating');
+            throw new Error('Not currently impersonating');
         }
         return this.authService.stopImpersonating(req.user.original_user_id);
     }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { BillingType } from '@hospital/database';
 
 @Injectable()
 export class TestCounterService {
@@ -9,25 +10,49 @@ export class TestCounterService {
         const page = Math.max(1, Number(query?.page) || 1);
         const limit = Math.max(1, Number(query?.limit) || 10);
 
-        const [samples, total] = await this.databaseService.repoSampleCollection().findAndCount({
-            relations: { patient: true, test: true, billing: true },
-            order: { createdAt: 'ASC' },
+        const [billings, total] = await this.databaseService.repoBilling().findAndCount({
+            where: { billingType: BillingType.DIAGNOSTIC },
+            relations: { patient: true },
+            order: { createdAt: 'DESC' },
             skip: (page - 1) * limit,
             take: limit
         });
 
-        // Map SampleCollection to look like a TestOrder for the frontend
-        const data = samples.map(sample => ({
-            id: sample.id,
-            patientId: sample?.patient?.patientId,
-            testId: sample.testId,
-            status: sample.status === 'COLLECTED' ? 'In Progress' : (sample.status === 'PENDING' ? 'Waiting' : 'Completed'),
-            createdAt: sample.createdAt,
-            patient: sample.patient,
-            test: sample.test,
-            billing: sample.billing.billNumber
-        }));
-        console.log(data[0])
+        let samples: any[] = [];
+        if (billings.length > 0) {
+            samples = await this.databaseService.repoSampleCollection().find({
+                where: billings.map(b => ({ billingId: b.id }))
+            });
+        }
+
+        const data = billings.map(billing => {
+            const billingSamples = samples.filter(s => s.billingId === billing.id);
+            let status = 'Waiting';
+            
+            if (billingSamples.length > 0) {
+                const hasPending = billingSamples.some(s => s.status === 'PENDING' || s.status === 'RECOLLECTION_REQUIRED');
+                const hasCollected = billingSamples.some(s => s.status === 'COLLECTED');
+                
+                if (hasPending) {
+                    status = 'Waiting';
+                } else if (hasCollected) {
+                    status = 'In Progress';
+                } else {
+                    status = 'Completed';
+                }
+            }
+
+            return {
+                id: billing.id,
+                patientId: billing.patient?.patientId,
+                status,
+                createdAt: billing.createdAt,
+                patient: billing.patient,
+                billing: billing.billNumber,
+                testCount: billingSamples.length
+            };
+        });
+
         return {
             data,
             meta: {
@@ -45,3 +70,4 @@ export class TestCounterService {
         return null;
     }
 }
+

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { api } from '../../lib/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Activity, Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Activity, Clock, CheckCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
-import { ConfirmModal } from '../../components/ConfirmModal';
+import { TestCounterDetailsModal } from './components/TestCounterDetailsModal';
 
 const fetchTestQueue = async ({ queryKey }: any) => {
   const [_key, page, limit] = queryKey;
@@ -13,7 +13,7 @@ const fetchTestQueue = async ({ queryKey }: any) => {
 
 export const TestCounter: React.FC = () => {
   const queryClient = useQueryClient();
-  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ id: string; status: string } | null>(null);
+  const [selectedBillingId, setSelectedBillingId] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -28,25 +28,6 @@ export const TestCounter: React.FC = () => {
   const meta = responseData?.meta;
   const totalPages = meta?.totalPages || 1;
   const totalItems = meta?.total || 0;
-
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      api.patch(`/test-counter/${id}/status`, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['test-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['reports'] }); // updating to completed creates a report
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-    },
-  });
-
-  const handleStatusChange = (id: string, currentStatus: string) => {
-    let newStatus = 'Waiting';
-    if (currentStatus === 'Waiting') newStatus = 'In Progress';
-    else if (currentStatus === 'In Progress') newStatus = 'Completed';
-    else return; // If already completed, do nothing for now
-
-    setPendingStatusUpdate({ id, status: newStatus });
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,20 +63,19 @@ export const TestCounter: React.FC = () => {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                   <th className="p-4">Sl No</th>
-                  {/* <th className="p-4">Queue ID</th> */}
                   <th className="p-4">Patient ID</th>
                   <th className="p-4">Patient Name</th>
-                  {/* <th className="p-4">Test Name</th> */}
                   <th className="p-4">Invoice ID</th>
-                  <th className="p-4">Ordered Time</th>
-                  <th className="p-4">Action</th>
+                  <th className="p-4">Total Tests</th>
+                  <th className="p-4 text-center">Ordered Time</th>
                   <th className="p-4 text-right">Status</th>
+                  <th className="p-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {queue?.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-slate-500">
+                    <td colSpan={8} className="p-8 text-center text-slate-500">
                       Queue is currently empty.
                     </td>
                   </tr>
@@ -105,11 +85,6 @@ export const TestCounter: React.FC = () => {
                       <td className="p-4 text-sm font-medium text-slate-500">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      {/* <td className="p-4">
-                        <span className="font-mono text-sm font-semibold text-slate-700">
-                          #{order.id.substring(0, 8)}
-                        </span>
-                      </td> */}
                       <td className="p-4">
                         <span className="font-mono text-sm text-slate-600">
                           {order.patientId ? `#${order.patientId.substring(0, 8)}` : '-'}
@@ -120,35 +95,30 @@ export const TestCounter: React.FC = () => {
                           {order.patient?.name || 'Unknown Patient'}
                         </div>
                       </td>
-                      {/* <td className="p-4 font-medium text-slate-700">
-                        {order.test?.name || 'Unknown Test'}
-                      </td> */}
                       <td className="p-4">
                         <span className="font-mono text-sm text-slate-600">
                           {order.billing || '-'}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-slate-600">
-                        {new Date(order.createdAt).toLocaleTimeString()}
+                      <td className="p-4 font-medium text-slate-700">
+                        {order.testCount || 0} tests
                       </td>
-                      <td className="p-4 space-x-2">
-                        {order.status !== 'Completed' ? (
-                          <button onClick={() => handleStatusChange(order.id, order.status)}
-                            disabled={updateStatusMutation.isPending}
-                            className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg shadow-sm transition-colors"
-                          >
-                            <span>Move to next</span>
-                            <ArrowRight size={14} />
-                          </button>
-                        ) : (
-                          <span className="text-sm font-medium text-slate-400">Done</span>
-                        )}
+                      <td className="p-4 text-sm text-center text-slate-600">
+                        {new Date(order.createdAt).toLocaleTimeString()}
                       </td>
                       <td className="p-4 text-right">
                         <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
                           {getStatusIcon(order.status)}
                           <span>{order.status}</span>
                         </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => setSelectedBillingId(order.id)}
+                          className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          <Eye size={16} />
+                          <span>Details</span>
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -197,20 +167,13 @@ export const TestCounter: React.FC = () => {
         )}
       </div>
 
-      <ConfirmModal
-        isOpen={!!pendingStatusUpdate}
-        onClose={() => setPendingStatusUpdate(null)}
-        onConfirm={() => {
-          if (pendingStatusUpdate) {
-            updateStatusMutation.mutate(pendingStatusUpdate, {
-              onSettled: () => setPendingStatusUpdate(null)
-            });
-          }
+      <TestCounterDetailsModal
+        isOpen={!!selectedBillingId}
+        onClose={() => {
+          setSelectedBillingId(null);
+          queryClient.invalidateQueries({ queryKey: ['test-queue'] });
         }}
-        title="Update Test Status"
-        message={`Are you sure you want to update the test status to ${pendingStatusUpdate?.status}?`}
-        isConfirming={updateStatusMutation.isPending}
-        confirmText="Update Status"
+        billingId={selectedBillingId}
       />
     </div>
   );

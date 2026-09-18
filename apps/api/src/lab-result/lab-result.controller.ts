@@ -5,7 +5,7 @@ import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
 import { UserRole, LabResultStatus } from '@hospital/database';
 
-@Controller('api/lab-result')
+@Controller('lab-result')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LabResultController {
     constructor(private readonly labResultService: LabResultService) {}

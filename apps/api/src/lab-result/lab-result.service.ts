@@ -58,11 +58,30 @@ export class LabResultService implements OnModuleInit {
                 await repoTemplate.save(template);
             }
         }
+
+        // Assign a generic template to any remaining tests that do not have one
+        const allTests = await repoTest.find();
+        for (const t of allTests) {
+            const hasTemplate = await repoTemplate.findOne({ where: { testId: t.id } });
+            if (!hasTemplate) {
+                const genericTemplate = repoTemplate.create({
+                    testId: t.id,
+                    fields: [
+                        { name: 'Result', type: 'text', required: true }
+                    ]
+                });
+                await repoTemplate.save(genericTemplate);
+            }
+        }
     }
 
     async getTestsByBillingId(billingId: string) {
+        // Detect if the input is a bill number (e.g., BILL-...) or a UUID
+        const isBillNumber = billingId.startsWith('BILL-') || !billingId.includes('-');
+        const whereCondition = isBillNumber ? { billNumber: billingId } : { id: billingId };
+
         const billing = await this.databaseService.repoBilling().findOne({
-            where: { id: billingId },
+            where: whereCondition,
             relations: { items: { test: true }, patient: true }
         });
 
@@ -72,18 +91,18 @@ export class LabResultService implements OnModuleInit {
 
         // Get samples for this billing
         const samples = await this.databaseService.repoSampleCollection().find({
-            where: { billingId }
+            where: { billingId: billing.id }
         });
 
         // Get lab results for this billing
         const results = await this.databaseService.repoLabResult().find({
-            where: { billingId }
+            where: { billingId: billing.id }
         });
 
         // Combine test, sample, and result status
         const testsWithStatus = billing.items.map(item => {
-            const sample = samples.find(s => s.testId === item.testId);
-            const result = results.find(r => r.testId === item.testId);
+            const sample = samples.find(s => s.billingItemId === item.id) || samples.find(s => s.testId === item.testId);
+            const result = sample ? results.find(r => r.sampleId === sample.id) : null;
             return {
                 test: item.test,
                 sample: sample || null,
@@ -203,5 +222,48 @@ export class LabResultService implements OnModuleInit {
         }
 
         return sample;
+    }
+
+    async getPendingReview() {
+        return this.databaseService.repoLabResult().find({
+            where: { status: LabResultStatus.COMPLETED },
+            relations: { sample: true, patient: true, test: true, performedBy: true },
+            order: { updatedAt: 'DESC' }
+        });
+    }
+
+    async verifyResult(sampleId: string, verifiedById: string) {
+        const result = await this.databaseService.repoLabResult().findOne({
+            where: { sampleId }
+        });
+
+        if (!result) throw new NotFoundException('Result not found');
+        if (result.status !== LabResultStatus.COMPLETED) {
+            throw new BadRequestException('Only completed results can be verified');
+        }
+
+        result.status = LabResultStatus.VERIFIED;
+        result.verifiedById = verifiedById;
+        result.verifiedAt = new Date();
+
+        return this.databaseService.repoLabResult().save(result);
+    }
+
+    async rejectResult(sampleId: string, remarks: string) {
+        const result = await this.databaseService.repoLabResult().findOne({
+            where: { sampleId }
+        });
+
+        if (!result) throw new NotFoundException('Result not found');
+        if (result.status !== LabResultStatus.COMPLETED) {
+            throw new BadRequestException('Only completed results can be rejected');
+        }
+
+        result.status = LabResultStatus.REJECTED;
+        if (remarks) {
+            result.remarks = remarks;
+        }
+
+        return this.databaseService.repoLabResult().save(result);
     }
 }

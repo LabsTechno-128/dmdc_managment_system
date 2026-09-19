@@ -96,7 +96,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
 
                     {fields.length === 0 ? (
                         <div className="text-center p-8 text-slate-500">
-                            No template configured for this test.
+                            No specific parameters configured for this test. Please enter the result in the remarks box below.
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -136,13 +136,13 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                     )}
 
                     <div className="mt-6 border-t pt-4">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Remarks</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Remarks / Report</label>
                         <textarea
                             value={remarks}
                             onChange={(e) => setRemarks(e.target.value)}
                             className="w-full border rounded p-2 text-sm"
-                            rows={3}
-                            placeholder="Any additional notes..."
+                            rows={4}
+                            placeholder="Type the report or any additional notes here..."
                         />
                     </div>
                 </div>
@@ -155,24 +155,20 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                     >
                         Cancel
                     </button>
-                    {fields.length > 0 && (
-                        <>
-                            <button
-                                onClick={handleSaveDraft}
-                                disabled={saving}
-                                className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
-                            >
-                                Save Draft
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={saving}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {saving ? 'Submitting...' : 'Submit Result'}
-                            </button>
-                        </>
-                    )}
+                    <button
+                        onClick={handleSaveDraft}
+                        disabled={saving}
+                        className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
+                    >
+                        Save Draft
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        {saving ? 'Submitting...' : 'Submit Result'}
+                    </button>
                 </div>
             </div>
         </div>

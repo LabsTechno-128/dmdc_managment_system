@@ -11,6 +11,12 @@ import {
 import { Patients } from './Patients';
 import { LabResult } from './LabResult';
 
+export enum ReportStatus {
+    DRAFT = 'DRAFT',
+    FINALIZED = 'FINALIZED',
+    PUBLISHED = 'PUBLISHED'
+}
+
 @Entity({ name: 'reports' })
 export class Report {
     @PrimaryGeneratedColumn('uuid')
@@ -32,6 +38,13 @@ export class Report {
 
     @Column('text', { nullable: true })
     reportData?: string;
+
+    @Column({
+        type: 'enum',
+        enum: ReportStatus,
+        default: ReportStatus.DRAFT,
+    })
+    status!: ReportStatus;
 
     @Column('boolean', { default: false })
     isDelivered!: boolean;

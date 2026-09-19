@@ -62,6 +62,8 @@ import { StockUsage } from './pages/Inventory/StockUsage';
 import { InventoryReports } from './pages/Inventory/InventoryReports';
 import { SampleCollectionDashboard, SampleCollectionInterface } from './pages/SampleCollection';
 import LabTechnicianDashboard from './pages/LabTechnician';
+import { PathologistDashboard } from './pages/Pathologist';
+import { ReportPreview } from './pages/Reports';
 
 const queryClient = new QueryClient();
 
@@ -170,6 +172,12 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['lab_technician', 'super_admin']} />}>
               <Route path="/test-counter" element={<TestCounter />} />
               <Route path="/reagents" element={<Placeholder title="Re-agents & Sample Pots" />} />
+            </Route>
+
+            {/* Pathologist Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin']} />}>
+              <Route path="/pathologist" element={<PathologistDashboard />} />
+              <Route path="/reports/:id/preview" element={<ReportPreview />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

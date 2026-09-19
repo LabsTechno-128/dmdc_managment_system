@@ -65,4 +65,26 @@ export class LabResultController {
     async recollectSample(@Param('sampleId') sampleId: string) {
         return this.labResultService.recollectSample(sampleId);
     }
+
+    @Get('pending-review')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN)
+    async getPendingReview() {
+        return this.labResultService.getPendingReview();
+    }
+
+    @Post(':sampleId/verify')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR)
+    async verifyResult(@Param('sampleId') sampleId: string, @Req() req: any) {
+        return this.labResultService.verifyResult(sampleId, req.user.id);
+    }
+
+    @Post(':sampleId/reject')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR)
+    async rejectResult(
+        @Param('sampleId') sampleId: string,
+        @Body() body: { remarks: string },
+        @Req() req: any
+    ) {
+        return this.labResultService.rejectResult(sampleId, body.remarks);
+    }
 }

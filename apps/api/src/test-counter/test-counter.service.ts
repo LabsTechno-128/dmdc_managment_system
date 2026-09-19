@@ -19,26 +19,36 @@ export class TestCounterService {
         });
 
         let samples: any[] = [];
+        let labResults: any[] = [];
         if (billings.length > 0) {
             samples = await this.databaseService.repoSampleCollection().find({
+                where: billings.map(b => ({ billingId: b.id }))
+            });
+            labResults = await this.databaseService.repoLabResult().find({
                 where: billings.map(b => ({ billingId: b.id }))
             });
         }
 
         const data = billings.map(billing => {
             const billingSamples = samples.filter(s => s.billingId === billing.id);
+            const billingResults = labResults.filter(r => r.billingId === billing.id);
             let status = 'Waiting';
             
             if (billingSamples.length > 0) {
-                const hasPending = billingSamples.some(s => s.status === 'PENDING' || s.status === 'RECOLLECTION_REQUIRED');
-                const hasCollected = billingSamples.some(s => s.status === 'COLLECTED');
+                // Total ordered tests can be inferred from billing items, but for now we'll assume it's the number of samples
+                const hasPendingSample = billingSamples.some(s => s.status === 'PENDING' || s.status === 'RECOLLECTION_REQUIRED');
                 
-                if (hasPending) {
-                    status = 'Waiting';
-                } else if (hasCollected) {
-                    status = 'In Progress';
-                } else {
+                // If any result is not COMPLETED/VERIFIED, it's not finished
+                const allResultsFinished = billingSamples.every(s => 
+                    billingResults.some(r => r.sampleId === s.id && (r.status === 'COMPLETED' || r.status === 'VERIFIED'))
+                );
+
+                if (allResultsFinished && billingSamples.length > 0) {
                     status = 'Completed';
+                } else if (hasPendingSample) {
+                    status = 'Waiting';
+                } else {
+                    status = 'In Progress'; // Samples are collected, but results are not all finished
                 }
             }
 
@@ -49,7 +59,7 @@ export class TestCounterService {
                 createdAt: billing.createdAt,
                 patient: billing.patient,
                 billing: billing.billNumber,
-                testCount: billingSamples.length
+                testCount: billingSamples.length || billing.items?.length || 0
             };
         });
 

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Report } from '@hospital/database';
+import { Report, ReportStatus, LabResultStatus } from '@hospital/database';
 
 @Injectable()
 export class ReportsService {
@@ -25,7 +25,75 @@ export class ReportsService {
     }
 
     async markDelivered(id: string) {
-        await this.databaseService.repoReport().update(id, { isDelivered: true });
+        await this.databaseService.repoReport().update(id, { isDelivered: true, status: ReportStatus.PUBLISHED });
         return this.findOne(id);
+    }
+
+    async finalizeReport(labResultId: string) {
+        const labResult = await this.databaseService.repoLabResult().findOne({
+            where: { id: labResultId },
+            relations: { patient: true, test: true, sample: true }
+        });
+
+        if (!labResult) throw new NotFoundException('Lab Result not found');
+        if (labResult.status !== LabResultStatus.VERIFIED) {
+            throw new BadRequestException('Can only finalize reports for verified lab results');
+        }
+
+        let report = await this.databaseService.repoReport().findOne({
+            where: { labResultId }
+        });
+
+        // We stringify the snapshot and resultData as the baseline reportData
+        const reportDataSnapshot = JSON.stringify({
+            template: labResult.templateSnapshot,
+            results: labResult.resultData,
+            remarks: labResult.remarks
+        });
+
+        if (!report) {
+            report = this.databaseService.repoReport().create({
+                patientId: labResult.patientId,
+                labResultId: labResult.id,
+                reportData: reportDataSnapshot,
+                status: ReportStatus.FINALIZED
+            });
+        } else {
+            report.reportData = reportDataSnapshot;
+            report.status = ReportStatus.FINALIZED;
+        }
+
+        return this.databaseService.repoReport().save(report);
+    }
+
+    async publishReport(id: string) {
+        const report = await this.findOne(id);
+        if (!report) throw new NotFoundException('Report not found');
+        
+        if (report.status !== ReportStatus.FINALIZED) {
+            throw new BadRequestException('Only finalized reports can be published');
+        }
+
+        report.status = ReportStatus.PUBLISHED;
+        report.isDelivered = true;
+        return this.databaseService.repoReport().save(report);
+    }
+
+    async getPrintData(id: string) {
+        const report = await this.databaseService.repoReport().findOne({
+            where: { id },
+            relations: {
+                patient: true,
+                labResult: {
+                    test: true,
+                    sample: true,
+                    performedBy: true,
+                    verifiedBy: true
+                }
+            }
+        });
+
+        if (!report) throw new NotFoundException('Report not found');
+        return report;
     }
 }

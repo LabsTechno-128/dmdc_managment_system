@@ -18,6 +18,10 @@ export class LabTestsService {
   get repo() {
     return this.databaseService.repoLabTest();
   }
+  
+  get paramRepo() {
+    return this.databaseService.repoTestParameter();
+  }
   async seed() {
     const count = await this.repo.count();
     if (count > 0) return;
@@ -141,5 +145,92 @@ export class LabTestsService {
       currentView: total,
       status: 'Ready',
     };
+  }
+
+  // --- Parameter Management ---
+
+  async getParameters(testId: number) {
+    const test = await this.findOne(testId);
+    return this.paramRepo.find({
+      where: { testId: test.id },
+      order: { displayOrder: 'ASC' }
+    });
+  }
+
+  async createParameter(testId: number, dto: any, userId: string) {
+    const test = await this.findOne(testId);
+    
+    // Check name uniqueness within the same test
+    const duplicate = await this.paramRepo.findOne({
+      where: { testId: test.id, name: dto.name.trim() }
+    });
+    if (duplicate) throw new ConflictException('A parameter with this name already exists for this test');
+
+    // Get max displayOrder
+    const maxOrderParam = await this.paramRepo.findOne({
+      where: { testId: test.id },
+      order: { displayOrder: 'DESC' }
+    });
+    const nextOrder = maxOrderParam ? maxOrderParam.displayOrder + 1 : 1;
+
+    const param = this.paramRepo.create({
+      ...dto,
+      name: dto.name.trim(),
+      testId: test.id,
+      displayOrder: nextOrder,
+      createdById: userId,
+    });
+    
+    return this.paramRepo.save(param);
+  }
+
+  async updateParameter(testId: number, paramId: string, dto: any, userId: string) {
+    await this.findOne(testId); // Ensure test exists
+
+    const param = await this.paramRepo.findOne({ where: { id: paramId, testId } });
+    if (!param) throw new NotFoundException('Parameter not found');
+
+    if (dto.name && dto.name.trim() !== param.name) {
+      const duplicate = await this.paramRepo.findOne({
+        where: { testId, name: dto.name.trim() }
+      });
+      if (duplicate && duplicate.id !== paramId) {
+        throw new ConflictException('A parameter with this name already exists for this test');
+      }
+    }
+
+    Object.assign(param, {
+      ...dto,
+      name: dto.name ? dto.name.trim() : param.name,
+      updatedById: userId
+    });
+
+    return this.paramRepo.save(param);
+  }
+
+  async deleteParameter(testId: number, paramId: string) {
+    await this.findOne(testId);
+    const param = await this.paramRepo.findOne({ where: { id: paramId, testId } });
+    if (!param) throw new NotFoundException('Parameter not found');
+
+    await this.paramRepo.remove(param);
+    return { message: 'Parameter deleted successfully' };
+  }
+
+  async reorderParameters(testId: number, paramIds: string[]) {
+    await this.findOne(testId);
+    
+    const params = await this.paramRepo.find({ where: { testId } });
+    
+    // Update order based on the provided array
+    for (let i = 0; i < paramIds.length; i++) {
+      const p = params.find(p => p.id === paramIds[i]);
+      if (p) {
+        p.displayOrder = i + 1;
+        await this.paramRepo.save(p);
+      }
+    }
+    
+    return this.getParameters(testId);
   }
 }

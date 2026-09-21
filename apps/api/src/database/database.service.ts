@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog, SampleCollection, ResultTemplate, LabResult } from '@hospital/database';
+import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog, SampleCollection, TestParameter, ParameterResult, LabResult } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
@@ -65,7 +65,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 InventoryStockEntry,
                 InventoryUsageLog,
                 SampleCollection,
-                ResultTemplate,
+                TestParameter,
+                ParameterResult,
                 LabResult
             ],
             synchronize: true,
@@ -138,8 +139,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     repoSampleCollection(): Repository<SampleCollection> {
         return this.getDataSource().getRepository(SampleCollection);
     }
-    repoResultTemplate(): Repository<ResultTemplate> {
-        return this.getDataSource().getRepository(ResultTemplate);
+    repoTestParameter(): Repository<TestParameter> {
+        return this.getDataSource().getRepository(TestParameter);
+    }
+    repoParameterResult(): Repository<ParameterResult> {
+        return this.getDataSource().getRepository(ParameterResult);
     }
     repoLabResult(): Repository<LabResult> {
         return this.getDataSource().getRepository(LabResult);

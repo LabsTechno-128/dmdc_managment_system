@@ -4,7 +4,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { TestParameter } from './TestParameter';
 
 @Entity('lab_tests')
 export class LabTest {
@@ -22,6 +24,9 @@ export class LabTest {
 
   @Column({ type: 'float', default: 0, nullable: true })
   billRate!: number;
+
+  @OneToMany(() => TestParameter, (param) => param.test)
+  parameters!: TestParameter[];
 
   @CreateDateColumn()
   createdAt!: Date;

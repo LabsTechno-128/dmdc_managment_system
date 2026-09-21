@@ -15,6 +15,21 @@ export type LabTest = {
     updatedAt: string;
 };
 
+export type TestParameter = {
+    id: string;
+    testId: number;
+    name: string;
+    dataType: 'NUMERIC' | 'DECIMAL' | 'TEXT' | 'POSITIVE_NEGATIVE' | 'SELECT';
+    unit: string | null;
+    referenceValue: string | null;
+    options: string[] | null;
+    isRequired: boolean;
+    displayOrder: number;
+    group: string | null;
+    isSubItem: boolean;
+    isActive: boolean;
+};
+
 export type LabTestQueryParams = {
     page?: number;
     limit?: number;
@@ -70,6 +85,9 @@ export const labTestKeys = {
 
     summary: () =>
         [...labTestKeys.all, "summary"] as const,
+
+    parameters: (testId: number) =>
+        [...labTestKeys.detail(testId), "parameters"] as const,
 };
 
 /* =========================
@@ -205,5 +223,69 @@ export function useLabTestSummary() {
 
         queryFn: () =>
             labTestService.getSummary(),
+    });
+}
+
+/* =========================
+   PARAMETERS
+========================= */
+
+export function useTestParameters(testId: number) {
+    return useQuery({
+        queryKey: labTestKeys.parameters(testId),
+        queryFn: () => labTestService.getParameters(testId),
+        enabled: !!testId,
+    });
+}
+
+export function useCreateTestParameter() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ testId, data }: { testId: number; data: any }) =>
+            labTestService.createParameter(testId, data),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: labTestKeys.parameters(variables.testId),
+            });
+        },
+    });
+}
+
+export function useUpdateTestParameter() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ testId, paramId, data }: { testId: number; paramId: string; data: any }) =>
+            labTestService.updateParameter(testId, paramId, data),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: labTestKeys.parameters(variables.testId),
+            });
+        },
+    });
+}
+
+export function useDeleteTestParameter() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ testId, paramId }: { testId: number; paramId: string }) =>
+            labTestService.deleteParameter(testId, paramId),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: labTestKeys.parameters(variables.testId),
+            });
+        },
+    });
+}
+
+export function useReorderTestParameters() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ testId, parameterIds }: { testId: number; parameterIds: string[] }) =>
+            labTestService.reorderParameters(testId, parameterIds),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: labTestKeys.parameters(variables.testId),
+            });
+        },
     });
 }

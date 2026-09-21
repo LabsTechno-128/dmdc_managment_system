@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { LabResultStatus, SampleStatus, LabResult, ResultTemplate, LabTest, Billing, SampleCollection } from '@hospital/database';
+import { LabResultStatus, SampleStatus, LabResult, TestParameter, ParameterResult, LabTest, Billing, SampleCollection } from '@hospital/database';
 import { In } from 'typeorm';
 
 @Injectable()
@@ -12,67 +12,7 @@ export class LabResultService implements OnModuleInit {
     }
 
     private async seedTemplates() {
-        const repoTest = this.databaseService.repoLabTest();
-        const repoTemplate = this.databaseService.repoResultTemplate();
-
-        const defaultTemplates = [
-            {
-                name: 'CBC',
-                fields: [
-                    { name: 'Hemoglobin', type: 'number', unit: 'g/dL', referenceRange: '13.0 - 17.0', required: true },
-                    { name: 'WBC', type: 'number', unit: '/µL', referenceRange: '4,000 - 11,000', required: true },
-                    { name: 'RBC', type: 'number', unit: 'million/µL', referenceRange: '4.5 - 5.5', required: true },
-                    { name: 'Platelet', type: 'number', unit: '/µL', referenceRange: '150,000 - 450,000', required: true }
-                ]
-            },
-            {
-                name: 'Blood Sugar',
-                fields: [
-                    { name: 'Glucose', type: 'number', unit: 'mg/dL', referenceRange: '70 - 99', required: true }
-                ]
-            },
-            {
-                name: 'Urine R/E',
-                fields: [
-                    { name: 'Color', type: 'select', options: ['Pale Yellow', 'Yellow', 'Amber', 'Red'], required: true },
-                    { name: 'Appearance', type: 'select', options: ['Clear', 'Hazy', 'Cloudy', 'Turbid'], required: true },
-                    { name: 'Protein', type: 'select', options: ['Nil', 'Trace', '+', '++', '+++'], required: true },
-                    { name: 'Glucose', type: 'select', options: ['Nil', 'Trace', '+', '++', '+++'], required: true },
-                    { name: 'RBC', type: 'number', unit: '/HPF', referenceRange: '0 - 2', required: false },
-                    { name: 'WBC', type: 'number', unit: '/HPF', referenceRange: '0 - 5', required: false }
-                ]
-            }
-        ];
-
-        for (const t of defaultTemplates) {
-            // Find existing test by name or create it
-            let test = await repoTest.findOne({ where: { name: t.name } });
-            if (!test) {
-                test = repoTest.create({ name: t.name, billRate: 500 });
-                test = await repoTest.save(test);
-            }
-            
-            let template = await repoTemplate.findOne({ where: { testId: test.id } });
-            if (!template) {
-                template = repoTemplate.create({ testId: test.id, fields: t.fields });
-                await repoTemplate.save(template);
-            }
-        }
-
-        // Assign a generic template to any remaining tests that do not have one
-        const allTests = await repoTest.find();
-        for (const t of allTests) {
-            const hasTemplate = await repoTemplate.findOne({ where: { testId: t.id } });
-            if (!hasTemplate) {
-                const genericTemplate = repoTemplate.create({
-                    testId: t.id,
-                    fields: [
-                        { name: 'Result', type: 'text', required: true }
-                    ]
-                });
-                await repoTemplate.save(genericTemplate);
-            }
-        }
+        // Will implement via API instead of hardcoded seeder.
     }
 
     async getTestsByBillingId(billingId: string) {
@@ -96,7 +36,8 @@ export class LabResultService implements OnModuleInit {
 
         // Get lab results for this billing
         const results = await this.databaseService.repoLabResult().find({
-            where: { billingId: billing.id }
+            where: { billingId: billing.id },
+            relations: { parameterResults: { testParameter: true } }
         });
 
         // Combine test, sample, and result status
@@ -127,25 +68,20 @@ export class LabResultService implements OnModuleInit {
         }
 
         let result = await this.databaseService.repoLabResult().findOne({
-            where: { sampleId: sample.id }
+            where: { sampleId: sample.id },
+            relations: { parameterResults: { testParameter: true } }
         });
 
         return { sample, result };
     }
 
     async getTemplateByTestId(testId: number) {
-        const template = await this.databaseService.repoResultTemplate().findOne({
-            where: { testId }
-        });
-
-        if (!template) {
-            // Return empty template if none configured
-            return { fields: [] };
-        }
-        return template;
+        // Obsolete
+        return { fields: [] };
     }
 
-    async upsertResult(sampleId: string, resultData: any, status: LabResultStatus, remarks: string, performedById: string) {
+    // resultData is expected to be an array: { testParameterId: string, resultValue: string }[]
+    async upsertResult(sampleId: string, resultData: any[], status: LabResultStatus, remarks: string, performedById: string) {
         const sample = await this.databaseService.repoSampleCollection().findOne({
             where: { id: sampleId }
         });
@@ -157,21 +93,26 @@ export class LabResultService implements OnModuleInit {
         }
 
         let labResult = await this.databaseService.repoLabResult().findOne({
-            where: { sampleId }
+            where: { sampleId },
+            relations: { parameterResults: true }
         });
 
         if (labResult && labResult.status === LabResultStatus.VERIFIED) {
             throw new BadRequestException('Result is already verified and cannot be modified');
         }
 
-        const template = await this.getTemplateByTestId(sample.testId);
+        const parameters = await this.databaseService.repoTestParameter().find({
+            where: { testId: sample.testId, isActive: true }
+        });
 
         if (status === LabResultStatus.COMPLETED) {
             // Validate required fields
-            const fields: any[] = template.fields || [];
-            for (const field of fields) {
-                if (field.required && (resultData[field.name] === undefined || resultData[field.name] === null || resultData[field.name] === '')) {
-                    throw new BadRequestException(`Field ${field.name} is required to submit result`);
+            for (const param of parameters) {
+                if (param.isRequired) {
+                    const entered = resultData.find(r => r.testParameterId === param.id);
+                    if (!entered || entered.resultValue === undefined || entered.resultValue === null || entered.resultValue === '') {
+                        throw new BadRequestException(`Field ${param.name} is required to submit result`);
+                    }
                 }
             }
         }
@@ -182,23 +123,42 @@ export class LabResultService implements OnModuleInit {
                 testId: sample.testId,
                 sampleId: sample.id,
                 patientId: sample.patientId,
-                resultData,
-                templateSnapshot: template,
                 status,
                 remarks,
                 performedById,
                 performedAt: new Date()
             });
+            labResult = await this.databaseService.repoLabResult().save(labResult);
         } else {
-            labResult.resultData = resultData;
-            labResult.templateSnapshot = template;
             labResult.status = status;
             if (remarks) labResult.remarks = remarks;
             labResult.performedById = performedById;
             labResult.performedAt = new Date();
+            labResult = await this.databaseService.repoLabResult().save(labResult);
         }
 
-        return this.databaseService.repoLabResult().save(labResult);
+        // Save parameter results
+        for (const data of resultData) {
+            let pr = await this.databaseService.repoParameterResult().findOne({
+                where: { labResultId: labResult.id, testParameterId: data.testParameterId }
+            });
+
+            if (!pr) {
+                pr = this.databaseService.repoParameterResult().create({
+                    labResultId: labResult.id,
+                    testParameterId: data.testParameterId,
+                    resultValue: data.resultValue,
+                    enteredById: performedById,
+                    enteredAt: new Date()
+                });
+            } else {
+                pr.resultValue = data.resultValue;
+                pr.updatedById = performedById;
+            }
+            await this.databaseService.repoParameterResult().save(pr);
+        }
+
+        return labResult;
     }
 
     async recollectSample(sampleId: string) {
@@ -227,7 +187,7 @@ export class LabResultService implements OnModuleInit {
     async getPendingReview() {
         return this.databaseService.repoLabResult().find({
             where: { status: LabResultStatus.COMPLETED },
-            relations: { sample: true, patient: true, test: true, performedBy: true },
+            relations: { sample: true, patient: true, test: true, performedBy: true, parameterResults: { testParameter: true } },
             order: { updatedAt: 'DESC' }
         });
     }
@@ -246,7 +206,29 @@ export class LabResultService implements OnModuleInit {
         result.verifiedById = verifiedById;
         result.verifiedAt = new Date();
 
-        return this.databaseService.repoLabResult().save(result);
+        await this.databaseService.repoLabResult().save(result);
+
+        // Snapshot all parameters at the time of verification
+        const parameterResults = await this.databaseService.repoParameterResult().find({
+            where: { labResultId: result.id },
+            relations: { testParameter: true }
+        });
+
+        for (const pr of parameterResults) {
+            const param = pr.testParameter;
+            if (param) {
+                pr.snapshotParameterName = param.name;
+                pr.snapshotUnit = param.unit;
+                pr.snapshotReferenceValue = param.referenceValue;
+                pr.snapshotDataType = param.dataType;
+                pr.snapshotDisplayOrder = param.displayOrder;
+                pr.snapshotGroup = param.group;
+                pr.snapshotIsSubItem = param.isSubItem;
+                await this.databaseService.repoParameterResult().save(pr);
+            }
+        }
+
+        return result;
     }
 
     async rejectResult(sampleId: string, remarks: string) {

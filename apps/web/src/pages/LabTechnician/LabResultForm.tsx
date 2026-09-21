@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 
 interface Field {
+    id: string;
     name: string;
-    type: 'text' | 'number' | 'select';
+    dataType: 'NUMERIC' | 'DECIMAL' | 'TEXT' | 'POSITIVE_NEGATIVE' | 'SELECT';
     options?: string[];
     unit?: string;
-    referenceRange?: string;
-    required: boolean;
+    referenceValue?: string;
+    isRequired: boolean;
 }
 
 interface LabResultFormProps {
@@ -21,35 +22,49 @@ interface LabResultFormProps {
 
 const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testName, initialData, onClose, onSuccess }) => {
     const [fields, setFields] = useState<Field[]>([]);
-    const [formData, setFormData] = useState<any>(initialData?.resultData || {});
+    
+    // Map initial parameterResults array to a key-value object: { [testParameterId]: resultValue }
+    const initialMap = Array.isArray(initialData?.parameterResults) 
+        ? initialData.parameterResults.reduce((acc: any, pr: any) => ({ ...acc, [pr.testParameterId]: pr.resultValue }), {}) 
+        : {};
+        
+    const [formData, setFormData] = useState<Record<string, string>>(initialMap);
     const [remarks, setRemarks] = useState(initialData?.remarks || '');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchTemplate = async () => {
+        const fetchParameters = async () => {
             try {
-                const res = await api.get(`/lab-result/template/${testId}`);
-                setFields(res.data.fields || []);
+                const res = await api.get(`/lab-tests/${testId}/parameters`);
+                setFields(res.data || []);
             } catch (err: any) {
-                setError('Failed to load test template');
+                setError('Failed to load test parameters');
             } finally {
                 setLoading(false);
             }
         };
-        fetchTemplate();
+        fetchParameters();
     }, [testId]);
 
-    const handleInputChange = (name: string, value: string) => {
-        setFormData((prev: any) => ({ ...prev, [name]: value }));
+    const handleInputChange = (parameterId: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [parameterId]: value }));
+    };
+
+    // Prepare payload format: [{ testParameterId: string, resultValue: string }]
+    const preparePayload = () => {
+        return Object.entries(formData).map(([testParameterId, resultValue]) => ({
+            testParameterId,
+            resultValue
+        }));
     };
 
     const handleSaveDraft = async () => {
         setSaving(true);
         setError('');
         try {
-            await api.post(`/lab-result/${sampleId}/draft`, { resultData: formData, remarks });
+            await api.post(`/lab-result/${sampleId}/draft`, { resultData: preparePayload(), remarks });
             onSuccess();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to save draft');
@@ -62,7 +77,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
         setSaving(true);
         setError('');
         try {
-            await api.post(`/lab-result/${sampleId}/submit`, { resultData: formData, remarks });
+            await api.post(`/lab-result/${sampleId}/submit`, { resultData: preparePayload(), remarks });
             onSuccess();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to submit result');
@@ -100,34 +115,38 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {fields.map((f, i) => (
-                                <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                            {fields.map((f) => (
+                                <div key={f.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center border-b pb-3">
                                     <label className="text-sm font-medium text-slate-700">
-                                        {f.name} {f.required && <span className="text-red-500">*</span>}
+                                        {f.name} {f.isRequired && <span className="text-red-500">*</span>}
                                     </label>
                                     <div className="md:col-span-2 flex items-center gap-2">
-                                        {f.type === 'select' ? (
+                                        {f.dataType === 'SELECT' || f.dataType === 'POSITIVE_NEGATIVE' ? (
                                             <select
-                                                value={formData[f.name] || ''}
-                                                onChange={(e) => handleInputChange(f.name, e.target.value)}
+                                                value={formData[f.id] || ''}
+                                                onChange={(e) => handleInputChange(f.id, e.target.value)}
                                                 className="border rounded p-2 flex-1 text-sm focus:ring-2 focus:ring-blue-500"
                                             >
                                                 <option value="">Select...</option>
-                                                {f.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                {f.dataType === 'POSITIVE_NEGATIVE' 
+                                                    ? ['Positive', 'Negative'].map(opt => <option key={opt} value={opt}>{opt}</option>)
+                                                    : f.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
+                                                }
                                             </select>
                                         ) : (
                                             <input
-                                                type={f.type === 'number' ? 'number' : 'text'}
-                                                value={formData[f.name] || ''}
-                                                onChange={(e) => handleInputChange(f.name, e.target.value)}
+                                                type={f.dataType === 'NUMERIC' || f.dataType === 'DECIMAL' ? 'number' : 'text'}
+                                                step={f.dataType === 'DECIMAL' ? '0.01' : 'any'}
+                                                value={formData[f.id] || ''}
+                                                onChange={(e) => handleInputChange(f.id, e.target.value)}
                                                 className="border rounded p-2 flex-1 text-sm focus:ring-2 focus:ring-blue-500"
                                             />
                                         )}
-                                        {f.unit && <span className="text-sm text-slate-500 w-16">{f.unit}</span>}
+                                        {f.unit && <span className="text-sm text-slate-500 w-16 whitespace-nowrap">{f.unit}</span>}
                                     </div>
-                                    {f.referenceRange && (
-                                        <div className="md:col-start-2 md:col-span-2 text-xs text-slate-400">
-                                            Reference Range: {f.referenceRange}
+                                    {f.referenceValue && (
+                                        <div className="md:col-start-2 md:col-span-2 text-xs text-slate-400 font-mono bg-slate-50 p-1 rounded">
+                                            Ref: {f.referenceValue}
                                         </div>
                                     )}
                                 </div>

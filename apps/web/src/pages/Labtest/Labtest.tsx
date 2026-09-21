@@ -16,6 +16,8 @@ import {
 
 import { useLabTests, useCreateLabTest, useUpdateLabTest, useDeleteLabTest, useLabTestSummary, type LabTest as LabTestType } from '../../hooks/useLabTest';
 import { DeleteModal } from '../../components/DeleteModal';
+import { TestParameterManager } from './TestParameterManager';
+import { ListPlus } from 'lucide-react';
 
 const PAGE_SIZE = 10;
 
@@ -39,6 +41,7 @@ function LabTest() {
     const [error, setError] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<LabTestType | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [managingTest, setManagingTest] = useState<LabTestType | null>(null);
 
     const { data: response, isLoading: loading, refetch: load } = useLabTests({
         page,
@@ -350,6 +353,12 @@ function LabTest() {
                                             </td>
                                             <td className="px-5 py-3">
                                                 <div className="flex justify-end gap-2">
+                                                    <button onClick={() => setManagingTest(test)}
+                                                        className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 transition-all hover:bg-blue-600 hover:text-white hover:shadow-sm hover:shadow-blue-600/20 active:scale-95"
+                                                    >
+                                                        <ListPlus size={14} />
+                                                        Parameters
+                                                    </button>
                                                     <button onClick={() => startEdit(test)}
                                                         className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-violet-100 px-3 py-1.5 text-xs font-bold text-violet-700 transition-all hover:bg-violet-600 hover:text-white hover:shadow-sm hover:shadow-violet-600/20 active:scale-95"
                                                     >
@@ -430,6 +439,14 @@ function LabTest() {
                 itemName={deleteTarget?.name}
                 isDeleting={isDeleting}
             />
+
+            {managingTest && (
+                <TestParameterManager
+                    testId={managingTest.id}
+                    testName={managingTest.name}
+                    onClose={() => setManagingTest(null)}
+                />
+            )}
         </div>
     );
 }

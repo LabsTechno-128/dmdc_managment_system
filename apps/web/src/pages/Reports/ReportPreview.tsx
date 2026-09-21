@@ -45,7 +45,7 @@ export const ReportPreview: React.FC = () => {
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
     if (!report) return <div className="p-8 text-center text-slate-500">Report not found</div>;
 
-    let parsedData = { template: { fields: [] }, results: {}, remarks: '' };
+    let parsedData = { parameterResults: [], remarks: '' };
     try {
         if (report.reportData) {
             parsedData = JSON.parse(report.reportData);
@@ -54,7 +54,7 @@ export const ReportPreview: React.FC = () => {
         console.error("Failed to parse reportData");
     }
 
-    const { template, results, remarks } = parsedData;
+    const { parameterResults, remarks } = parsedData;
     const patient = report.patient || {};
     const labResult = report.labResult || {};
     const test = labResult.test || {};
@@ -148,14 +148,13 @@ export const ReportPreview: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {template?.fields?.map((field: any, idx: number) => {
-                                    const val = (results as any)[field.name];
+                                {parameterResults?.map((pr: any, idx: number) => {
                                     return (
                                         <tr key={idx} className="border-b border-slate-200">
-                                            <td className="py-3 font-medium text-slate-800">{field.name}</td>
-                                            <td className="py-3 font-bold text-slate-900">{val || '-'}</td>
-                                            <td className="py-3 text-slate-700 text-sm">{field.unit || '-'}</td>
-                                            <td className="py-3 text-slate-700 text-sm whitespace-pre-line">{field.referenceRange || '-'}</td>
+                                            <td className="py-3 font-medium text-slate-800">{pr.snapshotParameterName}</td>
+                                            <td className="py-3 font-bold text-slate-900">{pr.resultValue || '-'}</td>
+                                            <td className="py-3 text-slate-700 text-sm">{pr.snapshotUnit || '-'}</td>
+                                            <td className="py-3 text-slate-700 text-sm whitespace-pre-line">{pr.snapshotReferenceValue || '-'}</td>
                                         </tr>
                                     );
                                 })}

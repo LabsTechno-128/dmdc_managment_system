@@ -32,7 +32,7 @@ export class ReportsService {
     async finalizeReport(labResultId: string) {
         const labResult = await this.databaseService.repoLabResult().findOne({
             where: { id: labResultId },
-            relations: { patient: true, test: true, sample: true }
+            relations: { patient: true, test: true, sample: true, parameterResults: { testParameter: true } }
         });
 
         if (!labResult) throw new NotFoundException('Lab Result not found');
@@ -44,10 +44,9 @@ export class ReportsService {
             where: { labResultId }
         });
 
-        // We stringify the snapshot and resultData as the baseline reportData
+        // We stringify the parameter results as the baseline reportData
         const reportDataSnapshot = JSON.stringify({
-            template: labResult.templateSnapshot,
-            results: labResult.resultData,
+            parameterResults: labResult.parameterResults,
             remarks: labResult.remarks
         });
 

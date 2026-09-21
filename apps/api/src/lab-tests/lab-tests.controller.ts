@@ -8,7 +8,8 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards
+  UseGuards,
+  Req
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
@@ -60,5 +61,52 @@ export class LabTestsController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.service.remove(id);
+  }
+
+  // --- Parameters ---
+
+  @Get(':id/parameters')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN, UserRole.DOCTOR)
+  getParameters(@Param('id', ParseIntPipe) testId: number) {
+    return this.service.getParameters(testId);
+  }
+
+  @Post(':id/parameters')
+  @Roles(UserRole.SUPER_ADMIN)
+  createParameter(
+    @Param('id', ParseIntPipe) testId: number,
+    @Body() dto: any,
+    @Req() req: any
+  ) {
+    return this.service.createParameter(testId, dto, req.user.id);
+  }
+
+  @Patch(':id/parameters/reorder')
+  @Roles(UserRole.SUPER_ADMIN)
+  reorderParameters(
+    @Param('id', ParseIntPipe) testId: number,
+    @Body() body: { parameterIds: string[] }
+  ) {
+    return this.service.reorderParameters(testId, body.parameterIds);
+  }
+
+  @Patch(':id/parameters/:paramId')
+  @Roles(UserRole.SUPER_ADMIN)
+  updateParameter(
+    @Param('id', ParseIntPipe) testId: number,
+    @Param('paramId') paramId: string,
+    @Body() dto: any,
+    @Req() req: any
+  ) {
+    return this.service.updateParameter(testId, paramId, dto, req.user.id);
+  }
+
+  @Delete(':id/parameters/:paramId')
+  @Roles(UserRole.SUPER_ADMIN)
+  deleteParameter(
+    @Param('id', ParseIntPipe) testId: number,
+    @Param('paramId') paramId: string
+  ) {
+    return this.service.deleteParameter(testId, paramId);
   }
 }

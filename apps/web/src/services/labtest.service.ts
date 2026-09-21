@@ -23,6 +23,32 @@ export const labTestService = {
         };
     },
 
+    // --- Parameters ---
+
+    getParameters: async (testId: number) => {
+        const { data } = await api.get(`/lab-tests/${testId}/parameters`);
+        return data;
+    },
+
+    createParameter: async (testId: number, payload: any) => {
+        const { data } = await api.post(`/lab-tests/${testId}/parameters`, payload);
+        return data;
+    },
+
+    updateParameter: async (testId: number, paramId: string, payload: any) => {
+        const { data } = await api.patch(`/lab-tests/${testId}/parameters/${paramId}`, payload);
+        return data;
+    },
+
+    deleteParameter: async (testId: number, paramId: string) => {
+        await api.delete(`/lab-tests/${testId}/parameters/${paramId}`);
+    },
+
+    reorderParameters: async (testId: number, parameterIds: string[]) => {
+        const { data } = await api.patch(`/lab-tests/${testId}/parameters/reorder`, { parameterIds });
+        return data;
+    },
+
     getLabTestById: async (
         id: number
     ): Promise<LabTest> => {

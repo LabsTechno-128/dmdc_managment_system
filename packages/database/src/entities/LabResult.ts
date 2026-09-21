@@ -6,6 +6,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
     ManyToOne,
+    OneToMany,
     JoinColumn
 } from 'typeorm';
 import { Billing } from './Billing';
@@ -13,6 +14,7 @@ import { LabTest } from './LabTest';
 import { SampleCollection } from './SampleCollection';
 import { Patients } from './Patients';
 import { User } from './User';
+import { ParameterResult } from './ParameterResult';
 
 export enum LabResultStatus {
     PENDING = 'PENDING',
@@ -55,13 +57,8 @@ export class LabResult {
     @JoinColumn({ name: 'patientId' })
     patient!: Patients;
 
-    // JSON object storing field keys and their result values
-    @Column({ type: 'jsonb', default: {} })
-    resultData!: any;
-
-    // Snapshot of the ResultTemplate at the time of entry to preserve clinical context (reference ranges, units, etc.)
-    @Column({ type: 'jsonb', nullable: true })
-    templateSnapshot?: any;
+    @OneToMany(() => ParameterResult, (pr) => pr.labResult, { cascade: true })
+    parameterResults!: ParameterResult[];
 
     @Column({
         type: 'enum',

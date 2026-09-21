@@ -22,11 +22,7 @@ export class LabResultController {
         return this.labResultService.getByBarcode(barcode);
     }
 
-    @Get('template/:testId')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
-    async getTemplate(@Param('testId') testId: string) {
-        return this.labResultService.getTemplateByTestId(Number(testId));
-    }
+    // Removed obsolete getTemplate route
 
     @Post(':sampleId/draft')
     @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)

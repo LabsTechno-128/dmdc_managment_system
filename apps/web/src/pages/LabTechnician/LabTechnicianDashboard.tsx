@@ -179,8 +179,8 @@ const LabTechnicianDashboard: React.FC = () => {
                                                     <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium">NOT INITIATED</span>
                                                 ) : (
                                                     <span className={`px-2 py-1 rounded text-xs font-bold ${sample.status === 'COLLECTED' ? 'bg-green-100 text-green-700' :
-                                                            sample.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
-                                                                'bg-red-100 text-red-700'
+                                                        sample.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-red-100 text-red-700'
                                                         }`}>
                                                         {sample.status}
                                                     </span>
@@ -191,8 +191,8 @@ const LabTechnicianDashboard: React.FC = () => {
                                                     <span className="text-slate-400 text-sm">-</span>
                                                 ) : (
                                                     <span className={`px-2 py-1 rounded text-xs font-bold ${result.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
-                                                            result.status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
-                                                                'bg-yellow-100 text-yellow-700'
+                                                        result.status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
+                                                            'bg-yellow-100 text-yellow-700'
                                                         }`}>
                                                         {result.status}
                                                     </span>
@@ -203,8 +203,8 @@ const LabTechnicianDashboard: React.FC = () => {
                                                     disabled={!isCollected}
                                                     onClick={() => handleEnterResult(t)}
                                                     className={`px-3 py-1.5 rounded text-sm font-medium ${isCollected
-                                                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
-                                                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
+                                                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                                         }`}
                                                 >
                                                     {result?.status === 'COMPLETED' ? 'View/Edit Result' : 'Enter Result'}

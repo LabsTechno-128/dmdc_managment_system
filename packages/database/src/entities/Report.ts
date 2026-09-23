@@ -13,6 +13,8 @@ import { LabResult } from './LabResult';
 
 export enum ReportStatus {
     DRAFT = 'DRAFT',
+    TECHNICIAN_SUBMITTED = 'TECHNICIAN_SUBMITTED',
+    UNDER_REVIEW = 'UNDER_REVIEW',
     FINALIZED = 'FINALIZED',
     PUBLISHED = 'PUBLISHED'
 }

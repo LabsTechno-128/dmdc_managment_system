@@ -5,7 +5,7 @@ import { In } from 'typeorm';
 
 @Injectable()
 export class LabResultService implements OnModuleInit {
-    constructor(private readonly databaseService: DatabaseService) {}
+    constructor(private readonly databaseService: DatabaseService) { }
 
     async onModuleInit() {
         await this.seedTemplates();
@@ -87,7 +87,7 @@ export class LabResultService implements OnModuleInit {
         });
 
         if (!sample) throw new NotFoundException('Sample not found');
-        
+
         if (sample.status !== SampleStatus.COLLECTED) {
             throw new BadRequestException('Cannot enter result for an uncollected sample');
         }
@@ -175,7 +175,7 @@ export class LabResultService implements OnModuleInit {
         const result = await this.databaseService.repoLabResult().findOne({
             where: { sampleId }
         });
-        
+
         if (result) {
             result.status = LabResultStatus.REJECTED;
             await this.databaseService.repoLabResult().save(result);

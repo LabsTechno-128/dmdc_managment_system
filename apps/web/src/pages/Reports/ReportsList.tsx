@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { FileText, CheckCircle, Clock } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { ConfirmModal } from '../../components/ConfirmModal';
@@ -11,6 +12,7 @@ const fetchReports = async () => {
 };
 
 export const ReportsList: React.FC = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [reportToDeliver, setReportToDeliver] = useState<string | null>(null);
 
@@ -95,6 +97,12 @@ export const ReportsList: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
+                        <button
+                          onClick={() => navigate(`/reports/${report.id}/preview`)}
+                          className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg shadow-sm transition-colors"
+                        >
+                          View
+                        </button>
                         {!report.isDelivered && (
                           <button onClick={() => handleDeliver(report.id)}
                             disabled={deliverMutation.isPending}

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useReactToPrint } from 'react-to-print';
+import { InvoicePrint } from '../Billing/InvoicePrint';
 
 export const ReportPreview: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -9,6 +11,9 @@ export const ReportPreview: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [publishing, setPublishing] = useState(false);
+    const [viewMode, setViewMode] = useState<'REPORT' | 'INVOICE'>('REPORT');
+    
+    const invoicePrintRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchReport = async () => {
@@ -41,6 +46,10 @@ export const ReportPreview: React.FC = () => {
         window.print();
     };
 
+    const handlePrintInvoice = useReactToPrint({
+        contentRef: invoicePrintRef,
+    });
+
     if (loading) return <div className="p-8 text-center text-slate-500">Loading report...</div>;
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
     if (!report) return <div className="p-8 text-center text-slate-500">Report not found</div>;
@@ -67,29 +76,61 @@ export const ReportPreview: React.FC = () => {
                 <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800">
                     &larr; Back
                 </button>
-                <div className="space-x-4 flex items-center">
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${report.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                <div className="space-x-2 flex items-center">
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold mr-2 ${report.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                         {report.status}
                     </span>
-                    {report.status !== 'PUBLISHED' && (
+                    {report.status !== 'PUBLISHED' && viewMode === 'REPORT' && (
                         <button 
                             onClick={handlePublish} 
                             disabled={publishing}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                         >
                             {publishing ? 'Publishing...' : 'Publish Report'}
                         </button>
                     )}
                     <button 
-                        onClick={handlePrint}
-                        className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-900"
+                        onClick={() => setViewMode('REPORT')}
+                        className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'REPORT' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
                     >
-                        Print PDF
+                        View Report
                     </button>
+                    <button 
+                        onClick={() => {
+                            // Ensure the report is visible for printing, since window.print() prints the body
+                            if (viewMode !== 'REPORT') setViewMode('REPORT');
+                            setTimeout(handlePrint, 100);
+                        }}
+                        className="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded hover:bg-slate-900 transition-colors"
+                    >
+                        Print/Download Report
+                    </button>
+
+                    {labResult.billing && (
+                        <>
+                            <button 
+                                onClick={() => setViewMode('INVOICE')}
+                                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'INVOICE' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
+                            >
+                                View Invoice
+                            </button>
+                            <button 
+                                onClick={() => handlePrintInvoice()}
+                                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
+                            >
+                                Print/Download Invoice
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* Printable A4 Container */}
+            {/* Hidden invoice for printing */}
+            <div className="hidden">
+                <InvoicePrint ref={invoicePrintRef} billing={labResult.billing} />
+            </div>
+
+            {viewMode === 'REPORT' ? (
             <div className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none print:w-full print:max-w-none">
                 <div className="p-12 print:p-8">
                     
@@ -198,6 +239,11 @@ export const ReportPreview: React.FC = () => {
 
                 </div>
             </div>
+            ) : (
+            <div className="max-w-4xl mx-auto bg-white shadow-lg overflow-hidden">
+                <InvoicePrint billing={labResult.billing} />
+            </div>
+            )}
 
             {/* Global print styles to hide everything except the print container */}
             <style>{`

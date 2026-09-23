@@ -4,7 +4,7 @@ import { Report, ReportStatus, LabResultStatus } from '@hospital/database';
 
 @Injectable()
 export class ReportsService {
-    constructor(private readonly databaseService: DatabaseService) {}
+    constructor(private readonly databaseService: DatabaseService) { }
 
     async findAll() {
         return this.databaseService.repoReport().find({
@@ -68,7 +68,7 @@ export class ReportsService {
     async publishReport(id: string) {
         const report = await this.findOne(id);
         if (!report) throw new NotFoundException('Report not found');
-        
+
         if (report.status !== ReportStatus.FINALIZED) {
             throw new BadRequestException('Only finalized reports can be published');
         }
@@ -87,7 +87,10 @@ export class ReportsService {
                     test: true,
                     sample: true,
                     performedBy: true,
-                    verifiedBy: true
+                    verifiedBy: true,
+                    billing: {
+                        items: { test: true }
+                    }
                 }
             }
         });

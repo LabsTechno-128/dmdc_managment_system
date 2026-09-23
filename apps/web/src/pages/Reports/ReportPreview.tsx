@@ -12,7 +12,8 @@ export const ReportPreview: React.FC = () => {
     const [error, setError] = useState('');
     const [publishing, setPublishing] = useState(false);
     const [viewMode, setViewMode] = useState<'REPORT' | 'INVOICE'>('REPORT');
-    
+
+    const reportPrintRef = useRef<HTMLDivElement>(null);
     const invoicePrintRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -42,9 +43,9 @@ export const ReportPreview: React.FC = () => {
         }
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const handlePrintReport = useReactToPrint({
+        contentRef: reportPrintRef,
+    });
 
     const handlePrintInvoice = useReactToPrint({
         contentRef: invoicePrintRef,
@@ -81,25 +82,24 @@ export const ReportPreview: React.FC = () => {
                         {report.status}
                     </span>
                     {report.status !== 'PUBLISHED' && viewMode === 'REPORT' && (
-                        <button 
-                            onClick={handlePublish} 
+                        <button
+                            onClick={handlePublish}
                             disabled={publishing}
                             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                         >
                             {publishing ? 'Publishing...' : 'Publish Report'}
                         </button>
                     )}
-                    <button 
+                    <button
                         onClick={() => setViewMode('REPORT')}
                         className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'REPORT' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
                     >
                         View Report
                     </button>
-                    <button 
+                    <button
                         onClick={() => {
-                            // Ensure the report is visible for printing, since window.print() prints the body
                             if (viewMode !== 'REPORT') setViewMode('REPORT');
-                            setTimeout(handlePrint, 100);
+                            setTimeout(() => handlePrintReport(), 100);
                         }}
                         className="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded hover:bg-slate-900 transition-colors"
                     >
@@ -108,13 +108,13 @@ export const ReportPreview: React.FC = () => {
 
                     {labResult.billing && (
                         <>
-                            <button 
+                            <button
                                 onClick={() => setViewMode('INVOICE')}
                                 className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'INVOICE' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
                             >
                                 View Invoice
                             </button>
-                            <button 
+                            <button
                                 onClick={() => handlePrintInvoice()}
                                 className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
                             >
@@ -131,158 +131,120 @@ export const ReportPreview: React.FC = () => {
             </div>
 
             {viewMode === 'REPORT' ? (
-            <div className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none print:w-full print:max-w-none">
-                <div className="p-12 print:p-8">
-                    
-                    {/* Header */}
-                    <div className="border-b-4 border-slate-800 pb-6 mb-8 text-center">
-                        <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-wider mb-2">Diagnostic Center</h1>
-                        <p className="text-slate-600 font-medium text-lg">Pathology Laboratory Report</p>
-                    </div>
+                <div ref={reportPrintRef} id="print-report-invoice" className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none print:w-full print:max-w-none">
+                    <div className="p-12 print:p-8">
 
-                    {/* Patient & Sample Info Grid */}
-                    <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
-                        <div className="space-y-3">
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Patient Name:</span>
-                                <span className="font-bold text-slate-900 uppercase">{patient.name}</span>
-                            </div>
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Patient ID:</span>
-                                <span className="text-slate-900">{patient.id}</span>
-                            </div>
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Age / Gender:</span>
-                                <span className="text-slate-900">{patient.age} Yrs / {patient.gender}</span>
-                            </div>
+                        {/* Header */}
+                        <div className="border-b-4 border-slate-800 pb-6 mb-8 text-center">
+                            <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-wider mb-2">Diagnostic Center</h1>
+                            <p className="text-slate-600 font-medium text-lg">Pathology Laboratory Report</p>
                         </div>
-                        <div className="space-y-3">
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Sample ID:</span>
-                                <span className="text-slate-900">{sample.barcode}</span>
-                            </div>
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Collection Date:</span>
-                                <span className="text-slate-900">{new Date(sample.collectedAt).toLocaleString()}</span>
-                            </div>
-                            <div className="flex border-b border-slate-100 pb-2">
-                                <span className="font-semibold text-slate-600 w-32">Report Date:</span>
-                                <span className="text-slate-900">{new Date(report.updatedAt).toLocaleString()}</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Test Title */}
-                    <div className="text-center mb-8">
-                        <h2 className="text-xl font-bold text-slate-800 underline uppercase decoration-2 underline-offset-4">Test: {test.name}</h2>
-                    </div>
-
-                    {/* Results Table */}
-                    <div className="mb-12">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-y-2 border-slate-800 text-slate-900">
-                                    <th className="py-3 font-bold uppercase text-sm">Parameter</th>
-                                    <th className="py-3 font-bold uppercase text-sm">Result</th>
-                                    <th className="py-3 font-bold uppercase text-sm">Unit</th>
-                                    <th className="py-3 font-bold uppercase text-sm">Reference Range</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {parameterResults?.map((pr: any, idx: number) => {
-                                    return (
-                                        <tr key={idx} className="border-b border-slate-200">
-                                            <td className="py-3 font-medium text-slate-800">{pr.snapshotParameterName}</td>
-                                            <td className="py-3 font-bold text-slate-900">{pr.resultValue || '-'}</td>
-                                            <td className="py-3 text-slate-700 text-sm">{pr.snapshotUnit || '-'}</td>
-                                            <td className="py-3 text-slate-700 text-sm whitespace-pre-line">{pr.snapshotReferenceValue || '-'}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Remarks */}
-                    {remarks && (
-                        <div className="mb-16">
-                            <h3 className="font-bold text-slate-900 mb-2">Remarks:</h3>
-                            <p className="text-slate-700">{remarks}</p>
-                        </div>
-                    )}
-
-                    {/* Signatures */}
-                    <div className="mt-20 pt-8 flex justify-between">
-                        <div className="text-center w-64">
-                            <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
-                                <div className="font-bold text-slate-800">
-                                    {labResult.performedBy ? `${labResult.performedBy.firstName} ${labResult.performedBy.lastName}` : 'Lab Technician'}
+                        {/* Patient & Sample Info Grid */}
+                        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+                            <div className="space-y-3">
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Patient Name:</span>
+                                    <span className="font-bold text-slate-900 uppercase">{patient.name}</span>
                                 </div>
-                                <div>Medical Technologist</div>
-                            </div>
-                        </div>
-                        <div className="text-center w-64">
-                            <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
-                                <div className="font-bold text-slate-800">
-                                    {labResult.verifiedBy ? `Dr. ${labResult.verifiedBy.firstName} ${labResult.verifiedBy.lastName}` : 'Pathologist'}
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Patient ID:</span>
+                                    <span className="text-slate-900">{patient.id}</span>
                                 </div>
-                                <div>Consultant Pathologist</div>
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Age / Gender:</span>
+                                    <span className="text-slate-900">{patient.age} Yrs / {patient.gender}</span>
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Sample ID:</span>
+                                    <span className="text-slate-900">{sample.barcode}</span>
+                                </div>
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Collection Date:</span>
+                                    <span className="text-slate-900">{new Date(sample.collectedAt).toLocaleString()}</span>
+                                </div>
+                                <div className="flex border-b border-slate-100 pb-2">
+                                    <span className="font-semibold text-slate-600 w-32">Report Date:</span>
+                                    <span className="text-slate-900">{new Date(report.updatedAt).toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Footer */}
-                    <div className="mt-16 pt-4 border-t-2 border-slate-800 text-center text-xs text-slate-500 font-medium">
-                        <p>This is a computer-generated report and does not require a physical signature.</p>
-                        <p className="mt-1">End of Report</p>
-                    </div>
+                        {/* Test Title */}
+                        <div className="text-center mb-8">
+                            <h2 className="text-xl font-bold text-slate-800 underline uppercase decoration-2 underline-offset-4">Test: {test.name}</h2>
+                        </div>
 
+                        {/* Results Table */}
+                        <div className="mb-12">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-y-2 border-slate-800 text-slate-900">
+                                        <th className="py-3 font-bold uppercase text-sm">Parameter</th>
+                                        <th className="py-3 font-bold uppercase text-sm">Result</th>
+                                        <th className="py-3 font-bold uppercase text-sm">Unit</th>
+                                        <th className="py-3 font-bold uppercase text-sm">Reference Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {parameterResults?.map((pr: any, idx: number) => {
+                                        return (
+                                            <tr key={idx} className="border-b border-slate-200">
+                                                <td className="py-3 font-medium text-slate-800">{pr.snapshotParameterName}</td>
+                                                <td className="py-3 font-bold text-slate-900">{pr.resultValue || '-'}</td>
+                                                <td className="py-3 text-slate-700 text-sm">{pr.snapshotUnit || '-'}</td>
+                                                <td className="py-3 text-slate-700 text-sm whitespace-pre-line">{pr.snapshotReferenceValue || '-'}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Remarks */}
+                        {remarks && (
+                            <div className="mb-16">
+                                <h3 className="font-bold text-slate-900 mb-2">Remarks:</h3>
+                                <p className="text-slate-700">{remarks}</p>
+                            </div>
+                        )}
+
+                        {/* Signatures */}
+                        <div className="mt-20 pt-8 flex justify-between">
+                            <div className="text-center w-64">
+                                <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
+                                    <div className="font-bold text-slate-800">
+                                        {labResult.performedBy ? `${labResult.performedBy.firstName} ${labResult.performedBy.lastName}` : 'Lab Technician'}
+                                    </div>
+                                    <div>Medical Technologist</div>
+                                </div>
+                            </div>
+                            <div className="text-center w-64">
+                                <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
+                                    <div className="font-bold text-slate-800">
+                                        {labResult.verifiedBy ? `Dr. ${labResult.verifiedBy.firstName} ${labResult.verifiedBy.lastName}` : 'Pathologist'}
+                                    </div>
+                                    <div>Consultant Pathologist</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-16 pt-4 border-t-2 border-slate-800 text-center text-xs text-slate-500 font-medium">
+                            <p>This is a computer-generated report and does not require a physical signature.</p>
+                            <p className="mt-1">End of Report</p>
+                        </div>
+
+                    </div>
                 </div>
-            </div>
             ) : (
-            <div className="max-w-4xl mx-auto bg-white shadow-lg overflow-hidden">
-                <InvoicePrint billing={labResult.billing} />
-            </div>
+                <div className="max-w-4xl mx-auto bg-white shadow-lg overflow-hidden">
+                    <InvoicePrint billing={labResult.billing} />
+                </div>
             )}
 
-            {/* Global print styles to hide everything except the print container */}
-            <style>{`
-                @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    .print\\:hidden {
-                        display: none !important;
-                    }
-                    .print\\:bg-white {
-                        background-color: white !important;
-                    }
-                    .print\\:py-0 {
-                        padding-top: 0 !important;
-                        padding-bottom: 0 !important;
-                    }
-                    .print\\:shadow-none {
-                        box-shadow: none !important;
-                    }
-                    .print\\:w-full {
-                        width: 100% !important;
-                    }
-                    .print\\:max-w-none {
-                        max-width: none !important;
-                    }
-                    .print\\:p-8 {
-                        padding: 2rem !important;
-                    }
-                    .max-w-4xl, .max-w-4xl * {
-                        visibility: visible;
-                    }
-                    .max-w-4xl {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                    }
-                }
-            `}</style>
         </div>
     );
 };

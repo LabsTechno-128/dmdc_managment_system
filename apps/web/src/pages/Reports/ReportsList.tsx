@@ -79,7 +79,7 @@ export const ReportsList: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <div className="font-semibold text-slate-800">
-                          {report.patient ? `${report.patient.firstName} ${report.patient.lastName}` : 'Unknown Patient'}
+                          {report.patient ? report.patient.name : 'Unknown Patient'}
                         </div>
                       </td>
                       <td className="p-4 font-medium text-slate-700">

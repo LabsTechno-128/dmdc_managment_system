@@ -87,7 +87,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
             };
             mutation.mutate(formatted);
           })} className="space-y-6">
-            
+
             <div className="flex justify-center mb-6">
               <ImageUpload
                 value={watch('avatar') || undefined}
@@ -193,6 +193,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
                 <input
                   type="number"
                   {...register('monthlySalary')}
+                  min={0}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                   placeholder="15000"
                 />

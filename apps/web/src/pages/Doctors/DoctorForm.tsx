@@ -177,6 +177,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                                 className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.consultationFee ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
                                     }`}
                                 placeholder="0.00"
+                                min={0}
                             />
                             {errors.consultationFee && <p className="mt-1 text-sm text-red-500">{errors.consultationFee.message}</p>}
                         </div>
@@ -190,6 +191,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                                 className={`w-full px-4 py-2 bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:outline-none transition-all ${errors.followUpFee ? 'border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-primary focus:ring-primary/20'
                                     }`}
                                 placeholder="0.00"
+                                min={0}
                             />
                             {errors.followUpFee && <p className="mt-1 text-sm text-red-500">{errors.followUpFee.message}</p>}
                         </div>

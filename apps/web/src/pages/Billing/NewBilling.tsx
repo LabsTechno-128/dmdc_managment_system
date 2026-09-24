@@ -13,8 +13,8 @@ import { InvoicePrint } from './InvoicePrint';
 // Schema for outside patient
 const outsidePatientSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(1, 'Phone is required'),
-  age: z.number().min(0).optional(),
+  phone: z.string().min(1, 'Phone is required').regex(/^(?:\+88|88)?01[3-9]\d{8}$/, 'Must be a valid Bangladeshi phone number'),
+  age: z.number().min(0, 'Age must be positive').max(150, 'Age must be valid').optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
 });
 
@@ -25,12 +25,32 @@ const billingSchema = z.object({
     name: z.string().optional(),
   })).min(1, 'At least one item is required'),
   discountType: z.enum(['PERCENTAGE', 'FIXED']),
-  discount: z.number().min(0),
-  additionalCharges: z.number().min(0),
-  paidAmount: z.number().min(0),
+  discount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
+  additionalCharges: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
+  paidAmount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
   paymentMethod: z.string(),
   paymentStatus: z.string(),
   referredBy: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const subtotal = data.items.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
+  
+  let discountAmount = 0;
+  if (data.discountType === 'PERCENTAGE') {
+    if (data.discount > 100) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Max 100%', path: ['discount'] });
+    }
+    discountAmount = subtotal * (data.discount / 100);
+  } else {
+    if (data.discount > subtotal) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Discount cannot exceed subtotal', path: ['discount'] });
+    }
+    discountAmount = data.discount;
+  }
+  
+  const totalAmount = Math.max(0, subtotal - discountAmount + data.additionalCharges);
+  if (data.paidAmount > totalAmount) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Paid amount cannot exceed net payable', path: ['paidAmount'] });
+  }
 });
 
 export const NewBilling: React.FC = () => {
@@ -100,9 +120,9 @@ export const NewBilling: React.FC = () => {
   // Derived calculations
   const watchItems = billingForm.watch('items');
   const watchDiscountType = billingForm.watch('discountType');
-  const watchDiscount = billingForm.watch('discount') || 0;
-  const watchAdditionalCharges = billingForm.watch('additionalCharges') || 0;
-  const watchPaidAmount = billingForm.watch('paidAmount') || 0;
+  const watchDiscount = Number(billingForm.watch('discount')) || 0;
+  const watchAdditionalCharges = Number(billingForm.watch('additionalCharges')) || 0;
+  const watchPaidAmount = Number(billingForm.watch('paidAmount')) || 0;
 
   const subtotal = watchItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
   let discountAmount = 0;
@@ -486,9 +506,13 @@ export const NewBilling: React.FC = () => {
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       {...billingForm.register('discount', { valueAsNumber: true })}
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none text-right"
+                      className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.discount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                     />
+                    {billingForm.formState.errors.discount && (
+                      <p className="text-xs text-red-500 mt-1">{billingForm.formState.errors.discount.message as string}</p>
+                    )}
                   </div>
                 </div>
 
@@ -498,9 +522,6 @@ export const NewBilling: React.FC = () => {
                     <span>- {discountAmount.toFixed(2)} BDT</span>
                   </div>
                 )}
-                {((watchDiscountType === 'PERCENTAGE' && watchDiscount > 100) || (watchDiscountType === 'FIXED' && watchDiscount > subtotal)) && (
-                  <p className="text-xs text-red-500">Invalid discount amount</p>
-                )}
               </div>
 
               <div className="pt-4 border-t border-slate-100">
@@ -509,9 +530,13 @@ export const NewBilling: React.FC = () => {
                 </label>
                 <input
                   type="number"
+                  min="0"
                   {...billingForm.register('additionalCharges', { valueAsNumber: true })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none text-right"
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.additionalCharges ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                 />
+                {billingForm.formState.errors.additionalCharges && (
+                  <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.additionalCharges.message as string}</p>
+                )}
               </div>
 
               <div className="pt-4 border-t-2 border-slate-200">
@@ -527,9 +552,13 @@ export const NewBilling: React.FC = () => {
                 </label>
                 <input
                   type="number"
+                  min="0"
                   {...billingForm.register('paidAmount', { valueAsNumber: true })}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none text-right"
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.paidAmount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                 />
+                {billingForm.formState.errors.paidAmount && (
+                  <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.paidAmount.message as string}</p>
+                )}
               </div>
 
               <div className="pt-4 border-t border-slate-100">

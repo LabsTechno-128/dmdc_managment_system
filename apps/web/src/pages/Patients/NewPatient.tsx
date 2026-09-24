@@ -9,12 +9,12 @@ import { ArrowLeft } from 'lucide-react';
 
 const patientSchema = z.object({
   name: z.string().min(1, 'Patient name is required'),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z.string().min(1, 'Phone number is required').regex(/^(?:\+88|88)?01[3-9]\d{8}$/, 'Must be a valid Bangladeshi phone number'),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'] as const),
-  age: z.coerce.number().min(0, 'Age must be positive').optional(),
+  age: z.coerce.number().min(0, 'Age must be positive').max(150, 'Age must be valid').optional(),
   bloodGroup: z.string().optional(),
-  weight: z.coerce.number().min(0).optional(),
+  weight: z.coerce.number().min(0, 'Weight must be positive').max(300, 'Weight must be valid').optional(),
   bloodPresure: z.string().optional(),
   address: z.string().optional(),
 });
@@ -163,6 +163,7 @@ export const NewPatient: React.FC = () => {
                 }`}
                 placeholder="e.g. 65"
               />
+              {errors.weight && <p className="mt-1.5 text-xs font-semibold text-red-500">{errors.weight.message}</p>}
             </div>
 
             <div>

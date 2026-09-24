@@ -30,9 +30,9 @@ const appointmentSchema = z.object({
     appointmentTime: z.string().optional(),
     doctorId: z.string().min(1, 'Doctor is required'),
     name: z.string().optional(),
-    age: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0).optional()),
+    age: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0, 'Age must be positive').max(150, 'Age must be valid').optional()),
     gender: z.string().optional(),
-    weight: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0).optional()),
+    weight: z.preprocess((val) => (val === '' || Number.isNaN(val) ? undefined : Number(val)), z.number().min(0, 'Weight must be positive').max(300, 'Weight must be valid').optional()),
     bloodPresure: z.string().optional(),
     phone: z.string().optional(),
     notes: z.string().optional(),
@@ -69,6 +69,15 @@ const appointmentSchema = z.object({
                 message: 'Phone is required for new patient',
                 path: ['phone']
             });
+        } else {
+            const bdPhoneRegex = /^(?:\+88|88)?01[3-9]\d{8}$/;
+            if (!bdPhoneRegex.test(data.phone.trim())) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Must be a valid Bangladeshi phone number',
+                    path: ['phone']
+                });
+            }
         }
     } else {
         if (!data.existingPatientId || data.existingPatientId.trim() === '') {

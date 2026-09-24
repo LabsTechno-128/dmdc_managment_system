@@ -199,6 +199,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
                 <input
                   type="number"
                   {...register('monthlySalary')}
+                  min={0}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 />
                 {errors.monthlySalary && <p className="mt-1 text-sm text-red-500">{errors.monthlySalary.message}</p>}

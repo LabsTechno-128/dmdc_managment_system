@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Patch, Param, Body, Post } from '@nestjs/common';
+import { Controller, UseGuards, Get, Patch, Param, Body, Post, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
@@ -13,8 +13,8 @@ export class ReportsController {
 
     @Get()
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
-    findAll() {
-        return this.reportsService.findAll();
+    findAll(@Query('page') page: string, @Query('limit') limit: string) {
+        return this.reportsService.findAll(page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
     }
 
     @Get(':id')

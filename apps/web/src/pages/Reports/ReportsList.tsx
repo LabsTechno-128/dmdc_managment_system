@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { FileText, CheckCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { ConfirmModal } from '../../components/ConfirmModal';
 
-const fetchReports = async () => {
-  const { data } = await api.get('/reports');
+const fetchReports = async (page: number, limit: number) => {
+  const { data } = await api.get(`/reports?page=${page}&limit=${limit}`);
   return data;
 };
 
@@ -15,11 +15,16 @@ export const ReportsList: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [reportToDeliver, setReportToDeliver] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const { data: reports, isLoading, isError } = useQuery({
-    queryKey: ['reports'],
-    queryFn: fetchReports,
+  const { data: response, isLoading, isError } = useQuery({
+    queryKey: ['reports', page],
+    queryFn: () => fetchReports(page, limit),
   });
+
+  const reports = response?.data || (Array.isArray(response) ? response : []);
+  const meta = response?.meta || { totalPages: 1, page: 1, total: reports.length };
 
   const deliverMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/reports/${id}/deliver`),
@@ -89,9 +94,8 @@ export const ReportsList: React.FC = () => {
                         {new Date(report.createdAt).toLocaleDateString()}
                       </td>
                       <td className="p-4">
-                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          report.isDelivered ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
+                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium ${report.isDelivered ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
                           {report.isDelivered ? <CheckCircle size={12} /> : <Clock size={12} />}
                           <span>{report.isDelivered ? 'Delivered' : 'Pending'}</span>
                         </span>
@@ -112,7 +116,7 @@ export const ReportsList: React.FC = () => {
                           </button>
                         )}
                         {report.isDelivered && (
-                            <span className="text-sm font-medium text-slate-400">Completed</span>
+                          <span className="text-sm font-medium text-slate-400">Completed</span>
                         )}
                       </td>
                     </tr>
@@ -122,17 +126,60 @@ export const ReportsList: React.FC = () => {
             </table>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {!isLoading && !isError && meta.totalPages > 0 && (
+          <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
+              Showing <span className="font-bold text-slate-700">{meta.total === 0 ? 0 : (meta.page - 1) * limit + 1}</span>–{' '}
+              <span className="font-bold text-slate-700">{Math.min(meta.page * limit, meta.total)}</span> of{' '}
+              <span className="font-bold text-slate-700">{meta.total}</span>
+            </p>
+            <div className="flex items-center gap-1">
+              <button disabled={meta.page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => {
+                let startPage = Math.max(1, meta.page - 2);
+                if (startPage + 4 > meta.totalPages) {
+                  startPage = Math.max(1, meta.totalPages - 4);
+                }
+                const p = startPage + i;
+                return (
+                  <button key={p}
+                    onClick={() => setPage(p)}
+                    className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === meta.page
+                        ? 'bg-blue-600 text-white shadow-blue-600/20'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+              <button disabled={meta.page >= meta.totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmModal
         isOpen={!!reportToDeliver}
         onClose={() => setReportToDeliver(null)}
         onConfirm={() => {
-            if (reportToDeliver) {
-                deliverMutation.mutate(reportToDeliver, {
-                    onSettled: () => setReportToDeliver(null)
-                });
-            }
+          if (reportToDeliver) {
+            deliverMutation.mutate(reportToDeliver, {
+              onSettled: () => setReportToDeliver(null)
+            });
+          }
         }}
         title="Deliver Report"
         message="Mark this report as delivered to the patient?"

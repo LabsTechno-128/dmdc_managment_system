@@ -6,10 +6,23 @@ import { Report, ReportStatus, LabResultStatus } from '@hospital/database';
 export class ReportsService {
     constructor(private readonly databaseService: DatabaseService) { }
 
-    async findAll() {
-        return this.databaseService.repoReport().find({
-            relations: { patient: true, labResult: { test: true } }
+    async findAll(page: number = 1, limit: number = 10) {
+        const [data, total] = await this.databaseService.repoReport().findAndCount({
+            relations: { patient: true, labResult: { test: true } },
+            order: { createdAt: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
         });
+
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            }
+        };
     }
 
     async findOne(id: string) {

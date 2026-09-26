@@ -13,7 +13,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
     <div id="invoice-print" ref={ref} className="bg-white text-slate-800 font-sans mx-auto max-w-[210mm] min-h-[297mm]">
       <style type="text/css" media="print">
         {`
-          @page { size: A4; margin: 0; }
+          @page { size: A5; margin: 0; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         `}
       </style>

@@ -13,19 +13,19 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }
-  
-  button, 
-  [type='button'], 
-  [type='reset'], 
-  [type='submit'], 
+
+  button,
+  [type='button'],
+  [type='reset'],
+  [type='submit'],
   [role='button'] {
     cursor: pointer;
   }
-  
-  button:disabled, 
-  [type='button']:disabled, 
-  [type='reset']:disabled, 
-  [type='submit']:disabled, 
+
+  button:disabled,
+  [type='button']:disabled,
+  [type='reset']:disabled,
+  [type='submit']:disabled,
   [role='button'][aria-disabled="true"] {
     cursor: not-allowed;
   }
@@ -93,6 +93,7 @@
   }
 
 }
+
 
 /* @media print {
 

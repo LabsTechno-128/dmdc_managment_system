@@ -207,25 +207,25 @@ export const SampleCollectionInterface: React.FC = () => {
       {/* Hidden Print Area */}
       <div className="hidden">
         <div ref={printRef} className="print:p-0" id='print-barcode'>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2">
             {initialized && samples.map((sample: any) => (
-              <div key={sample.id} className="w-[50mm] h-[25mm] p-1.5 flex flex-col break-inside-avoid bg-white text-black font-sans box-border overflow-hidden leading-tight border border-gray-200 print:border-none relative rounded-sm">
-                
+              <div key={sample.id} className=" barcode-label">
+
                 {/* Top section: Patient Name & Age/Sex */}
                 <div className="flex justify-between items-start w-full">
                   <div className="font-bold text-[10px] truncate pr-1 max-w-[70%] leading-none">{billing.patient?.name}</div>
                   <div className="text-[8px] font-semibold leading-none">{billing.patient?.age ? `${billing.patient.age}y` : ''} {billing.patient?.gender ? billing.patient.gender.charAt(0) : ''}</div>
                 </div>
-                
+
                 {/* Second row: Patient ID and Invoice No */}
                 <div className="flex justify-between w-full text-[8px] font-medium text-gray-800 mt-1 leading-none">
                   <span>ID: {billing.patient?.patientId}</span>
                   <span>INV: {billing.billNumber}</span>
                 </div>
-                
+
                 {/* Third row: Test Name */}
                 <div className="font-bold text-[9px] truncate w-full mt-1 leading-none pb-0.5 border-b border-gray-300 border-dashed">{sample.test?.name}</div>
-                
+
                 {/* Barcode component rendering */}
                 <div className="w-full flex-grow flex items-end justify-center mt-0.5">
                   <Barcode value={sample.barcode} />

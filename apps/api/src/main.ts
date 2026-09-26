@@ -25,7 +25,7 @@ async function bootstrap() {
 
   const port = Number(config.port || 8000);
   console.log("port: ", port);
-
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
+  // await app.listen(port);
 }
 bootstrap();

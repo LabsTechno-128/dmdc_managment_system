@@ -246,35 +246,37 @@ export const SampleCollectionInterface: React.FC = () => {
           {initialized && samples.map((sample: any) => (
             <div key={sample.id} className="barcode-label">
 
-              {/* All Content Centered & Packed tightly */}
-              <div className="w-full flex flex-col items-center justify-center text-center">
+              {/* Content left-aligned but block centered */}
+              <div className="w-full flex justify-center">
+                <div className="w-11/12 flex flex-col items-start justify-center text-left">
 
-                {/* 1. Name and Age/Gender */}
-                <div className="font-bold text-[12px] text-black truncate w-full leading-tight flex items-center justify-center gap-1">
-                  <span>{billing.patient?.name}</span>
-                  {(billing.patient?.age || billing.patient?.gender) && (
-                    <span className="text-[10px]">
-                      ({billing.patient?.age ? `${billing.patient.age}y` : ''}{billing.patient?.age && billing.patient?.gender ? ' ' : ''}{billing.patient?.gender ? billing.patient.gender.charAt(0) : ''})
-                    </span>
-                  )}
+                  {/* 1. Name and Age/Gender */}
+                  <div className="font-bold text-[12px] text-black truncate w-full leading-tight flex items-center justify-start gap-1">
+                    <span className="truncate">{billing.patient?.name}</span>
+                    {(billing.patient?.age || billing.patient?.gender) && (
+                      <span className="text-[10px] shrink-0 whitespace-nowrap">
+                        ({billing.patient?.age ? `${billing.patient.age}y` : ''}{billing.patient?.age && billing.patient?.gender ? ' ' : ''}{billing.patient?.gender ? billing.patient.gender.charAt(0) : ''})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 2. Patient ID */}
+                  <div className="text-[10px] font-bold text-black leading-tight mt-[2px]">
+                    ID: {billing.patient?.patientId}
+                  </div>
+
+                  {/* 3. Test Name */}
+                  <div className="font-bold text-[11px] text-black truncate w-full mt-[2px]">
+                    {sample.test?.name}
+                  </div>
+
+                  {/* 4. Barcode Text (Replaced Barcode Component) */}
+                  <div className="w-full flex flex-col items-start justify-center overflow-hidden mt-[2px]">
+                    <span className="text-[10px] font-bold text-black leading-tight">Sample No:</span>
+                    <h1 className="text-[9px] font-bold text-black leading-tight">{sample.barcode}</h1>
+                  </div>
+
                 </div>
-
-                {/* 2. Patient ID */}
-                <div className="text-[10px] font-bold text-black leading-tight mt-[2px]">
-                  ID: {billing.patient?.patientId}
-                </div>
-
-                {/* 3. Test Name */}
-                <div className="font-bold text-[11px] text-black truncate w-full mt-[2px]">
-                  {sample.test?.name}
-                </div>
-
-                {/* 4. Barcode Text (Replaced Barcode Component) */}
-                <div className="w-full flex flex-col items-center justify-center overflow-hidden mt-[2px]">
-                  <span className="text-[10px] font-bold text-black leading-tight">Sample No:</span>
-                  <h1 className="text-[9px] font-bold text-black leading-tight">{sample.barcode}</h1>
-                </div>
-
               </div>
 
             </div>

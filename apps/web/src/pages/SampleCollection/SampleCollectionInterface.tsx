@@ -53,6 +53,42 @@ export const SampleCollectionInterface: React.FC = () => {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Barcodes-${data?.billing?.billNumber || 'Print'}`,
+    pageStyle: `
+      @page {
+        size: auto !important;
+        margin: 0 !important;
+      }
+      @media print {
+        html, body {
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white;
+        }
+        #print-barcode {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+        .barcode-label {
+          width: 100% !important;
+          height: 100vh !important;
+          padding: 2mm;
+          margin: 0;
+          page-break-after: always;
+          break-after: page;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background: white;
+        }
+      }
+    `
   });
 
   if (isLoading) {
@@ -206,33 +242,43 @@ export const SampleCollectionInterface: React.FC = () => {
 
       {/* Hidden Print Area */}
       <div className="hidden">
-        <div ref={printRef} className="print:p-0" id='print-barcode'>
-          <div className="flex flex-col gap-2">
-            {initialized && samples.map((sample: any) => (
-              <div key={sample.id} className=" barcode-label">
+        <div ref={printRef} id='print-barcode'>
+          {initialized && samples.map((sample: any) => (
+            <div key={sample.id} className="barcode-label">
 
-                {/* Top section: Patient Name & Age/Sex */}
-                <div className="flex justify-between items-start w-full">
-                  <div className="font-bold text-[10px] truncate pr-1 max-w-[70%] leading-none">{billing.patient?.name}</div>
-                  <div className="text-[8px] font-semibold leading-none">{billing.patient?.age ? `${billing.patient.age}y` : ''} {billing.patient?.gender ? billing.patient.gender.charAt(0) : ''}</div>
+              {/* All Content Centered & Packed tightly */}
+              <div className="w-full flex flex-col items-center justify-center text-center">
+
+                {/* 1. Name and Age/Gender */}
+                <div className="font-bold text-[12px] text-black truncate w-full leading-tight flex items-center justify-center gap-1">
+                  <span>{billing.patient?.name}</span>
+                  {(billing.patient?.age || billing.patient?.gender) && (
+                    <span className="text-[10px]">
+                      ({billing.patient?.age ? `${billing.patient.age}y` : ''}{billing.patient?.age && billing.patient?.gender ? ' ' : ''}{billing.patient?.gender ? billing.patient.gender.charAt(0) : ''})
+                    </span>
+                  )}
                 </div>
 
-                {/* Second row: Patient ID and Invoice No */}
-                <div className="flex justify-between w-full text-[8px] font-medium text-gray-800 mt-1 leading-none">
-                  <span>ID: {billing.patient?.patientId}</span>
-                  <span>INV: {billing.billNumber}</span>
+                {/* 2. Patient ID */}
+                <div className="text-[10px] font-bold text-black leading-tight mt-[2px]">
+                  ID: {billing.patient?.patientId}
                 </div>
 
-                {/* Third row: Test Name */}
-                <div className="font-bold text-[9px] truncate w-full mt-1 leading-none pb-0.5 border-b border-gray-300 border-dashed">{sample.test?.name}</div>
-
-                {/* Barcode component rendering */}
-                <div className="w-full flex-grow flex items-end justify-center mt-0.5">
-                  <Barcode value={sample.barcode} />
+                {/* 3. Test Name */}
+                <div className="font-bold text-[11px] text-black truncate w-full mt-[2px]">
+                  {sample.test?.name}
                 </div>
+
+                {/* 4. Barcode Text (Replaced Barcode Component) */}
+                <div className="w-full flex flex-col items-center justify-center overflow-hidden mt-[2px]">
+                  <span className="text-[10px] font-bold text-black leading-tight">Sample No:</span>
+                  <h1 className="text-[9px] font-bold text-black leading-tight">{sample.barcode}</h1>
+                </div>
+
               </div>
-            ))}
-          </div>
+
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -246,21 +292,33 @@ function Barcode({ value }: { value: string }) {
     if (barcodeRef.current && value) {
       JsBarcode(barcodeRef.current, value, {
         format: "CODE128",
-        width: 1.1,
-        height: 24,
+        width: 1,
+        height: 25,
         displayValue: true,
         fontSize: 10,
-        textMargin: 1,
+        fontOptions: "bold",
+        textMargin: 2,
         margin: 0,
         background: "transparent",
         lineColor: "#000000",
       });
+
+      // Make the SVG responsive so it shrinks to fit if it's too wide
+      if (barcodeRef.current) {
+        const w = barcodeRef.current.getAttribute('width');
+        const h = barcodeRef.current.getAttribute('height');
+        if (w && h) {
+          barcodeRef.current.setAttribute('viewBox', `0 0 ${w} ${h}`);
+          barcodeRef.current.style.maxWidth = '100%';
+          barcodeRef.current.style.height = 'auto';
+        }
+      }
     }
   }, [value]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full overflow-hidden">
-      <svg ref={barcodeRef} className="max-w-full max-h-full"></svg>
+    <div className="flex flex-col items-center justify-center w-full h-full overflow-hidden px-1">
+      <svg ref={barcodeRef}></svg>
     </div>
   );
 }

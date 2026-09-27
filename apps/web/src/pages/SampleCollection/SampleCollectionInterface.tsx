@@ -1,11 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { ArrowLeft, Printer, FlaskConical, CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useReactToPrint } from 'react-to-print';
-import JsBarcode from 'jsbarcode';
+// import JsBarcode from 'jsbarcode';
 
 export const SampleCollectionInterface: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -285,40 +285,40 @@ export const SampleCollectionInterface: React.FC = () => {
   );
 };
 
-function Barcode({ value }: { value: string }) {
-  const barcodeRef = useRef<SVGSVGElement>(null);
+// function Barcode({ value }: { value: string }) {
+//   const barcodeRef = useRef<SVGSVGElement>(null);
 
-  useEffect(() => {
-    if (barcodeRef.current && value) {
-      JsBarcode(barcodeRef.current, value, {
-        format: "CODE128",
-        width: 1,
-        height: 25,
-        displayValue: true,
-        fontSize: 10,
-        fontOptions: "bold",
-        textMargin: 2,
-        margin: 0,
-        background: "transparent",
-        lineColor: "#000000",
-      });
+//   useEffect(() => {
+//     if (barcodeRef.current && value) {
+//       JsBarcode(barcodeRef.current, value, {
+//         format: "CODE128",
+//         width: 1,
+//         height: 25,
+//         displayValue: true,
+//         fontSize: 10,
+//         fontOptions: "bold",
+//         textMargin: 2,
+//         margin: 0,
+//         background: "transparent",
+//         lineColor: "#000000",
+//       });
 
-      // Make the SVG responsive so it shrinks to fit if it's too wide
-      if (barcodeRef.current) {
-        const w = barcodeRef.current.getAttribute('width');
-        const h = barcodeRef.current.getAttribute('height');
-        if (w && h) {
-          barcodeRef.current.setAttribute('viewBox', `0 0 ${w} ${h}`);
-          barcodeRef.current.style.maxWidth = '100%';
-          barcodeRef.current.style.height = 'auto';
-        }
-      }
-    }
-  }, [value]);
+//       // Make the SVG responsive so it shrinks to fit if it's too wide
+//       if (barcodeRef.current) {
+//         const w = barcodeRef.current.getAttribute('width');
+//         const h = barcodeRef.current.getAttribute('height');
+//         if (w && h) {
+//           barcodeRef.current.setAttribute('viewBox', `0 0 ${w} ${h}`);
+//           barcodeRef.current.style.maxWidth = '100%';
+//           barcodeRef.current.style.height = 'auto';
+//         }
+//       }
+//     }
+//   }, [value]);
 
-  return (
-    <div className="flex flex-col items-center justify-center w-full h-full overflow-hidden px-1">
-      <svg ref={barcodeRef}></svg>
-    </div>
-  );
-}
+//   return (
+//     <div className="flex flex-col items-center justify-center w-full h-full overflow-hidden px-1">
+//       <svg ref={barcodeRef}></svg>
+//     </div>
+//   );
+// }

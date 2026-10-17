@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
+import { Controller, UseGuards, Get, Post, Body, Patch, Param, Query, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
@@ -17,17 +17,20 @@ export class BillingController {
     }
 
     @Get()
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.USER)
     findAll(
         @Query('page') page?: string,
         @Query('limit') limit?: string,
-        @Query('search') search?: string
+        @Query('search') search?: string,
+        @Req() req?: any
     ) {
-        return this.billingService.findAll({ page, limit, search });
+        return this.billingService.findAll({ page, limit, search }, req?.user);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.billingService.findOne(id);
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.USER)
+    findOne(@Param('id') id: string, @Req() req?: any) {
+        return this.billingService.findOne(id, req?.user);
     }
 
     @Patch(':id/status')
@@ -52,7 +55,8 @@ export class BillingController {
     }
 
     @Get(':id/payments')
-    getPayments(@Param('id') id: string) {
-        return this.billingService.getPayments(id);
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.USER)
+    getPayments(@Param('id') id: string, @Req() req?: any) {
+        return this.billingService.getPayments(id, req?.user);
     }
 }

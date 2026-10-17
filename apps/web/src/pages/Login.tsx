@@ -26,7 +26,7 @@ export const Login: React.FC = () => {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: 'receptionist@diagnosticpro.com', password: 'password123' }
+    defaultValues: { email: 'superadmin@example.com', password: 'superadmin123' }
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -77,11 +77,10 @@ export const Login: React.FC = () => {
                 <input
                   type="email"
                   {...register('email')}
-                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
-                    errors.email 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${errors.email
+                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
                       : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
-                  }`}
+                    }`}
                   placeholder="name@diagnosticpro.com"
                 />
               </div>
@@ -97,11 +96,10 @@ export const Login: React.FC = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   {...register('password')}
-                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${
-                    errors.password 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                  className={`block w-full rounded-2xl border bg-slate-50/50 py-3.5 pl-12 pr-12 text-sm font-semibold text-slate-900 transition-all outline-none focus:bg-white ${errors.password
+                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
                       : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
-                  }`}
+                    }`}
                   placeholder="••••••••"
                 />
                 <button type="button"
@@ -144,21 +142,21 @@ export const Login: React.FC = () => {
       {/* Right side: Image/Gradient */}
       <div className="relative hidden w-0 flex-1 lg:block">
         <div className="absolute inset-0 h-full w-full bg-blue-600 object-cover bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-900" />
-        
+
         {/* Decorative elements */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        
+
         <div className="absolute inset-0 flex flex-col justify-center px-20">
           <div className="relative z-10 w-full max-w-lg rounded-3xl bg-white/10 p-10 backdrop-blur-md border border-white/20 shadow-2xl">
-             <div className="mb-6 inline-flex rounded-xl bg-blue-500/20 p-4 text-blue-300">
-                <Stethoscope size={40} />
-             </div>
-             <h2 className="mb-4 text-4xl font-extrabold text-white leading-tight">
-               Next-generation healthcare management.
-             </h2>
-             <p className="text-lg font-medium text-blue-100/80">
-               Streamline your laboratory workflow, manage patient records seamlessly, and generate beautiful, accurate reports in seconds.
-             </p>
+            <div className="mb-6 inline-flex rounded-xl bg-blue-500/20 p-4 text-blue-300">
+              <Stethoscope size={40} />
+            </div>
+            <h2 className="mb-4 text-4xl font-extrabold text-white leading-tight">
+              Next-generation healthcare management.
+            </h2>
+            <p className="text-lg font-medium text-blue-100/80">
+              Streamline your laboratory workflow, manage patient records seamlessly, and generate beautiful, accurate reports in seconds.
+            </p>
           </div>
         </div>
       </div>

@@ -55,6 +55,10 @@
   #inventory-print *,
   #print-barcode,
   #print-barcode *,
+  #account-print,
+  #account-print *,
+  #financial-report-print,
+  #financial-report-print *,
   #print-report-invoice,
   #print-report-invoice * {
     visibility: visible !important;

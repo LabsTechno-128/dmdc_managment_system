@@ -89,28 +89,39 @@ export class FinancialReportService {
         return { startDate, endDate, utcStart, utcEnd };
     }
 
-    async getReport(queryDto: { period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM', startDate?: string, endDate?: string, date?: string }) {
+    private resolveDateRange(period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM', startDateStr?: string, endDateStr?: string, dateStr?: string) {
         let startDate: Date;
         let endDate: Date;
         let utcStart: Date;
         let utcEnd: Date;
 
-        if (queryDto.period === 'CUSTOM') {
-            if (!queryDto.startDate || !queryDto.endDate) throw new BadRequestException('startDate and endDate required');
-            startDate = parseYMD(queryDto.startDate);
-            endDate = parseYMD(queryDto.endDate);
+        if (period === 'CUSTOM') {
+            if (!startDateStr || !endDateStr) throw new BadRequestException('startDate and endDate required');
+            startDate = parseYMD(startDateStr);
+            endDate = parseYMD(endDateStr);
             startDate.setHours(0, 0, 0, 0);
             endDate.setHours(23, 59, 59, 999);
-            utcStart = new Date(queryDto.startDate);
-            utcEnd = new Date(queryDto.endDate);
+            utcStart = new Date(startDateStr);
+            utcEnd = new Date(endDateStr);
             utcEnd.setUTCHours(23, 59, 59, 999);
         } else {
-            const range = this.getDateRangeForPeriod(queryDto.period || 'DAILY', queryDto.date);
+            const range = this.getDateRangeForPeriod(period || 'DAILY', dateStr);
             startDate = range.startDate;
             endDate = range.endDate;
             utcStart = range.utcStart;
             utcEnd = range.utcEnd;
         }
+
+        return { startDate, endDate, utcStart, utcEnd };
+    }
+
+    async getReport(queryDto: { period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM', startDate?: string, endDate?: string, date?: string }) {
+        const { startDate, endDate, utcStart, utcEnd } = this.resolveDateRange(
+            queryDto.period,
+            queryDto.startDate,
+            queryDto.endDate,
+            queryDto.date
+        );
 
         const data = await this.getTotalsForDateRange(startDate, endDate, utcStart, utcEnd);
 
@@ -167,7 +178,6 @@ export class FinancialReportService {
     }
 
     async getChartData(startStr: string, endStr: string, groupBy: 'DAY' | 'WEEK' | 'MONTH') {
-        // Simple manual generation of dates and querying to avoid complex DB grouping differences
         const startDate = parseYMD(startStr);
         startDate.setHours(0, 0, 0, 0);
         const endDate = parseYMD(endStr);
@@ -193,16 +203,16 @@ export class FinancialReportService {
             .groupBy("DATE(e.expenseDate)")
             .getRawMany();
 
-        const incomeMap = new Map();
-        const expenseMap = new Map();
+        const incomeMap = new Map<string, number>();
+        const expenseMap = new Map<string, number>();
 
         incomeResult.forEach(item => {
-            const dateKey = formatYMD(new Date(item.date));
+            const dateKey = typeof item.date === 'string' ? item.date.slice(0, 10) : formatYMD(new Date(item.date));
             incomeMap.set(dateKey, Number(item.amount));
         });
 
         expenseResult.forEach(item => {
-            const dateKey = formatYMD(new Date(item.date));
+            const dateKey = typeof item.date === 'string' ? item.date.slice(0, 10) : formatYMD(new Date(item.date));
             expenseMap.set(dateKey, Number(item.amount));
         });
 
@@ -211,13 +221,15 @@ export class FinancialReportService {
         const current = new Date(startDate);
         while (current <= endDate) {
             const key = formatYMD(current);
-            const income = incomeMap.get(key) || 0;
-            const expense = expenseMap.get(key) || 0;
-            const profit = income - expense;
+            const income = Math.round((incomeMap.get(key) || 0) * 100) / 100;
+            const expense = Math.round((expenseMap.get(key) || 0) * 100) / 100;
+            const profit = Math.round((income - expense) * 100) / 100;
 
             data.push({
                 period: current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 dateKey: key,
+                startDate: key,
+                endDate: key,
                 income,
                 expense,
                 profit
@@ -226,40 +238,179 @@ export class FinancialReportService {
             current.setDate(current.getDate() + 1);
         }
 
-        // If grouping by WEEK or MONTH, we need to aggregate the daily `data` array
         if (groupBy === 'DAY') return data;
 
-        // Very basic aggregation for WEEK/MONTH (summing adjacent items based on period string matching could work, but lets just return daily for now or group properly)
-        const groupedMap = new Map();
+        const groupedMap = new Map<string, any>();
         for (const item of data) {
             let groupKey = item.dateKey;
-            const d = new Date(item.dateKey);
+            const d = parseYMD(item.dateKey);
+            let startDateStr = item.dateKey;
+            let endDateStr = item.dateKey;
+
             if (groupBy === 'MONTH') {
                 groupKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                startDateStr = `${groupKey}-01`;
+                const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                endDateStr = `${groupKey}-${String(lastDay).padStart(2, '0')}`;
             } else if (groupBy === 'WEEK') {
-                // simple week grouping: Sunday start
                 const startOfWeek = new Date(d);
                 startOfWeek.setDate(d.getDate() - d.getDay());
                 groupKey = formatYMD(startOfWeek);
+                startDateStr = groupKey;
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endDateStr = formatYMD(endOfWeek);
             }
 
             if (!groupedMap.has(groupKey)) {
-                groupedMap.set(groupKey, { period: groupKey, income: 0, expense: 0, profit: 0 });
+                groupedMap.set(groupKey, {
+                    period: groupKey,
+                    dateKey: groupKey,
+                    startDate: startDateStr,
+                    endDate: endDateStr,
+                    income: 0,
+                    expense: 0,
+                    profit: 0
+                });
             }
             const g = groupedMap.get(groupKey);
-            g.income += item.income;
-            g.expense += item.expense;
-            g.profit += item.profit;
+            g.income = Math.round((g.income + item.income) * 100) / 100;
+            g.expense = Math.round((g.expense + item.expense) * 100) / 100;
+            g.profit = Math.round((g.profit + item.profit) * 100) / 100;
         }
 
         return Array.from(groupedMap.values()).map(g => {
             if (groupBy === 'MONTH') {
-                const [y, m] = g.period.split('-');
+                const [y, m] = g.dateKey.split('-');
                 g.period = new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             } else if (groupBy === 'WEEK') {
-                g.period = 'Week of ' + new Date(g.period).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const sDate = parseYMD(g.startDate);
+                const eDate = parseYMD(g.endDate);
+                g.period = `Week of ${sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
             }
             return g;
         });
+    }
+
+    async getTransactions(queryDto: {
+        period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM',
+        startDate?: string,
+        endDate?: string,
+        date?: string,
+        type?: 'ALL' | 'INCOME' | 'EXPENSE',
+        search?: string,
+        limit?: number,
+        page?: number
+    }) {
+        const { startDate, endDate, utcStart, utcEnd } = this.resolveDateRange(
+            queryDto.period || 'DAILY',
+            queryDto.startDate,
+            queryDto.endDate,
+            queryDto.date
+        );
+
+        const typeFilter = queryDto.type || 'ALL';
+        const search = queryDto.search?.trim().toLowerCase();
+
+        let incomeItems: any[] = [];
+        let expenseItems: any[] = [];
+
+        if (typeFilter === 'ALL' || typeFilter === 'INCOME') {
+            const incomeQb = this.databaseService.repoPaymentTransaction()
+                .createQueryBuilder('pt')
+                .leftJoinAndSelect('pt.patient', 'patient')
+                .leftJoinAndSelect('pt.billing', 'billing')
+                .leftJoinAndSelect('pt.receivedBy', 'receivedBy')
+                .where('pt.type = :type', { type: PaymentTransactionType.PAYMENT })
+                .andWhere('pt.status = :status', { status: 'Completed' })
+                .andWhere('pt.createdAt >= :startDate', { startDate })
+                .andWhere('pt.createdAt <= :endDate', { endDate });
+
+            const transactions = await incomeQb.orderBy('pt.createdAt', 'DESC').getMany();
+
+            incomeItems = transactions.map(pt => ({
+                id: pt.id,
+                date: pt.createdAt,
+                type: 'INCOME' as const,
+                category: 'Patient Billing',
+                description: pt.billing?.billNumber
+                    ? `Bill #${pt.billing.billNumber}${pt.patient?.name ? ` - ${pt.patient.name}` : ''}`
+                    : (pt.patient?.name ? `Payment from ${pt.patient.name}` : 'Patient Payment'),
+                paymentMethod: pt.paymentMethod || 'Cash',
+                referenceId: pt.billing?.billNumber || (pt.id ? pt.id.slice(0, 8) : 'N/A'),
+                amount: Number(pt.amount),
+                patientName: pt.patient?.name || 'Walk-in',
+                patientId: pt.patient?.patientId || pt.patient?.id || null,
+                receivedBy: pt.receivedBy ? `${pt.receivedBy.firstName || ''} ${pt.receivedBy.lastName || ''}`.trim() : null
+            }));
+        }
+
+        if (typeFilter === 'ALL' || typeFilter === 'EXPENSE') {
+            const expenseQb = this.databaseService.repoExpense()
+                .createQueryBuilder('e')
+                .leftJoinAndSelect('e.createdBy', 'user')
+                .where('e.expenseDate >= :startDate', { startDate: utcStart })
+                .andWhere('e.expenseDate <= :endDate', { endDate: utcEnd });
+
+            const expenses = await expenseQb.orderBy('e.expenseDate', 'DESC')
+                .addOrderBy('e.createdAt', 'DESC')
+                .getMany();
+
+            expenseItems = expenses.map(e => ({
+                id: e.id,
+                date: e.expenseDate || e.createdAt,
+                type: 'EXPENSE' as const,
+                category: (e.expenseType || 'OTHER').replace(/_/g, ' '),
+                description: e.description || (e.expenseType || 'Expense').replace(/_/g, ' '),
+                paymentMethod: 'Cash',
+                referenceId: e.referenceNumber || (e.id ? e.id.slice(0, 8) : 'N/A'),
+                amount: Number(e.amount),
+                createdBy: e.createdBy ? `${e.createdBy.firstName || ''} ${e.createdBy.lastName || ''}`.trim() : null
+            }));
+        }
+
+        let combined = [...incomeItems, ...expenseItems];
+
+        if (search) {
+            combined = combined.filter(item =>
+                (item.description && item.description.toLowerCase().includes(search)) ||
+                (item.category && item.category.toLowerCase().includes(search)) ||
+                (item.referenceId && item.referenceId.toLowerCase().includes(search)) ||
+                (item.paymentMethod && item.paymentMethod.toLowerCase().includes(search)) ||
+                (item.patientName && item.patientName.toLowerCase().includes(search))
+            );
+        }
+
+        combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const incomeTotal = Math.round(incomeItems.reduce((sum, item) => sum + item.amount, 0) * 100) / 100;
+        const expenseTotal = Math.round(expenseItems.reduce((sum, item) => sum + item.amount, 0) * 100) / 100;
+        const netTotal = Math.round((incomeTotal - expenseTotal) * 100) / 100;
+
+        const total = combined.length;
+        const page = queryDto.page ? Number(queryDto.page) : 1;
+        const limit = queryDto.limit ? Number(queryDto.limit) : combined.length;
+        const paginated = (queryDto.limit && queryDto.page)
+            ? combined.slice((page - 1) * limit, page * limit)
+            : combined;
+
+        return {
+            period: {
+                startDate: formatYMD(startDate),
+                endDate: formatYMD(endDate),
+            },
+            results: paginated,
+            total,
+            page,
+            limit,
+            summary: {
+                incomeTotal,
+                expenseTotal,
+                netTotal,
+                incomeCount: incomeItems.length,
+                expenseCount: expenseItems.length,
+                totalCount: combined.length
+            }
+        };
     }
 }

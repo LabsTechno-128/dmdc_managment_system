@@ -28,4 +28,20 @@ export class FinancialReportController {
     getComparison(@Query() query: { period?: 'DAILY' | 'WEEKLY' | 'MONTHLY', date?: string }) {
         return this.financialReportService.getComparison(query.period || 'MONTHLY', query.date);
     }
+
+    @Get('transactions')
+    getTransactions(
+        @Query() query: {
+            period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM',
+            startDate?: string,
+            endDate?: string,
+            date?: string,
+            type?: 'ALL' | 'INCOME' | 'EXPENSE',
+            search?: string,
+            limit?: number,
+            page?: number
+        }
+    ) {
+        return this.financialReportService.getTransactions(query);
+    }
 }

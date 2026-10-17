@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Billing, BillingItem, PatientType, Patients, LabTest, Appointment, PaymentTransaction, PaymentTransactionType, BillingType } from '@hospital/database';
+import { Billing, BillingItem, PatientType, Patients, LabTest, Appointment, PaymentTransaction, PaymentTransactionType, BillingType, UserRole } from '@hospital/database';
 
 @Injectable()
 export class BillingService {
@@ -142,7 +142,7 @@ export class BillingService {
         }
     }
 
-    async findAll(query?: { page?: string, limit?: string, search?: string }) {
+    async findAll(query?: { page?: string, limit?: string, search?: string }, user?: any) {
         const page = Math.max(1, Number(query?.page) || 1);
         const limit = Math.max(1, Number(query?.limit) || 10);
         const search = query?.search || '';
@@ -156,12 +156,18 @@ export class BillingService {
             .skip((page - 1) * limit)
             .take(limit);
 
+        if (user && user.role === UserRole.USER) {
+            qb.andWhere(
+                '(patient.email = :userEmail OR patient.phone = :userPhone)',
+                { userEmail: user.email || '', userPhone: user.phone || '' }
+            );
+        }
+
         if (search) {
-            qb.where('billing.billNumber ILIKE :search', { search: `%${search}%` })
-                .orWhere('billing.id::text ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.patientId ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.name ILIKE :search', { search: `%${search}%` })
-                .orWhere('patient.phone ILIKE :search', { search: `%${search}%` });
+            qb.andWhere(
+                '(billing.billNumber ILIKE :search OR billing.id::text ILIKE :search OR patient.patientId ILIKE :search OR patient.name ILIKE :search OR patient.phone ILIKE :search)',
+                { search: `%${search}%` }
+            );
         }
 
         const [data, total] = await qb.getManyAndCount();
@@ -177,18 +183,65 @@ export class BillingService {
         };
     }
 
-    async findOne(id: string) {
+    async findOne(id: string, user?: any) {
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!id || !UUID_REGEX.test(id)) {
+            throw new BadRequestException('Invalid invoice ID format');
+        }
+
         const billing = await this.databaseService.repoBilling().findOne({
             where: { id },
-            relations: { patient: true, items: true }
+            relations: { patient: true }
         });
-        if (!billing) throw new BadRequestException('Billing not found');
+        if (!billing) {
+            throw new NotFoundException('Invoice not found');
+        }
+
+        // Ownership validation: If the user is a regular patient/user, verify ownership
+        if (user && user.role === UserRole.USER) {
+            const patient = billing.patient;
+            const matchesEmail = user.email && patient?.email && user.email.toLowerCase() === patient.email.toLowerCase();
+            const matchesPhone = user.phone && patient?.phone && user.phone.replace(/\D/g, '') === patient.phone.replace(/\D/g, '');
+            const matchesId = (user as any).patientId && patient?.id === (user as any).patientId;
+
+            if (!matchesEmail && !matchesPhone && !matchesId) {
+                throw new ForbiddenException('You are not authorized to view this invoice');
+            }
+        }
 
         const items = await this.databaseService.repoBillingItem().find({
             where: { billingId: id },
-            relations: { test: true }
+            relations: { test: true },
+            order: { createdAt: 'ASC' }
         });
-        return { ...billing, items };
+
+        const payments = await this.databaseService.repoPaymentTransaction().find({
+            where: { billingId: id },
+            relations: { receivedBy: true },
+            order: { createdAt: 'DESC' }
+        });
+
+        let doctor = null;
+        if (billing.doctorId && UUID_REGEX.test(billing.doctorId)) {
+            doctor = await this.databaseService.repoDoctor().findOne({
+                where: { id: billing.doctorId }
+            });
+        }
+
+        const clinic = {
+            name: 'Dr. Muazzem Medical Diagnostic Center',
+            address: '82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka',
+            phone: '01234567890, 01234567899',
+            email: 'dmdc.contact@gmail.com'
+        };
+
+        return {
+            ...billing,
+            items,
+            payments,
+            doctor,
+            clinic
+        };
     }
 
     async updateStatus(id: string, paymentStatus: string) {
@@ -448,7 +501,31 @@ export class BillingService {
         }
     }
 
-    async getPayments(billingId: string) {
+    async getPayments(billingId: string, user?: any) {
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!billingId || !UUID_REGEX.test(billingId)) {
+            throw new BadRequestException('Invalid invoice ID format');
+        }
+
+        const billing = await this.databaseService.repoBilling().findOne({
+            where: { id: billingId },
+            relations: { patient: true }
+        });
+        if (!billing) {
+            throw new NotFoundException('Invoice not found');
+        }
+
+        if (user && user.role === UserRole.USER) {
+            const patient = billing.patient;
+            const matchesEmail = user.email && patient?.email && user.email.toLowerCase() === patient.email.toLowerCase();
+            const matchesPhone = user.phone && patient?.phone && user.phone.replace(/\D/g, '') === patient.phone.replace(/\D/g, '');
+            const matchesId = (user as any).patientId && patient?.id === (user as any).patientId;
+
+            if (!matchesEmail && !matchesPhone && !matchesId) {
+                throw new ForbiddenException('You are not authorized to view payments for this invoice');
+            }
+        }
+
         return this.databaseService.repoPaymentTransaction().find({
             where: { billingId },
             relations: { receivedBy: true },

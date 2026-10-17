@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2, Calculator, AlertCircle } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
@@ -65,6 +65,9 @@ export const NewBilling: React.FC = () => {
   const [isSearchingPatient, setIsSearchingPatient] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [createdInvoice, setCreatedInvoice] = useState<any>(null);
+
+  // Frontend-only Payment Adjustment state
+  const [amountReceived, setAmountReceived] = useState<string>('');
 
   // Queries
   const { data: tests } = useQuery({
@@ -133,6 +136,46 @@ export const NewBilling: React.FC = () => {
   }
   const totalAmount = Math.max(0, subtotal - discountAmount + watchAdditionalCharges);
   const dueAmount = Math.max(0, totalAmount - watchPaidAmount);
+
+  // Frontend-only Payment Adjustment: calculations and validations
+  let receivedError: string | null = null;
+  let difference = 0;
+  let finalPayableAmount = totalAmount;
+
+  if (amountReceived.trim() !== '') {
+    const parsed = parseFloat(amountReceived);
+    if (isNaN(parsed)) {
+      receivedError = 'Please enter a valid numeric amount';
+    } else if (parsed < 0) {
+      receivedError = 'Amount received cannot be negative';
+    } else if (parsed > totalAmount) {
+      receivedError = `Amount received cannot exceed the original bill amount (৳${totalAmount.toFixed(2)} BDT)`;
+    } else {
+      difference = Math.max(0, totalAmount - parsed);
+      finalPayableAmount = parsed;
+    }
+  }
+
+  const handleAmountReceivedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value;
+    setAmountReceived(rawVal);
+
+    if (rawVal.trim() === '') {
+      billingForm.setValue('paidAmount', 0, { shouldValidate: true });
+      return;
+    }
+
+    const parsed = parseFloat(rawVal);
+    if (!isNaN(parsed) && parsed >= 0) {
+      billingForm.setValue('paidAmount', parsed, { shouldValidate: true });
+    }
+  };
+
+  const handleSetExactAmount = (amount: number) => {
+    const rounded = Math.max(0, amount);
+    setAmountReceived(String(rounded));
+    billingForm.setValue('paidAmount', rounded, { shouldValidate: true });
+  };
 
   useEffect(() => {
     if (totalAmount > 0) {
@@ -541,8 +584,71 @@ export const NewBilling: React.FC = () => {
 
               <div className="pt-4 border-t-2 border-slate-200">
                 <div className="flex justify-between items-center text-lg font-bold text-slate-900">
-                  <span>Net Payable</span>
-                  <span className="text-primary">{totalAmount.toFixed(2)} BDT</span>
+                  <span>Original Bill Amount</span>
+                  <span className="text-primary">৳ {totalAmount.toFixed(2)} BDT</span>
+                </div>
+              </div>
+
+              {/* Frontend-Only Payment Adjustment Card */}
+              <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 space-y-3 shadow-inner">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Calculator size={16} className="text-primary" />
+                    <label htmlFor="amountReceivedInput" className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                      Amount Received
+                    </label>
+                  </div>
+                  {totalAmount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetExactAmount(totalAmount)}
+                      className="text-[11px] font-semibold text-primary hover:text-primary-dark underline cursor-pointer"
+                    >
+                      Fill Exact (৳{totalAmount.toFixed(2)})
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">৳</span>
+                  <input
+                    id="amountReceivedInput"
+                    type="number"
+                    min="0"
+                    max={totalAmount}
+                    step="any"
+                    placeholder="Enter received amount (e.g. 2000)"
+                    value={amountReceived}
+                    onChange={handleAmountReceivedChange}
+                    className={`w-full pl-8 pr-3 py-2 text-sm font-semibold border rounded-lg focus:ring-2 focus:outline-none text-right transition-colors ${
+                      receivedError
+                        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20 bg-red-50/40 text-red-900'
+                        : 'border-slate-300 focus:border-primary bg-white text-slate-800'
+                    }`}
+                  />
+                </div>
+
+                {receivedError && (
+                  <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+                    <AlertCircle size={14} className="shrink-0" />
+                    <span>{receivedError}</span>
+                  </div>
+                )}
+
+                {/* Calculation breakdown: Difference & Adjusted Amount */}
+                <div className="pt-2 border-t border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>Remaining Difference</span>
+                    <span className="font-semibold text-amber-600">
+                      ৳ {difference.toFixed(2)} BDT
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center font-bold text-slate-800 pt-1.5 border-t border-dashed border-slate-200">
+                    <span>Final Amount after Adjustment</span>
+                    <span className="text-emerald-700 font-bold text-sm">
+                      ৳ {finalPayableAmount.toFixed(2)} BDT
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -553,7 +659,13 @@ export const NewBilling: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  {...billingForm.register('paidAmount', { valueAsNumber: true })}
+                  {...billingForm.register('paidAmount', {
+                    valueAsNumber: true,
+                    onChange: (e) => {
+                      const val = e.target.value;
+                      setAmountReceived(val === '' ? '' : String(val));
+                    }
+                  })}
                   className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.paidAmount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                 />
                 {billingForm.formState.errors.paidAmount && (
@@ -592,14 +704,14 @@ export const NewBilling: React.FC = () => {
               <div className="pt-4 flex flex-col gap-3">
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, false))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0 || !!receivedError}
                   className="w-full py-3 bg-white border border-primary text-primary hover:bg-primary/5 rounded-xl font-bold transition-all disabled:opacity-50"
                 >
                   Save Only
                 </button>
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, true))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0 || !!receivedError}
                   className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_14px_0_rgb(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] disabled:opacity-50"
                 >
                   <Printer size={18} />

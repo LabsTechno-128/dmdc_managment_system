@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, CheckCircle, Clock, Search, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FileText, Plus, CheckCircle, Clock, Search, Printer, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
+import { InvoiceDetailsModal } from './InvoiceDetailsModal';
 
 const fetchBillings = async (page: number, limit: number, search: string) => {
   const response = await api.get(`/billing?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`);
@@ -15,6 +16,7 @@ const fetchBillings = async (page: number, limit: number, search: string) => {
 
 export const BillingList: React.FC = () => {
   const navigate = useNavigate();
+  const { id: routeInvoiceId } = useParams<{ id?: string }>();
   const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -22,9 +24,23 @@ export const BillingList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(routeInvoiceId || null);
   const [paymentModalData, setPaymentModalData] = useState<any>(null);
   const [paymentInput, setPaymentInput] = useState('');
   const [printingBilling, setPrintingBilling] = useState<any>(null);
+
+  useEffect(() => {
+    if (routeInvoiceId) {
+      setSelectedInvoiceId(routeInvoiceId);
+    }
+  }, [routeInvoiceId]);
+
+  const handleCloseDetailsModal = () => {
+    setSelectedInvoiceId(null);
+    if (routeInvoiceId) {
+      navigate('/billing', { replace: true });
+    }
+  };
 
   const handlePrintAction = useReactToPrint({
     contentRef: printRef,
@@ -176,15 +192,24 @@ export const BillingList: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
+
                         {(billing.paymentStatus === 'Partial' || billing.paymentStatus === 'Unpaid') && (
                           <button
                             onClick={() => handleOpenPaymentModal(billing)}
                             disabled={updatePaymentMutation.isPending}
-                            className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 rounded-lg shadow-sm transition-colors"
+                            className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 rounded-lg shadow-sm transition-colors cursor-pointer"
                           >
                             Edit Pay
                           </button>
                         )}
+                        <button
+                          onClick={() => setSelectedInvoiceId(billing.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-primary hover:text-white hover:bg-primary bg-primary/10 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                          title="View Invoice Details"
+                        >
+                          <Eye size={15} />
+
+                        </button>
                         <button
                           onClick={() => setPrintingBilling(billing)}
                           className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary bg-white border border-slate-200 rounded-lg shadow-sm transition-colors cursor-pointer"
@@ -292,6 +317,13 @@ export const BillingList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Invoice Details Modal */}
+      <InvoiceDetailsModal
+        invoiceId={selectedInvoiceId}
+        isOpen={!!selectedInvoiceId}
+        onClose={handleCloseDetailsModal}
+      />
     </div>
   );
 };

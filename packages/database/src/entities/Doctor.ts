@@ -29,6 +29,24 @@ export class Doctor {
     @Column({ length: 255, nullable: true })
     availability?: string;
 
+    @Column({ nullable: true })
+    avatar?: string;
+
+    @Column({ type: 'text', nullable: true })
+    bio?: string;
+
+    @Column({ length: 50, default: '4.9' })
+    rating!: string;
+
+    @Column({ length: 100, nullable: true })
+    department?: string;
+
+    @Column({ length: 100, nullable: true })
+    experience?: string;
+
+    @Column({ default: true })
+    isPublished!: boolean;
+
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     consultationFee!: number;
 

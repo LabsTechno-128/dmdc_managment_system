@@ -22,6 +22,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SampleCollectionModule } from './sample-collection/sample-collection.module';
 import { LabResultModule } from './lab-result/lab-result.module';
+import { LandingModule } from './landing/landing.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { LabResultModule } from './lab-result/lab-result.module';
     InventoryModule,
     SampleCollectionModule,
     LabResultModule,
+    LandingModule,
   ],
 })
 export class AppModule { }

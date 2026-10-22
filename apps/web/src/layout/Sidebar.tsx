@@ -18,7 +18,8 @@ import {
     Fingerprint,
     Coins,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    Globe,
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -96,6 +97,12 @@ const ITEMS: NavItem[] = [
             { label: 'Attendance', path: '/attendance', icon: Fingerprint, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: 'Payroll', path: '/payroll', icon: Coins, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
         ]
+    },
+    {
+        label: 'Landing Page',
+        path: '/landing-page',
+        icon: Globe,
+        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST],
     },
     {
         label: 'System & Settings',

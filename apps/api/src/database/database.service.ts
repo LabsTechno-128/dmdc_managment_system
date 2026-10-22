@@ -1,16 +1,40 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { loadConfig } from '@hospital/config';
-import { createDataSource, Patients, User, Doctor, DiagnosticTest, Billing, BillingItem, Report, Notification, Employee, Appointment, LabTest, PaymentTransaction, Attendance, Payroll, Expense, InventoryCategory, InventoryItem, InventoryBatch, InventoryStockEntry, InventoryUsageLog, SampleCollection, TestParameter, ParameterResult, LabResult } from '@hospital/database';
+import {
+    createDataSource,
+    Patients,
+    User,
+    Doctor,
+    DiagnosticTest,
+    Billing,
+    BillingItem,
+    Report,
+    Notification,
+    Employee,
+    Appointment,
+    LabTest,
+    PaymentTransaction,
+    Attendance,
+    Payroll,
+    Expense,
+    InventoryCategory,
+    InventoryItem,
+    InventoryBatch,
+    InventoryStockEntry,
+    InventoryUsageLog,
+    SampleCollection,
+    TestParameter,
+    ParameterResult,
+    LabResult,
+    LandingContent,
+} from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
 import { DataSource, Repository } from 'typeorm';
 
-
-
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     private dataSource?: DataSource;
-
 
     async onModuleInit() {
         const cfg = loadConfig();
@@ -67,7 +91,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 SampleCollection,
                 TestParameter,
                 ParameterResult,
-                LabResult
+                LabResult,
+                LandingContent,
             ],
             synchronize: true,
             logging: false,
@@ -135,7 +160,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     repoExpense(): Repository<Expense> {
         return this.getDataSource().getRepository(Expense);
     }
-    
     repoSampleCollection(): Repository<SampleCollection> {
         return this.getDataSource().getRepository(SampleCollection);
     }
@@ -147,5 +171,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoLabResult(): Repository<LabResult> {
         return this.getDataSource().getRepository(LabResult);
+    }
+    repoLandingContent(): Repository<LandingContent> {
+        return this.getDataSource().getRepository(LandingContent);
     }
 }

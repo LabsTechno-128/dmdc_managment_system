@@ -63,22 +63,28 @@ export class AppointmentsService {
                 if (!createAppointmentDto.appointmentDate) {
                     throw new BadRequestException('Appointment date is required for FUTURE bookings');
                 }
-                appointmentDate = new Date(createAppointmentDto.appointmentDate);
+                const dateParts = createAppointmentDto.appointmentDate.split('-').map(Number);
+                appointmentDate = dateParts.length === 3
+                    ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2], 12, 0, 0)
+                    : new Date(createAppointmentDto.appointmentDate);
+
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 if (appointmentDate < today) {
                     throw new BadRequestException('Appointment date cannot be in the past');
                 }
                 appointmentTime = createAppointmentDto.appointmentTime || '00:00';
+                const targetDateStr = createAppointmentDto.appointmentDate.split('T')[0];
+                const timePrefix = appointmentTime.slice(0, 5);
 
-                // Check for duplicate future appointment (same doctor, same date, same time)
-                const existing = await repo.findOne({
-                    where: {
-                        doctorId: createAppointmentDto.doctorId,
-                        appointmentDate: appointmentDate,
-                        appointmentTime: appointmentTime,
-                    },
-                });
+                // Check for duplicate future appointment using query builder to handle DATE and TIME cleanly
+                const existing = await repo.createQueryBuilder('appt')
+                    .where('appt.doctorId = :doctorId', { doctorId: createAppointmentDto.doctorId })
+                    .andWhere('DATE(appt."appointmentDate") = :targetDateStr', { targetDateStr })
+                    .andWhere('appt."appointmentTime"::text LIKE :timePattern', { timePattern: `${timePrefix}%` })
+                    .andWhere('appt.status != :cancelledStatus', { cancelledStatus: AppointmentStatus.Cancelled })
+                    .getOne();
+
                 if (existing) {
                     throw new ConflictException('An appointment already exists for this doctor at the specified date and time');
                 }
@@ -93,19 +99,15 @@ export class AppointmentsService {
                 appointmentDate: appointmentDate,
                 appointmentTime: appointmentTime,
                 appointmentType: apptType,
+                visitReason: createAppointmentDto.visitReason,
+                notes: createAppointmentDto.notes,
                 paymentStatus: 'Unpaid',
+                consultationFee: createAppointmentDto.consultationFee !== undefined ? createAppointmentDto.consultationFee : (Number(doctor.consultationFee) || 0),
+                followUpFee: createAppointmentDto.followUpFee !== undefined ? createAppointmentDto.followUpFee : (Number(doctor.followUpFee) || 0),
             });
 
             if (createAppointmentDto.status) {
                 appointment.status = createAppointmentDto.status;
-            }
-
-            if (createAppointmentDto.consultationFee !== undefined) {
-                appointment.consultationFee = createAppointmentDto.consultationFee;
-            }
-
-            if (createAppointmentDto.followUpFee !== undefined) {
-                appointment.followUpFee = createAppointmentDto.followUpFee;
             }
 
             const savedAppointment = await repo.save(appointment);

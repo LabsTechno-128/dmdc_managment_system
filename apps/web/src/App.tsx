@@ -64,6 +64,7 @@ import { SampleCollectionDashboard, SampleCollectionInterface } from './pages/Sa
 import LabTechnicianDashboard from './pages/LabTechnician';
 import { PathologistDashboard } from './pages/Pathologist';
 import { ReportPreview } from './pages/Reports';
+import { LandingPageManagement } from './pages/LandingPage/LandingPageManagement';
 
 const queryClient = new QueryClient();
 
@@ -130,7 +131,7 @@ function App() {
               <Route path="/doctors-fee" element={<DoctorFeesList />} />
               <Route path="/attendance" element={<AttendanceList />} />
               <Route path="/payroll" element={<PayrollList />} />
-
+              <Route path="/landing-page" element={<LandingPageManagement />} />
             </Route>
 
             {/* Super Admin & Admin Shared Routes (No Receptionist) */}

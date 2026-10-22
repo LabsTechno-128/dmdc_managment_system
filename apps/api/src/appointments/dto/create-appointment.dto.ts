@@ -64,6 +64,14 @@ export class CreateAppointmentDto {
     @IsOptional()
     status?: AppointmentStatus;
 
+    @IsString()
+    @IsOptional()
+    visitReason?: string;
+
+    @IsString()
+    @IsOptional()
+    notes?: string;
+
     @IsNumber()
     @Min(0)
     @IsOptional()

@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
 import { UserRole } from '@hospital/database';
+import { UpdateSampleStatusDto } from './dto/update-sample-status.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('sample-collection')
@@ -36,10 +37,10 @@ export class SampleCollectionController {
     @Patch(':id/status')
     updateStatus(
         @Param('id') id: string,
-        @Body() body: { status: any, notes?: string },
+        @Body() body: UpdateSampleStatusDto,
         @Req() req: any
     ) {
-        return this.sampleCollectionService.updateStatus(id, body.status, req.user.id, body.notes);
+        return this.sampleCollectionService.updateStatus(id, body.status, req.user.id, body.notes, body.items);
     }
 
     // 5. Get sample by barcode

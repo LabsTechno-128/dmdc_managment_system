@@ -23,5 +23,6 @@ export * from './entities/InventoryBatch';
 export * from './entities/InventoryStockEntry';
 export * from './entities/InventoryUsageLog';
 export * from './entities/SampleCollection';
+export * from './entities/SampleCollectionItem';
 export * from './entities/LabResult';
 export * from './entities/LandingContent';

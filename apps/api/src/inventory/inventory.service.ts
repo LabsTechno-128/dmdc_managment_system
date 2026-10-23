@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { DataSource, ILike, LessThanOrEqual, MoreThan, Repository } from 'typeorm';
+import { DataSource, EntityManager, ILike, LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import {
     InventoryCategory,
     InventoryItem,
@@ -172,65 +172,107 @@ export class InventoryService {
     }
 
     // ================= STOCK OUT (USAGE & FEFO) =================
+    async deductStockWithManager(
+        manager: EntityManager,
+        data: {
+            itemId: string;
+            quantity: number;
+            department?: string;
+            notes?: string;
+            usedById: string;
+            usageDate?: Date;
+        }
+    ) {
+        const item = await manager.findOne(InventoryItem, {
+            where: { id: data.itemId },
+            lock: { mode: 'pessimistic_write' }
+        });
+        if (!item) throw new NotFoundException(`Inventory item with ID ${data.itemId} not found`);
+        if (!item.isActive) throw new BadRequestException(`Inventory item "${item.name}" is inactive.`);
+
+        const remainingQuantityToDeduct = Number(data.quantity);
+        if (!Number.isInteger(remainingQuantityToDeduct) || remainingQuantityToDeduct <= 0) {
+            throw new BadRequestException(`Quantity to deduct must be a positive whole number for item "${item.name}".`);
+        }
+
+        if (item.currentStock < remainingQuantityToDeduct) {
+            throw new BadRequestException(`Insufficient stock for "${item.name}". Current stock: ${item.currentStock}, requested: ${remainingQuantityToDeduct}`);
+        }
+
+        let neededDeduction = remainingQuantityToDeduct;
+
+        // FEFO Logic: Find batches with remaining quantity, ordered by expiry date ASC
+        const batches = await manager.find(InventoryBatch, {
+            where: { itemId: data.itemId, quantity: MoreThan(0) },
+            order: { expiryDate: 'ASC' }
+        });
+
+        const totalBatchQty = batches.reduce((sum, b) => sum + b.quantity, 0);
+        if (totalBatchQty < neededDeduction) {
+            // If item has currentStock to cover it (e.g. legacy/initial stock), create a fallback batch to preserve foreign key constraint
+            const missingBatchQty = neededDeduction - totalBatchQty;
+            if (item.currentStock >= neededDeduction) {
+                const fallbackBatch = manager.create(InventoryBatch, {
+                    itemId: data.itemId,
+                    batchNumber: 'DEFAULT-' + new Date().getFullYear(),
+                    expiryDate: new Date('2099-12-31'),
+                    quantity: missingBatchQty,
+                    unitPrice: 0
+                });
+                const savedFallback = await manager.save(fallbackBatch);
+                batches.push(savedFallback);
+            }
+        }
+
+        const usageLogs: InventoryUsageLog[] = [];
+
+        for (const batch of batches) {
+            if (neededDeduction <= 0) break;
+
+            const deductQuantity = Math.min(batch.quantity, neededDeduction);
+            
+            // Deduct from batch
+            batch.quantity -= deductQuantity;
+            await manager.save(batch);
+
+            // Create usage log for this specific batch deduction
+            const usage = manager.create(InventoryUsageLog, {
+                itemId: data.itemId,
+                batchId: batch.id,
+                quantity: deductQuantity,
+                unitPrice: batch.unitPrice || 0,
+                totalPrice: deductQuantity * Number(batch.unitPrice || 0),
+                department: data.department || 'General',
+                notes: data.notes,
+                usedById: data.usedById,
+                usageDate: data.usageDate || new Date()
+            });
+            const savedUsage = await manager.save(usage);
+            usageLogs.push(savedUsage);
+
+            neededDeduction -= deductQuantity;
+        }
+
+        if (neededDeduction > 0) {
+            throw new BadRequestException(`Not enough stock in available batches to fulfill request for "${item.name}".`);
+        }
+
+        // Update item total stock
+        item.currentStock -= remainingQuantityToDeduct;
+        await manager.save(item);
+
+        return { item, usageLogs };
+    }
+
     async recordStockUsage(data: any) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            const item = await queryRunner.manager.findOne(InventoryItem, { where: { id: data.itemId } });
-            if (!item) throw new NotFoundException('Item not found');
-
-            let remainingQuantityToDeduct = Number(data.quantity);
-            if (item.currentStock < remainingQuantityToDeduct) {
-                throw new BadRequestException(`Insufficient stock. Current stock: ${item.currentStock}`);
-            }
-
-            // FEFO Logic: Find batches with remaining quantity, ordered by expiry date ASC
-            const batches = await queryRunner.manager.find(InventoryBatch, {
-                where: { itemId: data.itemId, quantity: MoreThan(0) },
-                order: { expiryDate: 'ASC' }
-            });
-
-            const usageLogs = [];
-
-            for (const batch of batches) {
-                if (remainingQuantityToDeduct <= 0) break;
-
-                const deductQuantity = Math.min(batch.quantity, remainingQuantityToDeduct);
-                
-                // Deduct from batch
-                batch.quantity -= deductQuantity;
-                await queryRunner.manager.save(batch);
-
-                // Create usage log for this specific batch deduction
-                const usage = queryRunner.manager.create(InventoryUsageLog, {
-                    itemId: data.itemId,
-                    batchId: batch.id,
-                    quantity: deductQuantity,
-                    unitPrice: batch.unitPrice,
-                    totalPrice: deductQuantity * batch.unitPrice,
-                    department: data.department,
-                    notes: data.notes,
-                    usedById: data.usedById,
-                    usageDate: data.usageDate || new Date()
-                });
-                const savedUsage = await queryRunner.manager.save(usage);
-                usageLogs.push(savedUsage);
-
-                remainingQuantityToDeduct -= deductQuantity;
-            }
-
-            if (remainingQuantityToDeduct > 0) {
-                 throw new BadRequestException('Not enough stock in available batches to fulfill request, despite total current stock mismatch.');
-            }
-
-            // Update item total stock
-            item.currentStock -= Number(data.quantity);
-            await queryRunner.manager.save(item);
-
+            const result = await this.deductStockWithManager(queryRunner.manager, data);
             await queryRunner.commitTransaction();
-            return usageLogs;
+            return result.usageLogs;
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw error;

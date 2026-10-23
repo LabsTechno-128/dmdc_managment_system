@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { SampleStatus, SampleCollection } from '@hospital/database';
+import { SampleStatus, SampleCollection, SampleCollectionItem } from '@hospital/database';
 import { Like, ILike } from 'typeorm';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class SampleCollectionService {
-    constructor(private readonly db: DatabaseService) {}
+    constructor(
+        private readonly db: DatabaseService,
+        private readonly inventoryService: InventoryService
+    ) {}
 
     // Search Billings for Sample Collection
     async searchBillings(query: string) {
@@ -60,7 +64,10 @@ export class SampleCollectionService {
             relations: {
                 test: true,
                 patient: true,
-                collectedBy: true
+                collectedBy: true,
+                inventoryItems: {
+                    item: true
+                }
             },
             order: { createdAt: 'ASC' }
         });
@@ -150,32 +157,119 @@ export class SampleCollectionService {
         return await this.getSamplesForBilling(billingId);
     }
 
-    // Update Sample Status
-    async updateStatus(sampleId: string, status: SampleStatus, userId: string, notes?: string) {
-        const sampleRepo = this.db.repoSampleCollection();
-        const sample = await sampleRepo.findOne({ where: { id: sampleId } });
-
-        if (!sample) {
-            throw new NotFoundException('Sample not found');
+    // Update Sample Status and record item usage / deduct stock
+    async updateStatus(
+        sampleId: string,
+        status: SampleStatus,
+        userId: string,
+        notes?: string,
+        items?: Array<{ itemId: string; quantity: number }>
+    ) {
+        // Validate items input format if provided
+        const aggregatedItems = new Map<string, number>();
+        if (items && items.length > 0) {
+            if (status !== SampleStatus.COLLECTED) {
+                throw new BadRequestException('Inventory items can only be deducted when sample is collected.');
+            }
+            for (const item of items) {
+                if (!item.itemId || typeof item.itemId !== 'string' || item.itemId.trim() === '') {
+                    throw new BadRequestException('Invalid inventory item identifier.');
+                }
+                const qty = Number(item.quantity);
+                if (!Number.isInteger(qty) || qty <= 0) {
+                    throw new BadRequestException('Item quantity must be a positive whole number.');
+                }
+                aggregatedItems.set(item.itemId, (aggregatedItems.get(item.itemId) || 0) + qty);
+            }
         }
 
-        sample.status = status;
-        if (status === SampleStatus.COLLECTED) {
-            sample.collectedAt = new Date();
-            sample.collectedById = userId;
-        }
-        
-        if (notes !== undefined) {
-            sample.notes = notes;
+        const queryRunner = this.db.getDataSource().createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const sample = await queryRunner.manager.findOne(SampleCollection, {
+                where: { id: sampleId },
+                relations: {
+                    test: true,
+                    patient: true,
+                    inventoryItems: true
+                }
+            });
+
+            if (!sample) {
+                throw new NotFoundException('Sample not found');
+            }
+
+            // Prevent duplicate deduction if already COLLECTED
+            if (status === SampleStatus.COLLECTED && sample.status === SampleStatus.COLLECTED) {
+                if (aggregatedItems.size > 0) {
+                    throw new BadRequestException('Sample has already been collected. Stock deduction cannot be repeated.');
+                }
+                // If merely updating notes on an already collected sample
+                if (notes !== undefined) {
+                    sample.notes = notes;
+                    await queryRunner.manager.save(sample);
+                }
+                await queryRunner.commitTransaction();
+                return await this.getSampleWithRelations(sampleId);
+            }
+
+            // If transitioning to COLLECTED and items are used:
+            if (status === SampleStatus.COLLECTED && aggregatedItems.size > 0) {
+                for (const [itemId, quantity] of aggregatedItems.entries()) {
+                    // Deduct stock using InventoryService inside this transaction
+                    await this.inventoryService.deductStockWithManager(queryRunner.manager, {
+                        itemId,
+                        quantity,
+                        department: 'Sample Collection',
+                        notes: `Sample collection (${sample.barcode})${notes ? ': ' + notes : ''}`,
+                        usedById: userId,
+                        usageDate: new Date()
+                    });
+
+                    // Record item usage in SampleCollectionItem
+                    const scItem = queryRunner.manager.create(SampleCollectionItem, {
+                        sampleCollectionId: sample.id,
+                        itemId,
+                        quantity
+                    });
+                    await queryRunner.manager.save(scItem);
+                }
+            }
+
+            // Update sample fields
+            sample.status = status;
+            if (status === SampleStatus.COLLECTED) {
+                sample.collectedAt = new Date();
+                sample.collectedById = userId;
+            }
+            if (notes !== undefined) {
+                sample.notes = notes;
+            }
+
+            await queryRunner.manager.save(sample);
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
         }
 
-        await sampleRepo.save(sample);
-        return sampleRepo.findOne({
+        return await this.getSampleWithRelations(sampleId);
+    }
+
+    private async getSampleWithRelations(sampleId: string) {
+        return this.db.repoSampleCollection().findOne({
             where: { id: sampleId },
             relations: {
                 test: true,
                 patient: true,
-                collectedBy: true
+                collectedBy: true,
+                inventoryItems: {
+                    item: true
+                }
             }
         });
     }
@@ -189,7 +283,10 @@ export class SampleCollectionService {
                 test: true,
                 patient: true,
                 billing: true,
-                collectedBy: true
+                collectedBy: true,
+                inventoryItems: {
+                    item: true
+                }
             }
         });
 

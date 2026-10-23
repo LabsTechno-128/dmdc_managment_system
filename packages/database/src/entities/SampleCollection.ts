@@ -6,13 +6,15 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
     ManyToOne,
-    JoinColumn
+    JoinColumn,
+    OneToMany
 } from 'typeorm';
 import { Billing } from './Billing';
 import { BillingItem } from './BillingItem';
 import { Patients } from './Patients';
 import { LabTest } from './LabTest';
 import { User } from './User';
+import { SampleCollectionItem } from './SampleCollectionItem';
 
 export enum SampleStatus {
     PENDING = 'PENDING',
@@ -82,6 +84,9 @@ export class SampleCollection {
 
     @Column({ type: 'text', nullable: true })
     notes?: string;
+
+    @OneToMany(() => SampleCollectionItem, (item) => item.sampleCollection)
+    inventoryItems?: SampleCollectionItem[];
 
     @CreateDateColumn()
     createdAt!: Date;

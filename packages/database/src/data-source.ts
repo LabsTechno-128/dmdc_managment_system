@@ -22,6 +22,7 @@ import { InventoryBatch } from './entities/InventoryBatch'
 import { InventoryStockEntry } from './entities/InventoryStockEntry'
 import { InventoryUsageLog } from './entities/InventoryUsageLog'
 import { SampleCollection } from './entities/SampleCollection'
+import { SampleCollectionItem } from './entities/SampleCollectionItem'
 import { TestParameter } from './entities/TestParameter'
 import { ParameterResult } from './entities/ParameterResult'
 import { LabResult } from './entities/LabResult'
@@ -52,6 +53,7 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         InventoryStockEntry,
         InventoryUsageLog,
         SampleCollection,
+        SampleCollectionItem,
         TestParameter,
         ParameterResult,
         LabResult,

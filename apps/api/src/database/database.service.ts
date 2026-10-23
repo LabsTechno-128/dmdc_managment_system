@@ -23,6 +23,7 @@ import {
     InventoryStockEntry,
     InventoryUsageLog,
     SampleCollection,
+    SampleCollectionItem,
     TestParameter,
     ParameterResult,
     LabResult,
@@ -89,6 +90,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 InventoryStockEntry,
                 InventoryUsageLog,
                 SampleCollection,
+                SampleCollectionItem,
                 TestParameter,
                 ParameterResult,
                 LabResult,
@@ -162,6 +164,18 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoSampleCollection(): Repository<SampleCollection> {
         return this.getDataSource().getRepository(SampleCollection);
+    }
+    repoSampleCollectionItem(): Repository<SampleCollectionItem> {
+        return this.getDataSource().getRepository(SampleCollectionItem);
+    }
+    repoInventoryItem(): Repository<InventoryItem> {
+        return this.getDataSource().getRepository(InventoryItem);
+    }
+    repoInventoryBatch(): Repository<InventoryBatch> {
+        return this.getDataSource().getRepository(InventoryBatch);
+    }
+    repoInventoryUsageLog(): Repository<InventoryUsageLog> {
+        return this.getDataSource().getRepository(InventoryUsageLog);
     }
     repoTestParameter(): Repository<TestParameter> {
         return this.getDataSource().getRepository(TestParameter);

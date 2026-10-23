@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   X,
   Printer,
@@ -15,10 +15,14 @@ import {
   Calendar,
   CreditCard,
   RefreshCw,
-  Tag
+  Tag,
+  ShieldCheck,
+  Receipt
 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { api } from '../../lib/api';
+import { toast } from 'react-toastify';
+import { useAuthStore } from '../../store/authStore';
 import { InvoicePrint } from './InvoicePrint';
 
 interface InvoiceDetailsModalProps {
@@ -33,6 +37,14 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   onClose,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+  const canAuthorize = isAdmin || user?.role === 'receptionist' || user?.role === 'accountant';
+
+  const [isSettling, setIsSettling] = useState(false);
+  const [settleAmount, setSettleAmount] = useState('');
+  const [settleReason, setSettleReason] = useState('');
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -71,7 +83,35 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
       return res.data?.data || res.data || res;
     },
     enabled: isOpen && !!invoiceId,
-    staleTime: 0, // Always fetch fresh data when opening an invoice
+    staleTime: 0,
+  });
+
+  const settleMutation = useMutation({
+    mutationFn: (data: { amount: number; reason: string }) =>
+      api.post(`/billing/${invoiceId}/settle`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['billing-details', invoiceId] });
+      queryClient.invalidateQueries({ queryKey: ['billings'] });
+      toast.success('Outstanding balance waived / settled successfully');
+      setIsSettling(false);
+      setSettleReason('');
+      setSettleAmount('');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to settle balance');
+    }
+  });
+
+  const authorizeMutation = useMutation({
+    mutationFn: () => api.post(`/billing/${invoiceId}/authorize`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['billing-details', invoiceId] });
+      queryClient.invalidateQueries({ queryKey: ['billings'] });
+      toast.success('Invoice authorized successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to authorize invoice');
+    }
   });
 
   if (!isOpen || !invoiceId) return null;
@@ -125,13 +165,22 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
 
   const subtotal = Number(invoice?.subtotal || 0);
   const discountAmount = Number(invoice?.discountAmount || 0);
+  const taxableAmount = Number(
+    invoice?.taxableAmount !== undefined && invoice?.taxableAmount !== null
+      ? invoice.taxableAmount
+      : Math.max(0, subtotal - discountAmount)
+  );
+  const vatRate = Number(invoice?.vatRate || 0);
+  const vatAmount = Number(invoice?.vatAmount || 0);
   const additionalCharges = Number(invoice?.additionalCharges || 0);
   const totalAmount = Number(invoice?.totalAmount || 0);
   const paidAmount = Number(invoice?.paidAmount || 0);
+  const waivedAmount = Number(invoice?.waivedAmount || 0);
   const dueAmount = Number(invoice?.dueAmount || 0);
 
   const payments = invoice?.payments || [];
   const items = invoice?.items || [];
+
 
   return (
     <div
@@ -347,6 +396,12 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                     </p>
                   </div>
                   <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2 text-[11px]">
+                    <span className="px-2.5 py-1 bg-slate-100 text-slate-700 font-mono font-medium rounded-lg">
+                      BIN: {invoice.clinic?.bin || invoice.hospitalSetting?.bin || '001234567-0101'}
+                    </span>
+                    <span className="px-2.5 py-1 bg-green-50 text-green-700 font-medium rounded-lg">
+                      NBR: {invoice.clinic?.musakForm || invoice.hospitalSetting?.musakForm || 'Mushak-6.3'}
+                    </span>
                     <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">
                       Type: {invoice.billingType || 'DIAGNOSTIC'}
                     </span>
@@ -519,7 +574,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                       <p>• All transactions authorized by hospital management.</p>
                     </div>
 
-                    <div className="w-full sm:w-72 space-y-2 text-xs">
+                    <div className="w-full sm:w-80 space-y-2 text-xs">
                       <div className="flex justify-between text-slate-600">
                         <span>Line Items Subtotal:</span>
                         <span className="font-semibold font-mono text-slate-800">
@@ -542,6 +597,20 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                         </div>
                       )}
 
+                      <div className="flex justify-between text-slate-700 bg-slate-100/80 px-2 py-1 rounded">
+                        <span>Taxable Amount (After Discount):</span>
+                        <span className="font-semibold font-mono">
+                          {taxableAmount.toLocaleString()} BDT
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between text-slate-600">
+                        <span>VAT {vatRate > 0 ? `(${vatRate}%)` : '(0%)'}:</span>
+                        <span className="font-semibold font-mono">
+                          {vatAmount > 0 ? `+ ${vatAmount.toLocaleString()}` : '0.00'} BDT
+                        </span>
+                      </div>
+
                       {additionalCharges > 0 && (
                         <div className="flex justify-between text-slate-600">
                           <span>Additional Charges:</span>
@@ -552,7 +621,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                       )}
 
                       <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-300 pt-2">
-                        <span>Net Payable Amount:</span>
+                        <span>Final Invoice Total:</span>
                         <span className="font-mono">{totalAmount.toLocaleString()} BDT</span>
                       </div>
 
@@ -561,12 +630,19 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                         <span className="font-mono">{paidAmount.toLocaleString()} BDT</span>
                       </div>
 
+                      {waivedAmount > 0 && (
+                        <div className="flex justify-between text-xs text-purple-700 font-semibold">
+                          <span>Amount Waived / Settled:</span>
+                          <span className="font-mono">- {waivedAmount.toLocaleString()} BDT</span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between text-xs font-bold pt-1 border-t border-dashed border-slate-200">
                         <span className={dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}>
-                          Remaining Balance Due:
+                          Outstanding Balance Due:
                         </span>
                         <span
-                          className={`font-mono ${
+                          className={`font-mono text-sm ${
                             dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'
                           }`}
                         >
@@ -577,6 +653,141 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Staff Authorization & Identity Banner */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Invoice Authorization & Audit Identity
+                  </span>
+                  <div className="flex flex-wrap items-center gap-x-4 text-slate-700">
+                    <p>
+                      Authorized By:{' '}
+                      <strong className="text-slate-900">
+                        {invoice.authorizedBy
+                          ? `${invoice.authorizedBy.firstName || ''} ${invoice.authorizedBy.lastName || ''}`.trim() || invoice.authorizedBy.email
+                          : (invoice.createdBy ? `${invoice.createdBy.firstName || ''} ${invoice.createdBy.lastName || ''}`.trim() : 'System / Reception')}
+                      </strong>{' '}
+                      {invoice.authorizedBy?.role && (
+                        <span className="text-slate-500 uppercase text-[10px]">
+                          ({invoice.authorizedBy.role.replace(/_/g, ' ')})
+                        </span>
+                      )}
+                    </p>
+                    {invoice.authorizedAt && (
+                      <p className="text-slate-500">
+                        Authorized Date: <strong>{new Date(invoice.authorizedAt).toLocaleString()}</strong>
+                      </p>
+                    )}
+                  </div>
+                  {invoice.settlementReason && (
+                    <p className="text-purple-700 text-xs font-medium">
+                      Settlement / Waiver Reason: <strong>{invoice.settlementReason}</strong>
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {canAuthorize && (!invoice.authorizedById || dueAmount > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => authorizeMutation.mutate()}
+                      disabled={authorizeMutation.isPending}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl transition-colors cursor-pointer text-xs shadow-xs"
+                    >
+                      <ShieldCheck size={14} className="text-emerald-600" />
+                      <span>{authorizeMutation.isPending ? 'Authorizing...' : 'Authorize Invoice'}</span>
+                    </button>
+                  )}
+
+                  {isAdmin && dueAmount > 0 && !isSettling && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSettling(true);
+                        setSettleAmount(String(dueAmount));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 hover:bg-purple-100 text-purple-700 font-semibold rounded-xl transition-colors cursor-pointer text-xs"
+                    >
+                      <Receipt size={14} />
+                      <span>Settle / Waive Balance</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Inline Balance Settlement Form */}
+              {isSettling && (
+                <div className="p-4 bg-purple-50/80 border border-purple-200 rounded-2xl space-y-3 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                      Authorize Balance Settlement / Waiver
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setIsSettling(false)}
+                      className="text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">Amount to Waive (BDT)</label>
+                      <input
+                        type="number"
+                        step="any"
+                        min="0.01"
+                        max={dueAmount}
+                        value={settleAmount}
+                        onChange={e => setSettleAmount(e.target.value)}
+                        className="w-full px-3 py-2 border border-purple-300 rounded-xl bg-white font-mono font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">
+                        Mandatory Settlement Reason <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={settleReason}
+                        onChange={e => setSettleReason(e.target.value)}
+                        placeholder="e.g. Director approved discount, special charity concession..."
+                        className="w-full px-3 py-2 border border-purple-300 rounded-xl bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsSettling(false)}
+                      className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const amt = Number(settleAmount);
+                        if (isNaN(amt) || amt <= 0 || amt > dueAmount) {
+                          toast.error(`Enter amount between 0.01 and ${dueAmount}`);
+                          return;
+                        }
+                        if (!settleReason.trim()) {
+                          toast.error('Settlement reason is required');
+                          return;
+                        }
+                        settleMutation.mutate({ amount: amt, reason: settleReason.trim() });
+                      }}
+                      disabled={settleMutation.isPending}
+                      className="px-4 py-1.5 text-xs font-semibold text-white bg-purple-700 hover:bg-purple-800 rounded-lg disabled:opacity-50 cursor-pointer"
+                    >
+                      {settleMutation.isPending ? 'Processing...' : 'Confirm Waiver'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Payment History & Transactions Section */}
               <div className="space-y-3">
@@ -598,6 +809,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                             <th className="p-3.5">Method</th>
                             <th className="p-3.5">Type</th>
                             <th className="p-3.5">Received By</th>
+                            <th className="p-3.5">Notes</th>
                             <th className="p-3.5 text-right">Amount</th>
                             <th className="p-3.5 text-center">Status</th>
                           </tr>
@@ -614,7 +826,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                                 })
                               : 'N/A';
                             const receiver = tx.receivedBy
-                              ? `${tx.receivedBy.firstName || ''} ${tx.receivedBy.lastName || ''}`.trim()
+                              ? `${tx.receivedBy.firstName || ''} ${tx.receivedBy.lastName || ''}`.trim() || tx.receivedBy.email
                               : 'System / Reception';
 
                             return (
@@ -631,13 +843,18 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                                     className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold uppercase ${
                                       tx.type === 'REFUND'
                                         ? 'bg-rose-100 text-rose-700'
+                                        : tx.type === 'SETTLEMENT'
+                                        ? 'bg-purple-100 text-purple-700'
                                         : 'bg-emerald-100 text-emerald-700'
                                     }`}
                                   >
-                                    {tx.type || 'PAYMENT'}
+                                    {tx.type === 'SETTLEMENT' ? 'WAIVER / SETTLE' : (tx.type || 'PAYMENT')}
                                   </span>
                                 </td>
                                 <td className="p-3.5 text-xs text-slate-600">{receiver}</td>
+                                <td className="p-3.5 text-xs text-slate-500 max-w-xs truncate">
+                                  {tx.notes || '-'}
+                                </td>
                                 <td className="p-3.5 text-right font-mono font-bold text-slate-800">
                                   {Number(tx.amount || 0).toLocaleString()} BDT
                                 </td>

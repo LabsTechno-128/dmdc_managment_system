@@ -12,8 +12,8 @@ export class BillingController {
     constructor(private readonly billingService: BillingService) { }
 
     @Post()
-    create(@Body() data: any) {
-        return this.billingService.create(data);
+    create(@Body() data: any, @Req() req?: any) {
+        return this.billingService.create(data, req?.user);
     }
 
     @Get()
@@ -39,19 +39,34 @@ export class BillingController {
     }
 
     @Patch(':id/payment')
-    updatePayment(@Param('id') id: string, @Body('paidAmount') paidAmount: number) {
-        return this.billingService.updatePayment(id, paidAmount);
+    updatePayment(@Param('id') id: string, @Body('paidAmount') paidAmount: number, @Req() req?: any) {
+        return this.billingService.updatePayment(id, paidAmount, req?.user);
     }
 
     @Post('appointment/:appointmentId')
-    createConsultationBill(@Param('appointmentId') appointmentId: string, @Body() data: any) {
-        return this.billingService.createConsultationBill(appointmentId, data);
+    createConsultationBill(@Param('appointmentId') appointmentId: string, @Body() data: any, @Req() req?: any) {
+        return this.billingService.createConsultationBill(appointmentId, data, req?.user);
     }
 
     @Post(':id/payments')
-    createPayment(@Param('id') id: string, @Body() data: any) {
-        // Assume data includes: amount, paymentMethod, notes, receivedById
-        return this.billingService.createPayment(id, data);
+    createPayment(@Param('id') id: string, @Body() data: any, @Req() req?: any) {
+        return this.billingService.createPayment(id, data, req?.user);
+    }
+
+    @Post(':id/settle')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+    settleBalance(
+        @Param('id') id: string,
+        @Body() data: { amount: number; reason: string },
+        @Req() req: any
+    ) {
+        return this.billingService.settleBalance(id, data, req?.user);
+    }
+
+    @Post(':id/authorize')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.ACCOUNTANT)
+    authorizeInvoice(@Param('id') id: string, @Req() req: any) {
+        return this.billingService.authorizeInvoice(id, req?.user);
     }
 
     @Get(':id/payments')
@@ -60,3 +75,4 @@ export class BillingController {
         return this.billingService.getPayments(id, req?.user);
     }
 }
+

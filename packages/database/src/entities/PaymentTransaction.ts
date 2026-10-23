@@ -14,6 +14,7 @@ import { User } from './User';
 export enum PaymentTransactionType {
     PAYMENT = 'PAYMENT',
     REFUND = 'REFUND',
+    SETTLEMENT = 'SETTLEMENT',
 }
 
 @Entity({ name: 'payment_transactions' })

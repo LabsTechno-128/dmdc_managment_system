@@ -28,6 +28,7 @@ import {
     ParameterResult,
     LabResult,
     LandingContent,
+    HospitalSetting,
 } from '@hospital/database';
 import { randomUUID } from 'crypto';
 import { newDb } from 'pg-mem';
@@ -95,6 +96,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 ParameterResult,
                 LabResult,
                 LandingContent,
+                HospitalSetting,
             ],
             synchronize: true,
             logging: false,
@@ -188,5 +190,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     repoLandingContent(): Repository<LandingContent> {
         return this.getDataSource().getRepository(LandingContent);
+    }
+    repoHospitalSetting(): Repository<HospitalSetting> {
+        return this.getDataSource().getRepository(HospitalSetting);
     }
 }

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2, Calculator, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
@@ -26,6 +26,7 @@ const billingSchema = z.object({
   })).min(1, 'At least one item is required'),
   discountType: z.enum(['PERCENTAGE', 'FIXED']),
   discount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
+  vatRate: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')).optional(),
   additionalCharges: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
   paidAmount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
   paymentMethod: z.string(),
@@ -39,7 +40,7 @@ const billingSchema = z.object({
     if (data.discount > 100) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Max 100%', path: ['discount'] });
     }
-    discountAmount = subtotal * (data.discount / 100);
+    discountAmount = Math.round(subtotal * (data.discount / 100) * 100) / 100;
   } else {
     if (data.discount > subtotal) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Discount cannot exceed subtotal', path: ['discount'] });
@@ -47,9 +48,13 @@ const billingSchema = z.object({
     discountAmount = data.discount;
   }
   
-  const totalAmount = Math.max(0, subtotal - discountAmount + data.additionalCharges);
+  const taxableAmount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
+  const vatRate = Number(data.vatRate) || 0;
+  const vatAmount = Math.round(taxableAmount * (vatRate / 100) * 100) / 100;
+  const totalAmount = Math.round((taxableAmount + vatAmount + (data.additionalCharges || 0)) * 100) / 100;
+
   if (data.paidAmount > totalAmount) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Paid amount cannot exceed net payable', path: ['paidAmount'] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Paid amount cannot exceed final invoice total', path: ['paidAmount'] });
   }
 });
 
@@ -66,15 +71,20 @@ export const NewBilling: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [createdInvoice, setCreatedInvoice] = useState<any>(null);
 
-  // Frontend-only Payment Adjustment state
-  const [amountReceived, setAmountReceived] = useState<string>('');
-
   // Queries
   const { data: tests } = useQuery({
     queryKey: ['tests'],
     queryFn: async () => {
       const response = await api.get('/lab-tests?limit=100');
       return response.data?.data || response.data || [];
+    },
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const res = await api.get('/settings');
+      return res.data?.data || res.data;
     },
   });
 
@@ -90,6 +100,7 @@ export const NewBilling: React.FC = () => {
       items: [],
       discountType: 'FIXED' as const,
       discount: 0,
+      vatRate: 0,
       additionalCharges: 0,
       paidAmount: 0,
       paymentMethod: 'Cash',
@@ -97,6 +108,16 @@ export const NewBilling: React.FC = () => {
       referredBy: ''
     }
   });
+
+  // Populate default VAT from clinic settings when loaded
+  useEffect(() => {
+    if (settings && settings.defaultVatRate !== undefined) {
+      const cur = billingForm.getValues('vatRate');
+      if (cur === 0 || cur === undefined) {
+        billingForm.setValue('vatRate', Number(settings.defaultVatRate) || 0);
+      }
+    }
+  }, [settings, billingForm]);
 
   const { fields: billingItems, append: appendItem, remove: removeItem } = useFieldArray({
     control: billingForm.control,
@@ -124,64 +145,31 @@ export const NewBilling: React.FC = () => {
   const watchItems = billingForm.watch('items');
   const watchDiscountType = billingForm.watch('discountType');
   const watchDiscount = Number(billingForm.watch('discount')) || 0;
+  const watchVatRate = Number(billingForm.watch('vatRate')) || 0;
   const watchAdditionalCharges = Number(billingForm.watch('additionalCharges')) || 0;
   const watchPaidAmount = Number(billingForm.watch('paidAmount')) || 0;
 
   const subtotal = watchItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
   let discountAmount = 0;
   if (watchDiscountType === 'PERCENTAGE') {
-    discountAmount = subtotal * (watchDiscount / 100);
+    discountAmount = Math.round(subtotal * (watchDiscount / 100) * 100) / 100;
   } else {
     discountAmount = watchDiscount;
   }
-  const totalAmount = Math.max(0, subtotal - discountAmount + watchAdditionalCharges);
-  const dueAmount = Math.max(0, totalAmount - watchPaidAmount);
+  const taxableAmount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
+  const vatAmount = Math.round(taxableAmount * (watchVatRate / 100) * 100) / 100;
+  const totalAmount = Math.round((taxableAmount + vatAmount + watchAdditionalCharges) * 100) / 100;
+  const dueAmount = Math.max(0, Math.round((totalAmount - watchPaidAmount) * 100) / 100);
 
-  // Frontend-only Payment Adjustment: calculations and validations
-  let receivedError: string | null = null;
-  let difference = 0;
-  let finalPayableAmount = totalAmount;
-
-  if (amountReceived.trim() !== '') {
-    const parsed = parseFloat(amountReceived);
-    if (isNaN(parsed)) {
-      receivedError = 'Please enter a valid numeric amount';
-    } else if (parsed < 0) {
-      receivedError = 'Amount received cannot be negative';
-    } else if (parsed > totalAmount) {
-      receivedError = `Amount received cannot exceed the original bill amount (৳${totalAmount.toFixed(2)} BDT)`;
-    } else {
-      difference = Math.max(0, totalAmount - parsed);
-      finalPayableAmount = parsed;
-    }
-  }
-
-  const handleAmountReceivedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawVal = e.target.value;
-    setAmountReceived(rawVal);
-
-    if (rawVal.trim() === '') {
-      billingForm.setValue('paidAmount', 0, { shouldValidate: true });
-      return;
-    }
-
-    const parsed = parseFloat(rawVal);
-    if (!isNaN(parsed) && parsed >= 0) {
-      billingForm.setValue('paidAmount', parsed, { shouldValidate: true });
-    }
-  };
-
-  const handleSetExactAmount = (amount: number) => {
-    const rounded = Math.max(0, amount);
-    setAmountReceived(String(rounded));
-    billingForm.setValue('paidAmount', rounded, { shouldValidate: true });
+  const handlePayFull = () => {
+    billingForm.setValue('paidAmount', totalAmount, { shouldValidate: true });
   };
 
   useEffect(() => {
     if (totalAmount > 0) {
-      if (watchPaidAmount >= totalAmount) {
+      if (dueAmount === 0) {
         billingForm.setValue('paymentStatus', 'Paid');
-      } else if (watchPaidAmount > 0) {
+      } else if (watchPaidAmount > 0 && dueAmount > 0) {
         billingForm.setValue('paymentStatus', 'Partial');
       } else {
         billingForm.setValue('paymentStatus', 'Unpaid');
@@ -189,7 +177,7 @@ export const NewBilling: React.FC = () => {
     } else {
       billingForm.setValue('paymentStatus', 'Paid');
     }
-  }, [watchPaidAmount, totalAmount, billingForm]);
+  }, [watchPaidAmount, totalAmount, dueAmount, billingForm]);
 
   // Patient Search
   const searchPatient = async () => {
@@ -567,136 +555,137 @@ export const NewBilling: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100">
-                <label className="flex justify-between items-center text-sm font-semibold text-slate-500 mb-1">
+              {/* Taxable Amount */}
+              <div className="flex justify-between items-center text-xs text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                <span className="font-medium">Taxable Amount (After Discount)</span>
+                <span className="font-semibold font-mono">{taxableAmount.toFixed(2)} BDT</span>
+              </div>
+
+              {/* VAT Rate Configuration */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-600">VAT Rate (%)</label>
+                  <span className="text-xs text-slate-500 font-mono font-medium">
+                    + {vatAmount.toFixed(2)} BDT
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    {...billingForm.register('vatRate', { valueAsNumber: true })}
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none text-right font-mono"
+                    placeholder="0"
+                  />
+                  <div className="flex gap-1 shrink-0">
+                    {[0, 5, 15].map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => billingForm.setValue('vatRate', rate, { shouldValidate: true })}
+                        className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${
+                          watchVatRate === rate
+                            ? 'bg-primary text-white border-primary font-bold'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {rate}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Charges */}
+              <div className="pt-2 border-t border-slate-100">
+                <label className="flex justify-between items-center text-xs font-semibold text-slate-600 mb-1">
                   <span>Additional Charges (BDT)</span>
                 </label>
                 <input
                   type="number"
                   min="0"
                   {...billingForm.register('additionalCharges', { valueAsNumber: true })}
-                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.additionalCharges ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${billingForm.formState.errors.additionalCharges ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                 />
                 {billingForm.formState.errors.additionalCharges && (
                   <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.additionalCharges.message as string}</p>
                 )}
               </div>
 
-              <div className="pt-4 border-t-2 border-slate-200">
+              {/* Final Invoice Total */}
+              <div className="pt-3 border-t-2 border-slate-200">
                 <div className="flex justify-between items-center text-lg font-bold text-slate-900">
-                  <span>Original Bill Amount</span>
-                  <span className="text-primary">৳ {totalAmount.toFixed(2)} BDT</span>
+                  <span>Final Invoice Total</span>
+                  <span className="text-primary font-mono">৳ {totalAmount.toFixed(2)} BDT</span>
                 </div>
               </div>
 
-              {/* Frontend-Only Payment Adjustment Card */}
-              <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 space-y-3 shadow-inner">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Calculator size={16} className="text-primary" />
-                    <label htmlFor="amountReceivedInput" className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                      Amount Received
-                    </label>
-                  </div>
+              {/* Amount Paid Field */}
+              <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-slate-700">Paid Amount (BDT)</label>
                   {totalAmount > 0 && (
                     <button
                       type="button"
-                      onClick={() => handleSetExactAmount(totalAmount)}
-                      className="text-[11px] font-semibold text-primary hover:text-primary-dark underline cursor-pointer"
+                      onClick={handlePayFull}
+                      className="text-xs font-semibold text-primary hover:text-primary-dark underline cursor-pointer"
                     >
-                      Fill Exact (৳{totalAmount.toFixed(2)})
+                      Pay Full (৳{totalAmount.toFixed(2)})
                     </button>
                   )}
                 </div>
-
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">৳</span>
-                  <input
-                    id="amountReceivedInput"
-                    type="number"
-                    min="0"
-                    max={totalAmount}
-                    step="any"
-                    placeholder="Enter received amount (e.g. 2000)"
-                    value={amountReceived}
-                    onChange={handleAmountReceivedChange}
-                    className={`w-full pl-8 pr-3 py-2 text-sm font-semibold border rounded-lg focus:ring-2 focus:outline-none text-right transition-colors ${
-                      receivedError
-                        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20 bg-red-50/40 text-red-900'
-                        : 'border-slate-300 focus:border-primary bg-white text-slate-800'
-                    }`}
-                  />
-                </div>
-
-                {receivedError && (
-                  <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
-                    <AlertCircle size={14} className="shrink-0" />
-                    <span>{receivedError}</span>
-                  </div>
-                )}
-
-                {/* Calculation breakdown: Difference & Adjusted Amount */}
-                <div className="pt-2 border-t border-slate-200/80 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-slate-600">
-                    <span>Remaining Difference</span>
-                    <span className="font-semibold text-amber-600">
-                      ৳ {difference.toFixed(2)} BDT
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center font-bold text-slate-800 pt-1.5 border-t border-dashed border-slate-200">
-                    <span>Final Amount after Adjustment</span>
-                    <span className="text-emerald-700 font-bold text-sm">
-                      ৳ {finalPayableAmount.toFixed(2)} BDT
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100">
-                <label className="flex justify-between items-center text-sm font-semibold text-slate-500 mb-1">
-                  <span>Paid Amount (BDT)</span>
-                </label>
                 <input
                   type="number"
                   min="0"
-                  {...billingForm.register('paidAmount', {
-                    valueAsNumber: true,
-                    onChange: (e) => {
-                      const val = e.target.value;
-                      setAmountReceived(val === '' ? '' : String(val));
-                    }
-                  })}
-                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.paidAmount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
+                  step="any"
+                  {...billingForm.register('paidAmount', { valueAsNumber: true })}
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono font-semibold ${
+                    billingForm.formState.errors.paidAmount
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-slate-300 focus:border-primary'
+                  }`}
                 />
                 {billingForm.formState.errors.paidAmount && (
                   <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.paidAmount.message as string}</p>
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100">
-                <div className="flex justify-between items-center text-md font-bold text-slate-900">
-                  <span>Due Amount</span>
-                  <span className="text-red-500">{dueAmount.toFixed(2)} BDT</span>
+              {/* Outstanding Due Amount */}
+              <div className="pt-3 border-t border-slate-100">
+                <div className="flex justify-between items-center text-sm font-bold">
+                  <span className={dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}>Outstanding Due</span>
+                  <span className={`font-mono text-base ${dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                    ৳ {dueAmount.toFixed(2)} BDT
+                  </span>
                 </div>
               </div>
 
-              <div className="pt-6 space-y-3">
+              {/* Payment Method & Status */}
+              <div className="pt-4 border-t border-slate-100 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 mb-1">Payment Method</label>
-                    <select {...billingForm.register('paymentMethod')} className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                    <select {...billingForm.register('paymentMethod')} className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none">
                       <option value="Cash">Cash</option>
                       <option value="Card">Card</option>
-                      <option value="Mobile">Mobile Banking</option>
+                      <option value="Mobile">bKash / Nagad / Mobile</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1">Status</label>
-                    <select {...billingForm.register('paymentStatus')} disabled className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-slate-100">
-                      <option value="Unpaid">Unpaid</option>
-                      <option value="Partial">Partial</option>
-                      <option value="Paid">Paid</option>
-                    </select>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1">Payment Status</label>
+                    <div className="px-3 py-2 text-sm font-semibold rounded-lg bg-slate-100 border border-slate-200 text-center">
+                      <span className={
+                        dueAmount === 0
+                          ? 'text-emerald-700'
+                          : watchPaidAmount > 0
+                          ? 'text-blue-700'
+                          : 'text-amber-700'
+                      }>
+                        {billingForm.watch('paymentStatus')}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -704,15 +693,15 @@ export const NewBilling: React.FC = () => {
               <div className="pt-4 flex flex-col gap-3">
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, false))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0 || !!receivedError}
-                  className="w-full py-3 bg-white border border-primary text-primary hover:bg-primary/5 rounded-xl font-bold transition-all disabled:opacity-50"
+                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  className="w-full py-3 bg-white border border-primary text-primary hover:bg-primary/5 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer"
                 >
                   Save Only
                 </button>
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, true))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0 || !!receivedError}
-                  className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_14px_0_rgb(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] disabled:opacity-50"
+                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_14px_0_rgb(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] disabled:opacity-50 cursor-pointer"
                 >
                   <Printer size={18} />
                   {createBillingMutation.isPending ? 'Processing...' : 'Save & Print'}

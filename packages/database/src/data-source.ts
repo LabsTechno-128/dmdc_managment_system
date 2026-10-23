@@ -27,6 +27,7 @@ import { TestParameter } from './entities/TestParameter'
 import { ParameterResult } from './entities/ParameterResult'
 import { LabResult } from './entities/LabResult'
 import { LandingContent } from './entities/LandingContent'
+import { HospitalSetting } from './entities/HospitalSetting'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
@@ -57,7 +58,8 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
         TestParameter,
         ParameterResult,
         LabResult,
-        LandingContent
+        LandingContent,
+        HospitalSetting
     ],
     synchronize: true,
     logging: false,

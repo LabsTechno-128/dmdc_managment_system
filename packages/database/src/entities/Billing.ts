@@ -12,6 +12,8 @@ import {
 import { Patients } from './Patients';
 import { PatientType } from '../enums';
 import { BillingItem } from './BillingItem';
+import { User } from './User';
+import { PaymentTransaction } from './PaymentTransaction';
 
 export enum BillingType {
     DIAGNOSTIC = 'DIAGNOSTIC',
@@ -66,6 +68,15 @@ export class Billing {
     discountAmount!: number;
 
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    taxableAmount!: number;
+
+    @Column('decimal', { precision: 5, scale: 2, default: 0 })
+    vatRate!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    vatAmount!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
     additionalCharges!: number;
 
     @Column('decimal', { precision: 10, scale: 2 })
@@ -73,6 +84,42 @@ export class Billing {
 
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     paidAmount!: number;
+
+    @Column('decimal', { precision: 10, scale: 2, default: 0 })
+    waivedAmount!: number;
+
+    @Column({ type: 'text', nullable: true })
+    settlementReason?: string;
+
+    @Column({ type: 'uuid', nullable: true })
+    settledById?: string;
+
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'settledById' })
+    settledBy?: User;
+
+    @Column({ type: 'timestamp', nullable: true })
+    settledAt?: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    authorizedById?: string;
+
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'authorizedById' })
+    authorizedBy?: User;
+
+    @Column({ type: 'timestamp', nullable: true })
+    authorizedAt?: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    createdById?: string;
+
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'createdById' })
+    createdBy?: User;
+
+    @Column({ length: 100, nullable: true })
+    musakChallanNumber?: string;
 
     @Column('decimal', { precision: 10, scale: 2, default: 0 })
     dueAmount!: number;
@@ -97,5 +144,8 @@ export class Billing {
 
     @OneToMany(() => BillingItem, (item) => item.billing)
     items!: BillingItem[];
+
+    @OneToMany(() => PaymentTransaction, (pt) => pt.billing)
+    payments!: PaymentTransaction[];
 }
 

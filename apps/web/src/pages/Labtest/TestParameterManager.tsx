@@ -138,11 +138,11 @@ export function TestParameterManager({ testId, testName, onClose }: TestParamete
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-            <div className="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-2xl bg-white shadow-2xl">
-                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-2 sm:p-4 backdrop-blur-sm">
+            <div className="flex max-h-[92vh] sm:max-h-[90vh] w-full max-w-5xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-4">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900">Parameters for {testName}</h2>
+                        <h2 className="text-base sm:text-lg font-bold text-slate-900">Parameters for {testName}</h2>
                         <p className="text-xs text-slate-500">Define the fields and reference values for this lab test</p>
                     </div>
                     <button
@@ -153,9 +153,9 @@ export function TestParameterManager({ testId, testName, onClose }: TestParamete
                     </button>
                 </div>
 
-                <div className="flex min-h-0 flex-1 overflow-hidden">
+                <div className="flex flex-col md:flex-row min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
                     {/* List Section */}
-                    <div className="flex w-2/3 flex-col border-r border-slate-200 bg-slate-50">
+                    <div className={`flex flex-col border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50 min-h-[300px] md:min-h-0 ${isAdding ? 'w-full md:w-3/5 lg:w-2/3' : 'w-full'}`}>
                         <div className="flex items-center justify-between p-4">
                             <h3 className="text-sm font-bold text-slate-700">Existing Parameters</h3>
                             {!isAdding && (
@@ -188,27 +188,27 @@ export function TestParameterManager({ testId, testName, onClose }: TestParamete
                                                     <ArrowDown size={14} />
                                                 </button>
                                             </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-slate-800">{param.name}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="font-bold text-slate-800 text-sm truncate">{param.name}</span>
                                                     {param.isRequired && <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">REQUIRED</span>}
                                                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">{param.dataType}</span>
                                                 </div>
-                                                <div className="mt-1 flex items-center gap-4 text-xs text-slate-500">
+                                                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                                                     {param.unit && <span>Unit: {param.unit}</span>}
                                                     {param.referenceValue && <span>Ref: {param.referenceValue}</span>}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 sm:gap-2">
                                                 <button
                                                     onClick={() => startEdit(param)}
-                                                    className="rounded-lg p-2 text-violet-600 hover:bg-violet-50"
+                                                    className="rounded-lg p-1.5 sm:p-2 text-violet-600 hover:bg-violet-50"
                                                 >
                                                     <Edit3 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(param.id)}
-                                                    className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                                                    className="rounded-lg p-1.5 sm:p-2 text-red-600 hover:bg-red-50"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -222,7 +222,7 @@ export function TestParameterManager({ testId, testName, onClose }: TestParamete
 
                     {/* Form Section */}
                     {isAdding && (
-                        <div className="w-1/3 overflow-y-auto bg-white p-6">
+                        <div className="w-full md:w-2/5 lg:w-1/3 overflow-y-auto bg-white p-4 sm:p-6 border-t md:border-t-0">
                             <h3 className="mb-4 text-sm font-bold text-slate-800">
                                 {editingId ? 'Edit Parameter' : 'New Parameter'}
                             </h3>

@@ -57,13 +57,13 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl my-8 relative">
-                <div className="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-2xl">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-800">Invoice / Patient Details</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col relative overflow-hidden">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 bg-white z-10 rounded-t-2xl">
+                    <div className="pr-2">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-800">Invoice / Patient Details</h2>
                         {billingData && (
-                            <p className="text-sm text-slate-500 mt-1">
+                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 truncate">
                                 {billingData.patient?.name} ({billingData.patient?.patientId}) • Invoice: {billingData.billNumber}
                             </p>
                         )}
@@ -73,21 +73,21 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
                     </button>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                     {loading ? (
                         <div className="flex justify-center p-12">
                             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     ) : (
                         <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full min-w-[650px] text-left border-collapse whitespace-nowrap">
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                     <tr>
-                                        <th className="p-4 font-semibold text-slate-600">Test Name</th>
-                                        <th className="p-4 font-semibold text-slate-600">Sample Barcode</th>
-                                        <th className="p-4 font-semibold text-slate-600">Sample Status</th>
-                                        <th className="p-4 font-semibold text-slate-600">Result Status</th>
-                                        <th className="p-4 font-semibold text-slate-600 text-right">Action</th>
+                                        <th className="p-4 font-semibold text-slate-600 text-sm">Test Name</th>
+                                        <th className="p-4 font-semibold text-slate-600 text-sm">Sample Barcode</th>
+                                        <th className="p-4 font-semibold text-slate-600 text-sm">Sample Status</th>
+                                        <th className="p-4 font-semibold text-slate-600 text-sm">Result Status</th>
+                                        <th className="p-4 font-semibold text-slate-600 text-sm text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>

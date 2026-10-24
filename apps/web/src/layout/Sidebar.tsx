@@ -20,6 +20,7 @@ import {
     ChevronDown,
     ChevronRight,
     Globe,
+    X,
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -116,7 +117,11 @@ const ITEMS: NavItem[] = [
     }
 ];
 
-export const Sidebar: FC = () => {
+interface SidebarProps {
+    onClose?: () => void;
+}
+
+export const Sidebar: FC<SidebarProps> = ({ onClose }) => {
     const user = useAuthStore((state) => state.user);
     const navigate = useNavigate();
     const location = useLocation();
@@ -146,6 +151,7 @@ export const Sidebar: FC = () => {
     };
 
     const handleLogout = () => {
+        if (onClose) onClose();
         localStorage.removeItem("auth-storage");
         window.location.reload();
         navigate('/login');
@@ -159,7 +165,7 @@ export const Sidebar: FC = () => {
     return (
         <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
             {/* Logo / Brand */}
-            <div className="flex items-center px-6 py-6 border-b border-slate-100">
+            <div className="flex items-center justify-between px-6 py-6 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white font-black shadow-inner shadow-white/20">
                         <img src="/dmdc_logo.jpeg" alt="Logo" />
@@ -171,6 +177,15 @@ export const Sidebar: FC = () => {
                         </h1>
                     </div>
                 </div>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors md:hidden"
+                        aria-label="Close sidebar"
+                    >
+                        <X size={20} />
+                    </button>
+                )}
             </div>
 
             {/* Navigation */}
@@ -210,6 +225,7 @@ export const Sidebar: FC = () => {
                                                 <NavLink
                                                     key={child.path}
                                                     to={child.path!}
+                                                    onClick={() => onClose?.()}
                                                     className={({ isActive }) =>
                                                         `group flex items-center space-x-3 rounded-xl px-3 py-2.5 transition-all duration-200 active:scale-95 ${isActive
                                                             ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-500/10'
@@ -236,6 +252,7 @@ export const Sidebar: FC = () => {
                         <NavLink
                             key={item.path}
                             to={item.path!}
+                            onClick={() => onClose?.()}
                             className={({ isActive }) =>
                                 `group flex items-center space-x-3 rounded-xl px-4 py-3 transition-all duration-200 active:scale-95 ${isActive
                                     ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-100 ring-1 ring-blue-500/10'

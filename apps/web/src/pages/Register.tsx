@@ -74,7 +74,7 @@ export const Register: React.FC = () => {
       </div>
 
       {/* Right side: Form */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-20 xl:px-32">
+      <div className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2 lg:px-20 xl:px-32">
         <div className="mx-auto w-full max-w-sm lg:w-[28rem]">
           <div className="mb-8 flex items-center justify-end gap-3 lg:justify-start">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-600/30">
@@ -86,8 +86,8 @@ export const Register: React.FC = () => {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create Account</h1>
-            <p className="text-slate-500 mt-2 font-medium">Get started with your free account.</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Create Account</h1>
+            <p className="text-slate-500 mt-2 font-medium text-sm sm:text-base">Get started with your free account.</p>
           </div>
 
           {error && (
@@ -97,8 +97,8 @@ export const Register: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="group">
                 <label className="mb-2 block text-sm font-bold text-slate-700">First Name</label>
                 <div className="relative">
@@ -180,7 +180,7 @@ export const Register: React.FC = () => {
               {errors.phone && <p className="mt-2 text-xs font-bold text-red-500">{errors.phone.message}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="group">
                 <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
                 <div className="relative">

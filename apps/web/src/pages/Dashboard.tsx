@@ -41,10 +41,10 @@ export const Dashboard: FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
-                <p className="text-slate-500 mt-1">Here is what's happening at the diagnostic center today.</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
+                <p className="text-slate-500 mt-1 text-sm sm:text-base">Here is what's happening at the diagnostic center today.</p>
             </div>
 
             {/* Quick Actions */}
@@ -109,8 +109,8 @@ export const Dashboard: FC = () => {
                         Income & Billing Analytics
                     </h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -z-0 opacity-50"></div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary-dark flex items-center justify-center">
@@ -118,14 +118,14 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-2xl font-bold text-slate-800">
-                                {Number(displayStats.collection).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
+                                {Number(displayStats.collection).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
                             </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Today's Collection</div>
+                            <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Today's Collection</div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-0 opacity-50"></div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
@@ -133,14 +133,14 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-2xl font-bold text-slate-800">
-                                {Number(displayStats.thisMonthIncome).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
+                                {Number(displayStats.thisMonthIncome).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
                             </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">This Month Income</div>
+                            <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">This Month Income</div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-slate-100 rounded-bl-full -z-0 opacity-50"></div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
@@ -148,14 +148,14 @@ export const Dashboard: FC = () => {
                             </div>
                         </div>
                         <div className="relative z-10">
-                            <div className="text-2xl font-bold text-slate-800">
-                                {Number(displayStats.lastMonthIncome).toLocaleString()} <span className="text-sm font-semibold text-slate-500">BDT</span>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
+                                {Number(displayStats.lastMonthIncome).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
                             </div>
-                            <div className="text-sm font-medium text-slate-500 mt-1">Last Month Income</div>
+                            <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Last Month Income</div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-center">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-center">
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-slate-500 flex items-center"><CheckCircle size={14} className="mr-1 text-emerald-500" /> Paid Bills</span>

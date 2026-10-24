@@ -56,36 +56,36 @@ export const StockEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Stock Entry (In)</h2>
-          <p className="text-slate-500">Record incoming inventory stock</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Stock Entry (In)</h2>
+          <p className="text-sm text-slate-500">Record incoming inventory stock</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto text-sm font-medium"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           Add Stock
         </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-4 border-b border-slate-200 flex gap-4">
-          <div className="relative max-w-md flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               type="text"
               placeholder="Search by item name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
@@ -127,14 +127,14 @@ export const StockEntry: React.FC = () => {
 
       {/* Add Stock Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-200">
               <h3 className="text-lg font-bold text-slate-800">Add New Stock</h3>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+            <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Item *</label>
                   <select required value={formData.itemId} onChange={e => setFormData({ ...formData, itemId: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="">Select an item</option>
@@ -160,19 +160,19 @@ export const StockEntry: React.FC = () => {
                   <input required type="number" min="0" step="0.01" value={formData.unitPrice} onChange={e => setFormData({ ...formData, unitPrice: parseFloat(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
-                <div className="col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200 flex justify-between items-center">
-                  <span className="font-medium text-slate-600">Total Price Calculated:</span>
-                  <span className="text-xl font-bold text-emerald-600">৳ {(formData.quantity * formData.unitPrice).toLocaleString()}</span>
+                <div className="sm:col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <span className="font-medium text-slate-600 text-sm">Total Price Calculated:</span>
+                  <span className="text-lg sm:text-xl font-bold text-emerald-600">৳ {(formData.quantity * formData.unitPrice).toLocaleString()}</span>
                 </div>
 
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Supplier (Optional)</label>
                   <input type="text" value={formData.supplier} onChange={e => setFormData({ ...formData, supplier: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-                <button type="submit" disabled={createEntryMutation.isPending} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center text-sm">Cancel</button>
+                <button type="submit" disabled={createEntryMutation.isPending} className="w-full sm:w-auto px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 text-center text-sm font-medium">
                   {createEntryMutation.isPending ? 'Saving...' : 'Save Stock'}
                 </button>
               </div>

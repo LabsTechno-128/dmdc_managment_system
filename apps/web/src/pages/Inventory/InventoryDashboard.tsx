@@ -30,42 +30,42 @@ export const InventoryDashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+          <div className="flex justify-between items-start gap-2">
             <div>
               <p className="text-sm font-medium text-slate-500">Total Items</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mt-1">
                 {statsLoading ? '...' : stats?.totalItems || 0}
               </h3>
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
               <Package size={24} />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-start">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+          <div className="flex justify-between items-start gap-2">
             <div>
               <p className="text-sm font-medium text-slate-500">Categories</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mt-1">
                 {statsLoading ? '...' : stats?.totalCategories || 0}
               </h3>
             </div>
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg shrink-0">
               <TrendingUp size={24} />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-start">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+          <div className="flex justify-between items-start gap-2">
             <div>
               <p className="text-sm font-medium text-slate-500">Inventory Value (BDT)</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mt-1 break-words">
                 {statsLoading ? '...' : Number(stats?.totalInventoryValue || 0).toLocaleString()}
               </h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
               <span className="font-bold text-lg">৳</span>
             </div>
           </div>

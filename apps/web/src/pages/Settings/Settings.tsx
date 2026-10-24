@@ -71,15 +71,15 @@ export const Settings: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">System & Tax Settings</h1>
-          <p className="text-slate-500 mt-1">Configure diagnostic center profile, VAT, and Bangladesh NBR MUSAK compliance</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">System & Tax Settings</h1>
+          <p className="text-sm text-slate-500 mt-1">Configure diagnostic center profile, VAT, and Bangladesh NBR MUSAK compliance</p>
         </div>
         {isAdmin && (
           <button
             type="button"
             onClick={handleSubmit}
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             {updateMutation.isPending ? (
               <span>Saving...</span>
@@ -93,20 +93,20 @@ export const Settings: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 sm:p-8">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-4 sm:p-6 md:p-8">
         {isLoading ? (
           <FormSkeleton />
         ) : isError ? (
           <div className="p-8 text-center text-red-500">Error loading settings</div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
             <div>
-              <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                 <Building2 size={20} className="text-primary" />
                 <span>Diagnostic Center Profile</span>
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
                 <div>
                   <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
                     <Building2 size={16} className="text-slate-400" />
@@ -117,7 +117,7 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.centerName}
                     onChange={(e) => setFormData({ ...formData, centerName: e.target.value })}
-                    className="w-full text-base font-semibold text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base font-semibold text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>
 
@@ -131,7 +131,7 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full text-base text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>
 
@@ -145,7 +145,7 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full text-base text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>
 
@@ -159,11 +159,11 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.currency}
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                    className="w-full text-base text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
                     <MapPin size={16} className="text-slate-400" />
                     <span>Clinic Address</span>
@@ -173,7 +173,7 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full text-base text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>
               </div>
@@ -181,12 +181,12 @@ export const Settings: React.FC = () => {
 
             {/* Tax & MUSAK Information Section */}
             <div className="pt-6 border-t border-slate-100">
-              <h2 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                 <Receipt size={20} className="text-primary" />
                 <span>VAT & Bangladesh NBR MUSAK Compliance</span>
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
                 <div>
                   <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
                     <FileText size={16} className="text-slate-400" />
@@ -198,7 +198,7 @@ export const Settings: React.FC = () => {
                     value={formData.bin}
                     onChange={(e) => setFormData({ ...formData, bin: e.target.value })}
                     placeholder="e.g. 001234567-0101"
-                    className="w-full font-mono text-base font-semibold text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full font-mono text-sm sm:text-base font-semibold text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">13-digit or 9-digit official VAT registration number</p>
                 </div>
@@ -214,12 +214,12 @@ export const Settings: React.FC = () => {
                     value={formData.musakForm}
                     onChange={(e) => setFormData({ ...formData, musakForm: e.target.value })}
                     placeholder="e.g. Mushak-6.3 (মূসক-৬.৩)"
-                    className="w-full text-base font-semibold text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full text-sm sm:text-base font-semibold text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">Official NBR tax invoice form designation</p>
                 </div>
 
-                <div>
+                <div className="sm:col-span-2 lg:col-span-1">
                   <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
                     <Percent size={16} className="text-slate-400" />
                     <span>Default VAT Rate (%)</span>
@@ -233,7 +233,7 @@ export const Settings: React.FC = () => {
                     value={formData.defaultVatRate}
                     onChange={(e) => setFormData({ ...formData, defaultVatRate: parseFloat(e.target.value) || 0 })}
                     placeholder="0"
-                    className="w-full font-mono text-base font-semibold text-slate-800 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                    className="w-full font-mono text-sm sm:text-base font-semibold text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">Default percentage applied to post-discount taxable amount</p>
                 </div>
@@ -245,7 +245,7 @@ export const Settings: React.FC = () => {
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer text-sm"
                 >
                   <Save size={18} />
                   <span>{updateMutation.isPending ? 'Saving Settings...' : 'Save Settings'}</span>

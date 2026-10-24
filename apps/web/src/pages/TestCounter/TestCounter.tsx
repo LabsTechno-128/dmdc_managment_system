@@ -59,7 +59,7 @@ export const TestCounter: React.FC = () => {
           <div className="p-8 text-center text-red-500">Error loading queue</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[750px] text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                   <th className="p-4">Sl No</th>

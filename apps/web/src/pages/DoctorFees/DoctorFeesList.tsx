@@ -106,20 +106,20 @@ export const DoctorFeesList: React.FC = () => {
 
             {/* Filters */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 space-y-4">
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                     {/* Date Picker */}
-                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full sm:w-auto">
+                        <Calendar className="w-4 h-4 text-slate-500 shrink-0" />
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-transparent border-none text-sm font-medium text-slate-700 focus:ring-0 cursor-pointer outline-none"
+                            className="bg-transparent border-none text-sm font-medium text-slate-700 focus:ring-0 cursor-pointer outline-none w-full sm:w-auto"
                         />
                     </div>
 
                     {/* Search Doctor */}
-                    <div className="relative flex-1 max-w-sm">
+                    <div className="relative flex-1 w-full sm:max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
@@ -129,45 +129,34 @@ export const DoctorFeesList: React.FC = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none focus:border-emerald-500 focus:ring-emerald-500/20 text-sm"
                         />
                     </div>
-
-                    {/* <div className="ml-auto">
-                        <button
-                            onClick={() => handlePrintPos()} // No id = print all
-                            disabled={mappedDoctorsData.length === 0}
-                            className="flex items-center space-x-2 px-4 py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-colors text-sm font-bold disabled:opacity-50"
-                        >
-                            <Printer size={16} />
-                            <span>Print All POS</span>
-                        </button>
-                    </div> */}
                 </div>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Total Patients</p>
-                    <p className="text-3xl font-black text-blue-600">{summary.patientCount}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-blue-600">{summary.patientCount}</p>
                     <p className="text-xs text-slate-400 mt-1">From {summary.appointmentCount} Appointments</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Total Consultation Income</p>
-                    <p className="text-3xl font-black text-indigo-600">৳{summary.consultationIncome.toLocaleString()}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-indigo-600">৳{summary.consultationIncome.toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Total Follow-up Income</p>
-                    <p className="text-3xl font-black text-purple-600">৳{summary.followUpIncome.toLocaleString()}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-purple-600">৳{summary.followUpIncome.toLocaleString()}</p>
                 </div>
-                <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 shadow-sm flex flex-col justify-between">
+                <div className="bg-emerald-50 p-4 sm:p-5 rounded-2xl border border-emerald-200 shadow-sm flex flex-col justify-between">
                     <p className="text-xs font-medium text-emerald-700 uppercase tracking-wider mb-2">Total Daily Income</p>
-                    <p className="text-3xl font-black text-emerald-700">৳{summary.totalIncome.toLocaleString()}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-emerald-700">৳{summary.totalIncome.toLocaleString()}</p>
                 </div>
             </div>
 
             {/* Main Table */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-left text-sm min-w-[750px] whitespace-nowrap">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
                             <tr>
                                 <th className="px-6 py-4">Doctor Name</th>
@@ -250,21 +239,21 @@ export const DoctorFeesList: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-slate-100 bg-slate-50">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800">{selectedDoctorData.doctorName}</h2>
                                 <p className="text-sm text-slate-500 font-medium">Income Details for {formatDate(selectedDate)}</p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 w-full sm:w-auto justify-end">
                                 <button
                                     onClick={() => handlePrintPos(selectedDoctorData.doctorId)}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-100 rounded-xl hover:bg-emerald-200 transition-colors"
+                                    className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-100 rounded-xl hover:bg-emerald-200 transition-colors"
                                 >
                                     <Printer size={16} /> Print POS
                                 </button>
                                 <button
                                     onClick={() => setViewDoctorId(null)}
-                                    className="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100"
+                                    className="px-3 sm:px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100"
                                 >
                                     Close
                                 </button>
@@ -272,8 +261,8 @@ export const DoctorFeesList: React.FC = () => {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
                                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                     <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Patients</p>
                                     <p className="text-2xl font-black text-blue-900">{selectedDoctorData.appointments.length}</p>
@@ -284,7 +273,8 @@ export const DoctorFeesList: React.FC = () => {
                                 </div>
                             </div>
 
-                            <table className="w-full text-left text-sm">
+                            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                                <table className="w-full text-left text-sm min-w-[480px] whitespace-nowrap">
                                 <thead className="bg-slate-100 text-slate-600 font-bold">
                                     <tr>
                                         <th className="px-4 py-3 rounded-tl-lg">#</th>
@@ -318,6 +308,7 @@ export const DoctorFeesList: React.FC = () => {
                                     )}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                 </div>

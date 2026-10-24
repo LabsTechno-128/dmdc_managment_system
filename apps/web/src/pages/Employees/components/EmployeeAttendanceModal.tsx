@@ -42,7 +42,7 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
           <div>
             <h2 className="text-xl font-semibold text-slate-800">Attendance History</h2>
             <p className="text-slate-500 text-sm mt-0.5">
@@ -55,8 +55,8 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
         </div>
 
         {/* Filters bar */}
-        <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[150px]">
+        <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row flex-wrap gap-3">
+          <div className="flex-1 min-w-[150px] w-full sm:w-auto">
             <select
               value={params.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -72,30 +72,31 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
               <option value="Holiday">Holiday</option>
             </select>
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               type="date"
               value={params.startDate}
               onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium text-slate-700"
+              className="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium text-slate-700"
               placeholder="Start Date"
             />
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <input
               type="date"
               value={params.endDate}
               onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium text-slate-700"
+              className="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium text-slate-700"
               placeholder="End Date"
             />
           </div>
         </div>
 
         {/* Content list */}
-        <div className="overflow-y-auto flex-1 p-6">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6">
           <div className="bg-white border border-slate-150 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm whitespace-nowrap">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap min-w-[550px]">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   <th className="px-5 py-3.5 font-semibold text-slate-600">Date</th>
@@ -158,6 +159,7 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Pagination */}

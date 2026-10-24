@@ -103,7 +103,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
@@ -197,17 +197,17 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({ initialData, isEdit = fa
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                         <button type="button"
                             onClick={() => navigate('/doctors')}
-                            className="cursor-pointer px-6 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors mr-3 font-medium"
+                            className="cursor-pointer px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium text-center"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={mutation.isPending}
-                            className="cursor-pointer px-6 py-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary-dark hover:to-blue-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                            className="cursor-pointer px-6 py-2.5 bg-gradient-to-r from-primary to-blue-600 hover:from-primary-dark hover:to-blue-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed text-center"
                         >
                             {mutation.isPending ? 'Saving...' : isEdit ? 'Update Doctor' : 'Save Doctor'}
                         </button>

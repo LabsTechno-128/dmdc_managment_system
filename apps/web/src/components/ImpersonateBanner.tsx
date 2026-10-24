@@ -23,16 +23,16 @@ export const ImpersonateBanner: React.FC = () => {
   };
 
   return (
-    <div className="bg-amber-100 border-b border-amber-200 sticky top-0 z-50 text-amber-900 px-4 py-3 flex items-center justify-between shadow-sm">
-      <div className="flex items-center space-x-3">
-        <UserCircle className="w-5 h-5 text-amber-600" />
-        <p className="text-sm font-medium">
+    <div className="bg-amber-100 border-b border-amber-200 sticky top-0 z-50 text-amber-900 px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm">
+      <div className="flex items-center space-x-2.5 sm:space-x-3">
+        <UserCircle className="w-5 h-5 text-amber-600 shrink-0" />
+        <p className="text-xs sm:text-sm font-medium leading-tight">
           You are currently impersonating <strong className="font-bold">{user.firstName} {user.lastName}</strong> ({user.email}). All actions taken will be recorded as this user.
         </p>
       </div>
       <button 
         onClick={handleStopImpersonation}
-        className="flex items-center space-x-2 bg-amber-200 hover:bg-amber-300 transition-colors px-3 py-1.5 rounded-lg text-sm font-semibold"
+        className="flex items-center justify-center space-x-2 bg-amber-200 hover:bg-amber-300 transition-colors px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold shrink-0 self-end sm:self-auto"
       >
         <LogOut className="w-4 h-4" />
         <span>Stop Impersonation</span>

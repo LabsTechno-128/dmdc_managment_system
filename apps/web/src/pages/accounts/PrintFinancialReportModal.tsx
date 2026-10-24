@@ -135,19 +135,19 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
 
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col h-[92vh] z-10">
                 {/* Modal Top Control Bar (Never Printed) */}
-                <div className="flex flex-wrap items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0 gap-4">
+                <div className="flex flex-wrap items-center justify-between p-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-slate-50 shrink-0 gap-3 sm:gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
+                        <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shrink-0">
                             <FileText size={20} />
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-slate-800">Financial Report Print Preview</h2>
+                            <h2 className="text-sm sm:text-base font-bold text-slate-800">Financial Report Print Preview</h2>
                             <p className="text-xs text-slate-500 font-medium">Standard A4 Print & PDF Export</p>
                         </div>
                     </div>
 
                     {/* Report Customization Options */}
-                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-semibold text-slate-600">
                         {/* Orientation selector */}
                         <div className="flex items-center rounded-lg border border-slate-200 bg-white p-0.5">
                             <button
@@ -194,11 +194,11 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                         </label>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         <button
                             type="button"
                             onClick={() => handlePrint()}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 cursor-pointer"
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-95 cursor-pointer"
                         >
                             <Printer size={16} />
                             <span>Print / Save PDF</span>
@@ -214,11 +214,11 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                 </div>
 
                 {/* Preview Viewport */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-100/80">
+                <div className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-6 md:p-8 bg-slate-100/80">
                     <div
                         ref={componentRef}
                         className={`bg-white shadow-md mx-auto text-slate-800 ${orientation === 'portrait' ? 'max-w-[210mm]' : 'max-w-[297mm]'
-                            } p-8 md:p-10 font-sans print:shadow-none print:m-0 print:p-0 print:max-w-none print:w-full`}
+                            } min-w-[600px] sm:min-w-0 p-6 sm:p-8 md:p-10 font-sans print:shadow-none print:m-0 print:p-0 print:max-w-none print:w-full print:min-w-0`}
                         style={{
                             minHeight: orientation === 'portrait' ? '297mm' : '210mm',
                         }}

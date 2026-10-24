@@ -73,26 +73,26 @@ export const ReportPreview: React.FC = () => {
     return (
         <div className="bg-slate-100 min-h-screen py-8 print:bg-white print:py-0">
             {/* Non-printable controls */}
-            <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center print:hidden px-4">
-                <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800">
+            <div className="max-w-4xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden px-4">
+                <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800 font-medium cursor-pointer">
                     &larr; Back
                 </button>
-                <div className="space-x-2 flex items-center">
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold mr-2 ${report.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${report.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                         {report.status}
                     </span>
                     {report.status !== 'PUBLISHED' && viewMode === 'REPORT' && (
                         <button
                             onClick={handlePublish}
                             disabled={publishing}
-                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            className="px-3 sm:px-4 py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors cursor-pointer"
                         >
                             {publishing ? 'Publishing...' : 'Publish Report'}
                         </button>
                     )}
                     <button
                         onClick={() => setViewMode('REPORT')}
-                        className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'REPORT' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
+                        className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded transition-colors cursor-pointer ${viewMode === 'REPORT' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
                     >
                         View Report
                     </button>
@@ -101,7 +101,7 @@ export const ReportPreview: React.FC = () => {
                             if (viewMode !== 'REPORT') setViewMode('REPORT');
                             setTimeout(() => handlePrintReport(), 100);
                         }}
-                        className="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded hover:bg-slate-900 transition-colors"
+                        className="px-3 sm:px-4 py-2 bg-slate-800 text-white text-xs sm:text-sm font-medium rounded hover:bg-slate-900 transition-colors cursor-pointer"
                     >
                         Print/Download Report
                     </button>
@@ -110,13 +110,13 @@ export const ReportPreview: React.FC = () => {
                         <>
                             <button
                                 onClick={() => setViewMode('INVOICE')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${viewMode === 'INVOICE' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
+                                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded transition-colors cursor-pointer ${viewMode === 'INVOICE' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'}`}
                             >
                                 View Invoice
                             </button>
                             <button
                                 onClick={() => handlePrintInvoice()}
-                                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
+                                className="px-3 sm:px-4 py-2 bg-purple-600 text-white text-xs sm:text-sm font-medium rounded hover:bg-purple-700 transition-colors cursor-pointer"
                             >
                                 Print/Download Invoice
                             </button>
@@ -132,54 +132,54 @@ export const ReportPreview: React.FC = () => {
 
             {viewMode === 'REPORT' ? (
                 <div ref={reportPrintRef} id="print-report-invoice" className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none print:w-full print:max-w-none">
-                    <div className="p-12 print:p-8">
+                    <div className="p-4 sm:p-8 md:p-12 print:p-8">
 
                         {/* Header */}
-                        <div className="border-b-4 border-slate-800 pb-6 mb-8 text-center">
-                            <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-wider mb-2">Diagnostic Center</h1>
-                            <p className="text-slate-600 font-medium text-lg">Pathology Laboratory Report</p>
+                        <div className="border-b-4 border-slate-800 pb-4 sm:pb-6 mb-6 sm:mb-8 text-center">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 uppercase tracking-wider mb-2">Diagnostic Center</h1>
+                            <p className="text-slate-600 font-medium text-base sm:text-lg">Pathology Laboratory Report</p>
                         </div>
 
                         {/* Patient & Sample Info Grid */}
-                        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8 text-sm">
                             <div className="space-y-3">
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Patient Name:</span>
-                                    <span className="font-bold text-slate-900 uppercase">{patient.name}</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Patient Name:</span>
+                                    <span className="font-bold text-slate-900 uppercase break-words">{patient.name}</span>
                                 </div>
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Patient ID:</span>
-                                    <span className="text-slate-900">{patient.id}</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Patient ID:</span>
+                                    <span className="text-slate-900 break-words">{patient.id}</span>
                                 </div>
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Age / Gender:</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Age / Gender:</span>
                                     <span className="text-slate-900">{patient.age} Yrs / {patient.gender}</span>
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Sample ID:</span>
-                                    <span className="text-slate-900">{sample.barcode}</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Sample ID:</span>
+                                    <span className="text-slate-900 break-words">{sample.barcode}</span>
                                 </div>
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Collection Date:</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Collection Date:</span>
                                     <span className="text-slate-900">{new Date(sample.collectedAt).toLocaleString()}</span>
                                 </div>
                                 <div className="flex border-b border-slate-100 pb-2">
-                                    <span className="font-semibold text-slate-600 w-32">Report Date:</span>
+                                    <span className="font-semibold text-slate-600 w-32 shrink-0">Report Date:</span>
                                     <span className="text-slate-900">{new Date(report.updatedAt).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Test Title */}
-                        <div className="text-center mb-8">
-                            <h2 className="text-xl font-bold text-slate-800 underline uppercase decoration-2 underline-offset-4">Test: {test.name}</h2>
+                        <div className="text-center mb-6 sm:mb-8">
+                            <h2 className="text-lg sm:text-xl font-bold text-slate-800 underline uppercase decoration-2 underline-offset-4">Test: {test.name}</h2>
                         </div>
 
                         {/* Results Table */}
-                        <div className="mb-12">
-                            <table className="w-full text-left border-collapse">
+                        <div className="mb-8 sm:mb-12 overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[500px]">
                                 <thead>
                                     <tr className="border-y-2 border-slate-800 text-slate-900">
                                         <th className="py-3 font-bold uppercase text-sm">Parameter</th>
@@ -212,8 +212,8 @@ export const ReportPreview: React.FC = () => {
                         )}
 
                         {/* Signatures */}
-                        <div className="mt-20 pt-8 flex justify-between">
-                            <div className="text-center w-64">
+                        <div className="mt-12 sm:mt-20 pt-8 flex flex-col sm:flex-row justify-between items-center sm:items-start gap-8">
+                            <div className="text-center w-64 max-w-full">
                                 <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
                                     <div className="font-bold text-slate-800">
                                         {labResult.performedBy ? `${labResult.performedBy.firstName} ${labResult.performedBy.lastName}` : 'Lab Technician'}
@@ -221,7 +221,7 @@ export const ReportPreview: React.FC = () => {
                                     <div>Medical Technologist</div>
                                 </div>
                             </div>
-                            <div className="text-center w-64">
+                            <div className="text-center w-64 max-w-full">
                                 <div className="border-t border-slate-400 pt-2 text-sm text-slate-600">
                                     <div className="font-bold text-slate-800">
                                         {labResult.verifiedBy ? `Dr. ${labResult.verifiedBy.firstName} ${labResult.verifiedBy.lastName}` : 'Pathologist'}

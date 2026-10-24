@@ -329,7 +329,7 @@ export const NewBilling: React.FC = () => {
             <div className="p-6 pt-2">
               {activeTab === 'EXISTING' ? (
                 <div className="space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                       <input
@@ -338,12 +338,12 @@ export const NewBilling: React.FC = () => {
                         value={searchPatientId}
                         onChange={(e) => setSearchPatientId(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && searchPatient()}
-                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none text-sm"
                       />
                     </div>
                     <button onClick={searchPatient}
                       disabled={isSearchingPatient}
-                      className="bg-primary hover:bg-primary-dark text-white px-6 rounded-xl font-semibold transition-colors disabled:opacity-70"
+                      className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-70 text-sm cursor-pointer"
                     >
                       {isSearchingPatient ? 'Searching...' : 'Search'}
                     </button>
@@ -460,8 +460,8 @@ export const NewBilling: React.FC = () => {
               </div>
 
               {billingItems.length > 0 ? (
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <table className="w-full text-left">
+                <div className="border border-slate-200 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left min-w-[500px] whitespace-nowrap">
                     <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
                       <tr>
                         <th className="px-4 py-3 w-12 text-center">SL</th>

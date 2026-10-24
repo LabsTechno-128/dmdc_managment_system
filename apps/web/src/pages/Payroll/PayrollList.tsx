@@ -116,12 +116,12 @@ export const PayrollList: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Payroll & Salary summaries</h1>
           <p className="text-slate-500 mt-1">Review staff salary calculations, deductions, and print payment slips</p>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto">
           {isSuperadminOrAdmin && (
             <button
               onClick={handleGenerate}
               disabled={generateMutation.isPending}
-              className="cursor-pointer flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm"
+              className="cursor-pointer flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm w-full sm:w-auto"
             >
               <RefreshCw size={18} className={generateMutation.isPending ? 'animate-spin' : ''} />
               <span>Generate Payroll</span>
@@ -130,7 +130,7 @@ export const PayrollList: React.FC = () => {
 
           <button
             onClick={handleExportExcel}
-            className="cursor-pointer flex items-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm"
+            className="cursor-pointer flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm w-full sm:w-auto"
           >
             <Download size={18} />
             <span>Export Excel</span>
@@ -146,22 +146,22 @@ export const PayrollList: React.FC = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Calculated Employees</span>
-          <span className="text-2xl font-black text-slate-800 mt-1 block">{summary.totalEmployees} Staff</span>
+          <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1 block">{summary.totalEmployees} Staff</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Base Gross Salary</span>
-          <span className="text-2xl font-black text-slate-800 mt-1 block">{summary.totalSalary.toLocaleString()} BDT</span>
+          <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1 block">{summary.totalSalary.toLocaleString()} BDT</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100">
           <span className="text-xs font-bold text-red-500 uppercase tracking-wider block">Total Deductions</span>
-          <span className="text-2xl font-black text-red-600 mt-1 block">-{summary.totalDeductions.toLocaleString()} BDT</span>
+          <span className="text-xl sm:text-2xl font-black text-red-600 mt-1 block">-{summary.totalDeductions.toLocaleString()} BDT</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 bg-blue-50/10">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100 bg-blue-50/10">
           <span className="text-xs font-bold text-blue-600 uppercase tracking-wider block">Total Net Payable</span>
-          <span className="text-2xl font-black text-blue-700 mt-1 block">{summary.totalNetPayable.toLocaleString()} BDT</span>
+          <span className="text-xl sm:text-2xl font-black text-blue-700 mt-1 block">{summary.totalNetPayable.toLocaleString()} BDT</span>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ export const PayrollList: React.FC = () => {
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
+          <table className="w-full text-left text-sm whitespace-nowrap min-w-[750px]">
             <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-semibold text-slate-600">Employee</th>

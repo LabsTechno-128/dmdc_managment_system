@@ -94,7 +94,7 @@ export const EditPatient: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-soft">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
@@ -224,17 +224,17 @@ export const EditPatient: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="mt-6 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button type="button"
               onClick={() => navigate('/patients')}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95"
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 w-full sm:w-auto"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="cursor-pointer flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+              className="cursor-pointer flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 w-full sm:w-auto"
             >
               {mutation.isPending ? 'Updating...' : 'Update Patient'}
             </button>

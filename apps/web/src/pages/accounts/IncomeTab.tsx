@@ -62,14 +62,14 @@ export const IncomeTab: React.FC = () => {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-6 flex flex-wrap items-end gap-4">
-                    <div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="mb-6 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-end gap-3 sm:gap-4">
+                    <div className="w-full sm:w-auto">
                         <label className="block text-xs font-bold text-slate-500 mb-1">Filter Period</label>
                         <select 
                             value={period} 
                             onChange={(e) => setPeriod(e.target.value as any)}
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                         >
                             <option value="ALL">All Time</option>
                             <option value="DAILY">Today</option>
@@ -81,22 +81,22 @@ export const IncomeTab: React.FC = () => {
 
                     {period === 'CUSTOM' && (
                         <>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Start Date</label>
                                 <input 
                                     type="date" 
                                     value={startDate} 
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">End Date</label>
                                 <input 
                                     type="date" 
                                     value={endDate} 
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
                         </>
@@ -107,7 +107,7 @@ export const IncomeTab: React.FC = () => {
                     <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading Income...</div>
                 ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200">
-                        <table className="w-full text-left text-sm text-slate-600">
+                        <table className="w-full text-left text-sm text-slate-600 min-w-[650px] whitespace-nowrap">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
                                     <th className="border-b border-slate-200 px-4 py-3 font-bold">Date</th>
@@ -148,7 +148,7 @@ export const IncomeTab: React.FC = () => {
 
                 {/* Pagination Controls */}
                 {!isLoading && incomeData?.total > 0 && (
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
+                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 pt-4">
                         <div className="text-sm text-slate-500 font-medium">
                             Showing <span className="font-bold text-slate-900">{((page - 1) * limit) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(page * limit, incomeData.total)}</span> of <span className="font-bold text-slate-900">{incomeData.total}</span> entries
                         </div>

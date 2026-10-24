@@ -44,7 +44,7 @@ export const AssignedTestsTab: React.FC<AssignedTestsTabProps> = ({
                     <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <Activity className="text-blue-600" size={20} /> Assigned Tests
                     </h3>
-                    <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <div className="relative flex-1 sm:w-48">
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input
@@ -72,7 +72,7 @@ export const AssignedTestsTab: React.FC<AssignedTestsTabProps> = ({
                 </div>
             </div>
             <div className="flex-1 overflow-x-auto">
-                <table className="w-full text-left text-sm whitespace-nowrap">
+                <table className="w-full text-left text-sm whitespace-nowrap min-w-[550px]">
                     <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                         <tr>
                             <th className="px-6 py-4 font-bold">Test Name</th>

@@ -45,7 +45,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
             {/* Modal */}
             <div
-                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200"
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Close button */}
@@ -58,44 +58,44 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 </button>
 
                 {/* Content */}
-                <div className="p-6 sm:p-8">
+                <div className="p-5 sm:p-8">
                     {/* Icon */}
-                    <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-5 mx-auto">
-                        <HelpCircle className="h-7 w-7 text-blue-600" />
+                    <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full mb-4 sm:mb-5 mx-auto">
+                        <HelpCircle className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-slate-900 text-center mb-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 text-center mb-2">
                         {title}
                     </h3>
 
                     {/* Message */}
-                    <p className="text-sm text-slate-500 text-center leading-relaxed mb-2">
+                    <p className="text-xs sm:text-sm text-slate-500 text-center leading-relaxed mb-2">
                         {message}
                     </p>
 
                     {/* Item name */}
                     {itemName && (
                         <div className="mt-3 mb-5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
-                            <span className="text-sm font-semibold text-slate-700">{itemName}</span>
+                            <span className="text-xs sm:text-sm font-semibold text-slate-700 break-words">{itemName}</span>
                         </div>
                     )}
 
-                    {!itemName && <div className="mb-5" />}
+                    {!itemName && <div className="mb-4 sm:mb-5" />}
 
                     {/* Actions */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3">
                         <button
                             onClick={onClose}
                             disabled={isConfirming}
-                            className="cursor-pointer flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="cursor-pointer w-full sm:flex-1 px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={onConfirm}
                             disabled={isConfirming}
-                            className="cursor-pointer flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+                            className="cursor-pointer w-full sm:flex-1 flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-sm text-sm"
                         >
                             {isConfirming ? (
                                 <>

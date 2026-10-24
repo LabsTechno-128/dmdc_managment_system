@@ -44,9 +44,9 @@ export const Login: React.FC = () => {
   return (
     <div className="flex min-h-screen w-full bg-white">
       {/* Left side: Form */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-20 xl:px-32">
+      <div className="flex w-full flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2 lg:px-20 xl:px-32">
         <div className="mx-auto w-full max-w-sm lg:w-96">
-          <div className="mb-10 flex items-center gap-3">
+          <div className="mb-8 sm:mb-10 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/30">
               <Activity size={28} />
             </div>
@@ -55,9 +55,9 @@ export const Login: React.FC = () => {
             </span>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h1>
-            <p className="text-slate-500 mt-2 font-medium">Please enter your details to sign in.</p>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h1>
+            <p className="text-slate-500 mt-2 font-medium text-sm sm:text-base">Please enter your details to sign in.</p>
           </div>
 
           {error && (
@@ -112,7 +112,7 @@ export const Login: React.FC = () => {
               {errors.password && <p className="mt-2 text-xs font-bold text-red-500">{errors.password.message}</p>}
             </div>
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
                 <span className="text-sm font-semibold text-slate-600">Remember me</span>

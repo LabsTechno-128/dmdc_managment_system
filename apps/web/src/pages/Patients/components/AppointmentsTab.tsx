@@ -12,7 +12,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ patient, navig
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             {patient.appointments?.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-left text-sm min-w-[550px] whitespace-nowrap">
                         <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
                                 <th className="px-6 py-4 font-bold">Date & Time</th>

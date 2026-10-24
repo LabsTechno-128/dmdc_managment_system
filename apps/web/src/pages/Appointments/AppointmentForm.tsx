@@ -449,9 +449,9 @@ function DMDCRegistration({
                                     {errors.existingPatientId && <p className="text-red-500 text-[11px] mt-1">{errors.existingPatientId.message}</p>}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-12 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-2.5 sm:gap-3">
                                     {/* Name */}
-                                    <div className="col-span-3">
+                                    <div className="col-span-1 sm:col-span-2 md:col-span-6 lg:col-span-3">
                                         <input
                                             {...register('name')}
                                             onKeyDown={(e) => handleKeyDown(e, 'phone')}
@@ -462,7 +462,7 @@ function DMDCRegistration({
                                     </div>
 
                                     {/* Phone */}
-                                    <div className="col-span-2">
+                                    <div className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2">
                                         <input
                                             type="tel"
                                             {...register('phone')}
@@ -474,7 +474,7 @@ function DMDCRegistration({
                                     </div>
 
                                     {/* Age */}
-                                    <div className="col-span-1">
+                                    <div className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-1">
                                         <div className={`flex items-center bg-gray-50 border rounded px-2 py-2 ${errors.age ? 'border-red-500' : 'border-gray-300'}`}>
                                             <input
                                                 type="number"
@@ -489,7 +489,7 @@ function DMDCRegistration({
                                     </div>
 
                                     {/* Gender */}
-                                    <div className="col-span-2">
+                                    <div className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
                                         <select
                                             {...register('gender')}
                                             onKeyDown={(e) => handleKeyDown(e as any, 'weight')}
@@ -504,7 +504,7 @@ function DMDCRegistration({
                                     </div>
 
                                     {/* Weight */}
-                                    <div className="col-span-2">
+                                    <div className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
                                         <div className={`flex items-center gap-1 bg-gray-50 border rounded px-3 py-2 ${errors.weight ? 'border-red-500' : 'border-gray-300'}`}>
                                             <input
                                                 type="number"
@@ -520,7 +520,7 @@ function DMDCRegistration({
                                     </div>
 
                                     {/* Blood Pressure */}
-                                    <div className="col-span-2">
+                                    <div className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
                                         <div className={`flex items-center gap-1 bg-gray-50 border rounded px-3 py-2 ${errors.bloodPresure ? 'border-red-500' : 'border-gray-300'}`}>
                                             <input
                                                 {...register('bloodPresure')}
@@ -565,10 +565,10 @@ function DMDCRegistration({
                     )}
 
                     {/* Doctor + OPD */}
-                    <div className="grid grid-cols-12 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                         {/* Doctor Selection */}
-                        <div className={appointment ? 'col-span-5' : 'col-span-12'}>
+                        <div className={appointment ? 'col-span-1 lg:col-span-5' : 'col-span-1 lg:col-span-12'}>
                             <div className="bg-gray-200 rounded px-3 py-1.5 mb-3 w-48 text-sm font-semibold">
                                 Select Doctor
                             </div>
@@ -579,7 +579,7 @@ function DMDCRegistration({
                                 </p>
                             )}
 
-                            <div className={`grid ${appointment ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
+                            <div className={`grid ${appointment ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-3`}>
                                 {doctors.map((doc) => (
                                     <button type="button"
                                         key={doc.id}
@@ -602,8 +602,8 @@ function DMDCRegistration({
                             {bookingType === 'LIVE' && (
                                 <div className="mt-6 bg-white p-4 rounded shadow-sm border border-emerald-100">
                                     <h3 className="font-semibold text-emerald-800 mb-4">Consultation Details</h3>
-                                    <div className="flex gap-4">
-                                        <div className="w-1/2">
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <div className="w-full sm:w-1/2">
                                             <label className="block text-xs font-medium text-gray-600 mb-1">Consultation Fee (BDT)</label>
                                             <input
                                                 type="number"
@@ -613,7 +613,7 @@ function DMDCRegistration({
                                             />
                                             {errors.consultationFee && <p className="text-red-500 text-[11px] mt-1">{errors.consultationFee.message}</p>}
                                         </div>
-                                        <div className="w-1/2">
+                                        <div className="w-full sm:w-1/2">
                                             <label className="block text-xs font-medium text-gray-600 mb-1">Follow-up Fee (BDT)</label>
                                             <input
                                                 type="number"
@@ -639,7 +639,7 @@ function DMDCRegistration({
                         </div>
 
                         {/* OPD Form */}
-                        <div className="col-span-7">
+                        <div className="col-span-1 lg:col-span-7">
                             {appointment && bookingType === 'LIVE' && (
                                 <AppointmentOdpForm
                                     appointment={appointment}

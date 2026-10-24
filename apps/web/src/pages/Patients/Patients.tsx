@@ -52,12 +52,12 @@ const Patients: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6fb] text-slate-800 -m-6 p-6">
+    <div className="min-h-screen bg-[#f4f6fb] text-slate-800 -m-3 sm:-m-4 md:-m-6 p-3 sm:p-4 md:p-6">
       <div className="mx-auto max-w-[1500px]">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
               <UserPlus size={21} />
             </div>
             <div>
@@ -100,14 +100,14 @@ const Patients: React.FC = () => {
             <div className="p-8 text-center text-red-500">Error loading patients</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[700px]">
                 <thead className="bg-blue-50 text-[11px] uppercase tracking-wide text-slate-600">
                   <tr>
-                    <th className="px-5 py-3 font-bold">Patient ID & Name</th>
-                    <th className="px-5 py-3 font-bold">Contact Info</th>
-                    <th className="px-5 py-3 font-bold">Demographics</th>
-                    <th className="px-5 py-3 font-bold">Registration Date</th>
-                    <th className="px-5 py-3 text-right font-bold">Action</th>
+                    <th className="px-5 py-3 font-bold whitespace-nowrap">Patient ID & Name</th>
+                    <th className="px-5 py-3 font-bold whitespace-nowrap">Contact Info</th>
+                    <th className="px-5 py-3 font-bold whitespace-nowrap">Demographics</th>
+                    <th className="px-5 py-3 font-bold whitespace-nowrap">Registration Date</th>
+                    <th className="px-5 py-3 text-right font-bold whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -124,24 +124,24 @@ const Patients: React.FC = () => {
                   ) : (
                     patients?.map((patient: any) => (
                       <tr key={patient.id} className="group cursor-pointer transition-colors hover:bg-blue-50/50">
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <div className="font-semibold text-slate-800 text-sm">{patient.name || 'Unnamed Patient'}</div>
                           <div className="text-[11px] font-semibold tracking-wider text-slate-400 mt-1 uppercase">{patient.patientId || `ID: ${patient.id.substring(0, 8)}`}</div>
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-slate-700">{patient.phone || 'N/A'}</div>
                           {patient.email && <div className="text-[11px] text-slate-400 mt-0.5">{patient.email}</div>}
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-slate-700 capitalize">
                             {patient.gender ? patient.gender.toLowerCase() : '-'} {patient.age ? `, ${patient.age} yrs` : ''}
                           </div>
                           <div className="text-[11px] font-bold text-red-500 mt-0.5">{patient.bloodGroup ? `Blood: ${patient.bloodGroup}` : ''}</div>
                         </td>
-                        <td className="px-5 py-4 text-xs font-semibold text-slate-600">
+                        <td className="px-5 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
                           {new Date(patient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex justify-end gap-2">
                             <button onClick={() => navigate(`/patients/${patient.id}`)}
                               className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 transition-all hover:bg-blue-600 hover:text-white hover:shadow-sm hover:shadow-blue-600/20 active:scale-95"
@@ -170,13 +170,13 @@ const Patients: React.FC = () => {
               </table>
 
               {/* Pagination Controls */}
-              <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-slate-500">
                   Showing <span className="font-bold text-slate-700">{from}</span>–{' '}
                   <span className="font-bold text-slate-700">{to}</span> of{' '}
                   <span className="font-bold text-slate-700">{total}</span>
                 </p>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <button disabled={page <= 1}
                     onClick={() => setPage((p) => p - 1)}
                     className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"

@@ -51,25 +51,25 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <h2 className="text-xl font-semibold text-slate-800">Create New User</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-800">Create New User</h2>
           <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           <form id="create-user-form" onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
                 <input
                   type="text"
                   {...register('firstName')}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
                   placeholder="John"
                 />
                 {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>}
@@ -149,11 +149,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
           </form>
         </div>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end space-x-3">
+        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer px-5 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors"
+            className="w-full sm:w-auto cursor-pointer px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm text-center"
           >
             Cancel
           </button>
@@ -161,9 +161,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
             type="submit"
             form="create-user-form"
             disabled={mutation.isPending}
-            className="cursor-pointer flex items-center space-x-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto cursor-pointer flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed text-sm text-center"
           >
-            {mutation.isPending && <Loader2 size={18} className="animate-spin" />}
+            {mutation.isPending && <Loader2 size={16} className="animate-spin" />}
             <span>Create User</span>
           </button>
         </div>

@@ -102,15 +102,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ patient }) => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 flex flex-col items-center justify-center text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 flex flex-col items-center justify-center text-center">
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3">
                             <Calendar size={24} />
                         </div>
                         <h4 className="text-2xl font-black text-slate-800">{patient.appointments?.length || 0}</h4>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Appointments</p>
                     </div>
-                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 flex flex-col items-center justify-center text-center">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 flex flex-col items-center justify-center text-center">
                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3">
                             <FileText size={24} />
                         </div>

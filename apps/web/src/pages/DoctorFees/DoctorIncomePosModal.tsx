@@ -38,12 +38,12 @@ export const DoctorIncomePosModal: React.FC<DoctorIncomePosModalProps> = ({
     const totalAppointments = filteredIncomes?.reduce((sum: number, doc: any) => sum + doc.appointmentCount, 0) || 0;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm print:absolute print:inset-0 print:bg-white print:items-start print:justify-start">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-3 sm:p-4 print:p-0 print:absolute print:inset-0 print:bg-white print:items-start print:justify-start">
             {/* Modal Container */}
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden print:shadow-none print:w-full print:max-w-none print:h-auto print:max-h-none print:m-0 print:p-0 print:overflow-visible">
 
                 {/* Header (Hidden in print) */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 print:hidden">
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 print:hidden">
                     <h2 className="text-lg font-bold text-slate-800">Print POS Invoice</h2>
                     <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
                         <X size={20} />
@@ -51,7 +51,7 @@ export const DoctorIncomePosModal: React.FC<DoctorIncomePosModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible">
                     {filteredIncomes && filteredIncomes.length > 0 ? (
                         <div ref={printRef} className="pos-receipt text-black font-mono text-sm leading-tight bg-white p-4 mx-auto w-full max-w-[80mm] min-h-[100mm]">
                             <style type="text/css" media="print">

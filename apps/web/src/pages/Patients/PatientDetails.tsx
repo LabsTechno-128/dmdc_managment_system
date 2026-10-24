@@ -138,36 +138,36 @@ export const PatientDetails: React.FC = () => {
     );
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 min-h-screen bg-[#f4f6fb] -m-6 p-6">
+        <div className="space-y-6 animate-in fade-in duration-500 min-h-screen bg-[#f4f6fb] -m-3 sm:-m-4 md:-m-6 p-3 sm:p-4 md:p-6">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <button onClick={() => navigate('/patients')}
-                            className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors group cursor-pointer"
+                            className="p-2 sm:p-2.5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors group cursor-pointer shrink-0"
                         >
-                            <ArrowLeft size={20} className="text-slate-500 group-hover:text-slate-700 transition-colors" />
+                            <ArrowLeft size={18} className="text-slate-500 group-hover:text-slate-700 transition-colors" />
                         </button>
-                        <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-inner">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                            <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-inner shrink-0">
                                 {patient.name?.charAt(0) || 'P'}
                             </div>
-                            <div>
-                                <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">
+                            <div className="min-w-0">
+                                <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-snug truncate mb-1">
                                     {patient.name || 'Unnamed Patient'}
                                 </h1>
-                                <div className="flex items-center gap-3 text-sm font-semibold text-slate-500">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold text-slate-500">
                                     <span className="uppercase tracking-wider text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-600">
                                         {patient.patientId || `ID: ${patient.id.substring(0, 8)}`}
                                     </span>
-                                    <span className="flex items-center gap-1"><Phone size={14} /> {patient.phone || 'No phone'}</span>
+                                    <span className="flex items-center gap-1"><Phone size={13} /> {patient.phone || 'No phone'}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                         <button onClick={() => navigate(`/patients/${patient.id}/edit`)}
-                            className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm cursor-pointer"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm cursor-pointer"
                         >
                             <Edit3 size={16} /> Edit Profile
                         </button>
@@ -175,14 +175,14 @@ export const PatientDetails: React.FC = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex overflow-x-auto hide-scrollbar gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <div className="flex overflow-x-auto hide-scrollbar gap-1.5 sm:gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-sm">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
                             <button key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${isActive
+                                className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${isActive
                                         ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                                     }`}
@@ -190,7 +190,7 @@ export const PatientDetails: React.FC = () => {
                                 <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400'} />
                                 {tab.label}
                                 {tab.id === 'appointments' && patient.appointments?.length > 0 && (
-                                    <span className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>
+                                    <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>
                                         {patient.appointments.length}
                                     </span>
                                 )}

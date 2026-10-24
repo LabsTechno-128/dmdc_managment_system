@@ -64,24 +64,24 @@ export const AppointmentDetails: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                     <button onClick={() => navigate('/appointments')}
-                        className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors"
+                        className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shrink-0 shadow-sm"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                             Appointment Details
                         </h1>
-                        <p className="text-slate-500 mt-1">
+                        <p className="text-slate-500 mt-0.5 sm:mt-1 text-sm">
                             <span className="font-mono">#{appointment.id.substring(0, 8)}</span>
                         </p>
                     </div>
                 </div>
                 <button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}
-                    className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
+                    className="flex items-center justify-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm w-full sm:w-auto"
                 >
                     <Edit size={18} />
                     <span>Edit</span>
@@ -89,21 +89,21 @@ export const AppointmentDetails: React.FC = () => {
             </div>
 
             {/* Status & Type Badges */}
-            <div className="flex items-center space-x-3">
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusColors[appointment.status] || 'bg-slate-100 text-slate-700'}`}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${statusColors[appointment.status] || 'bg-slate-100 text-slate-700'}`}>
                     {appointment.status === 'Completed' && <CheckCircle size={14} className="mr-1" />}
                     {appointment.status === 'Cancelled' && <XCircle size={14} className="mr-1" />}
                     {appointment.status}
                 </span>
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${typeColors[appointment.appointmentType] || 'bg-slate-100 text-slate-700'}`}>
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${typeColors[appointment.appointmentType] || 'bg-slate-100 text-slate-700'}`}>
                     {appointment.appointmentType}
                 </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Doctor Information */}
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div className="p-6 space-y-4">
+                    <div className="p-4 sm:p-6 space-y-4">
                         <div className="flex items-center space-x-2">
                             <Stethoscope className="h-5 w-5 text-primary" />
                             <h2 className="text-lg font-semibold text-slate-800">Doctor Information</h2>
@@ -139,7 +139,7 @@ export const AppointmentDetails: React.FC = () => {
 
                 {/* Patient Information */}
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div className="p-6 space-y-4">
+                    <div className="p-4 sm:p-6 space-y-4">
                         <div className="flex items-center space-x-2">
                             <User className="h-5 w-5 text-primary" />
                             <h2 className="text-lg font-semibold text-slate-800">Patient Information</h2>
@@ -176,7 +176,7 @@ export const AppointmentDetails: React.FC = () => {
 
             {/* Appointment Information */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="p-6 space-y-4">
+                <div className="p-4 sm:p-6 space-y-4">
                     <div className="flex items-center space-x-2">
                         <Calendar className="h-5 w-5 text-primary" />
                         <h2 className="text-lg font-semibold text-slate-800">Appointment Information</h2>
@@ -241,7 +241,7 @@ export const AppointmentDetails: React.FC = () => {
 
             {/* Metadata */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-500 mb-1">Created Date</label>

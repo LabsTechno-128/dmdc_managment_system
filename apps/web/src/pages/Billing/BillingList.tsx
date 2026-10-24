@@ -148,13 +148,13 @@ export const BillingList: React.FC = () => {
         <InvoicePrint ref={printRef} billing={printingBilling} />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Billing & Invoices</h1>
-          <p className="text-slate-500 mt-1">Manage patient invoices, partial payments, and balance settlements</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Billing & Invoices</h1>
+          <p className="text-slate-500 mt-1 text-xs sm:text-sm">Manage patient invoices, partial payments, and balance settlements</p>
         </div>
-        <div className="flex gap-4">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
@@ -164,12 +164,12 @@ export const BillingList: React.FC = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none text-sm"
             />
           </div>
           <button
             onClick={() => navigate('/billing/new')}
-            className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm cursor-pointer"
+            className="flex items-center justify-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm cursor-pointer text-sm"
           >
             <Plus size={18} />
             <span>New Invoice</span>
@@ -184,7 +184,7 @@ export const BillingList: React.FC = () => {
           <div className="p-8 text-center text-red-500">Error loading invoices</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[850px] whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                   <th className="p-3.5">Bill / Challan No</th>
@@ -356,10 +356,10 @@ export const BillingList: React.FC = () => {
       {/* Payment / Settlement Modal */}
       {paymentModalData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-bold text-slate-800">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800">
                   {paymentModalTab === 'PAY' ? 'Receive Payment' : 'Authorized Balance Settlement'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">

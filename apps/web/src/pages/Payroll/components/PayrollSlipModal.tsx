@@ -26,9 +26,9 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 sm:p-6 border-b border-slate-100 shrink-0">
           <h2 className="text-xl font-semibold text-slate-800">Print Employee Salary Slip</h2>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
             <button
               onClick={() => handlePrint()}
               className="cursor-pointer flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
@@ -43,11 +43,11 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Printable Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-8 bg-slate-50">
           <div
             id="print-payroll-slip-section"
             ref={componentRef}
-            className="bg-white p-12 shadow-sm max-w-210mm mx-auto text-slate-800 print:shadow-none print:p-0 print:m-0"
+            className="bg-white p-6 sm:p-12 shadow-sm max-w-210mm mx-auto text-slate-800 print:shadow-none print:p-0 print:m-0 min-w-[500px] sm:min-w-0"
             style={{ minHeight: '297mm', fontFamily: 'Inter, sans-serif' }}
           >
             {/* Header */}
@@ -60,7 +60,7 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
             </div>
 
             {/* Employee Details Grid */}
-            <div className="grid grid-cols-2 gap-6 border-2 border-slate-200 rounded-xl p-6 mb-8 bg-slate-50/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 border-2 border-slate-200 rounded-xl p-4 sm:p-6 mb-8 bg-slate-50/50">
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Employee Details</span>
                 <div className="mt-2 space-y-1">
@@ -84,7 +84,7 @@ export const PayrollSlipModal: React.FC<PayrollSlipModalProps> = ({ isOpen, onCl
             {/* Attendance Summary */}
             <div className="mb-8">
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3">Attendance Metrics</h3>
-              <div className="grid grid-cols-5 border border-slate-200 rounded-xl overflow-hidden text-center text-xs divide-x divide-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-5 border border-slate-200 rounded-xl overflow-hidden text-center text-xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
                 <div className="p-3">
                   <div className="font-semibold text-green-600">Present</div>
                   <div className="font-black text-slate-800 text-sm mt-1">{payroll.presentDays} Days</div>

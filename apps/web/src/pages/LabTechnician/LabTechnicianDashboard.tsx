@@ -69,61 +69,61 @@ const LabTechnicianDashboard: React.FC = () => {
     };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-6">
+        <div className="-m-3 sm:-m-4 md:-m-6 p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-slate-800">Lab Technician Workspace</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Lab Technician Workspace</h1>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <div className="flex gap-4 mb-4 border-b">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="flex gap-2 sm:gap-4 mb-4 border-b overflow-x-auto whitespace-nowrap">
                     <button
-                        className={`px-4 py-2 border-b-2 font-medium ${barcodeMode ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'}`}
+                        className={`px-3 sm:px-4 py-2 border-b-2 font-medium text-sm ${barcodeMode ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'}`}
                         onClick={() => setBarcodeMode(true)}
                     >
                         Scan Barcode
                     </button>
                     <button
-                        className={`px-4 py-2 border-b-2 font-medium ${!barcodeMode ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'}`}
+                        className={`px-3 sm:px-4 py-2 border-b-2 font-medium text-sm ${!barcodeMode ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'}`}
                         onClick={() => setBarcodeMode(false)}
                     >
                         Search by Billing ID
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSearch)} className="flex gap-4 items-end">
+                <form onSubmit={handleSubmit(onSearch)} className="flex flex-col sm:flex-row gap-4 sm:items-end">
                     {barcodeMode ? (
-                        <div className="flex-1 max-w-md">
+                        <div className="flex-1 w-full max-w-md">
                             <label className="block text-sm font-medium text-slate-700 mb-1">Sample Barcode</label>
                             <input
                                 {...register('barcode')}
                                 type="text"
                                 placeholder="Scan or enter barcode..."
-                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm"
                                 autoFocus
                             />
                         </div>
                     ) : (
-                        <div className="flex-1 max-w-md">
+                        <div className="flex-1 w-full max-w-md">
                             <label className="block text-sm font-medium text-slate-700 mb-1">Billing / Invoice ID</label>
                             <input
                                 {...register('billingId')}
                                 type="text"
                                 placeholder="e.g. BILL-..."
-                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                         </div>
                     )}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium h-[42px]"
+                        className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium h-[42px] text-sm"
                     >
                         {loading ? 'Searching...' : 'Search'}
                     </button>
                 </form>
 
                 {error && (
-                    <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+                    <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200 text-sm">
                         {error}
                     </div>
                 )}
@@ -131,37 +131,37 @@ const LabTechnicianDashboard: React.FC = () => {
 
             {/* Billing Mode Results */}
             {!barcodeMode && billingData && (
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-wrap gap-8">
+                <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200 flex flex-wrap gap-4 sm:gap-8">
                         <div>
-                            <span className="text-sm text-slate-500 block">Billing ID</span>
-                            <span className="font-semibold text-slate-800">{billingData.billNumber}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 block">Billing ID</span>
+                            <span className="font-semibold text-slate-800 text-sm sm:text-base">{billingData.billNumber}</span>
                         </div>
                         <div>
-                            <span className="text-sm text-slate-500 block">Patient Name</span>
-                            <span className="font-semibold text-slate-800">{billingData.patient?.name}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 block">Patient Name</span>
+                            <span className="font-semibold text-slate-800 text-sm sm:text-base">{billingData.patient?.name}</span>
                         </div>
                         <div>
-                            <span className="text-sm text-slate-500 block">Date</span>
-                            <span className="font-semibold text-slate-800">{new Date(billingData.createdAt).toLocaleDateString()}</span>
+                            <span className="text-xs sm:text-sm text-slate-500 block">Date</span>
+                            <span className="font-semibold text-slate-800 text-sm sm:text-base">{new Date(billingData.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div>
-                            <span className="text-sm text-slate-500 block">Payment Status</span>
-                            <span className={`font-semibold ${billingData.paymentStatus === 'Paid' ? 'text-green-600' : 'text-orange-600'}`}>
+                            <span className="text-xs sm:text-sm text-slate-500 block">Payment Status</span>
+                            <span className={`font-semibold text-sm sm:text-base ${billingData.paymentStatus === 'Paid' ? 'text-green-600' : 'text-orange-600'}`}>
                                 {billingData.paymentStatus}
                             </span>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                        <table className="w-full text-left border-collapse">
+                    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
+                        <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr className="bg-slate-50 border-b">
-                                    <th className="p-4 font-medium text-slate-600">Test Name</th>
-                                    <th className="p-4 font-medium text-slate-600">Sample ID</th>
-                                    <th className="p-4 font-medium text-slate-600">Sample Status</th>
-                                    <th className="p-4 font-medium text-slate-600">Result Status</th>
-                                    <th className="p-4 font-medium text-slate-600 text-right">Action</th>
+                                    <th className="p-4 font-medium text-slate-600 text-sm">Test Name</th>
+                                    <th className="p-4 font-medium text-slate-600 text-sm">Sample ID</th>
+                                    <th className="p-4 font-medium text-slate-600 text-sm">Sample Status</th>
+                                    <th className="p-4 font-medium text-slate-600 text-sm">Result Status</th>
+                                    <th className="p-4 font-medium text-slate-600 text-sm text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -172,7 +172,7 @@ const LabTechnicianDashboard: React.FC = () => {
 
                                     return (
                                         <tr key={index} className="border-b last:border-0 hover:bg-slate-50">
-                                            <td className="p-4 font-medium text-slate-800">{t.test.name}</td>
+                                            <td className="p-4 font-medium text-slate-800 text-sm">{t.test.name}</td>
                                             <td className="p-4 text-slate-600 font-mono text-sm">{sample?.barcode || '-'}</td>
                                             <td className="p-4">
                                                 {!sample ? (

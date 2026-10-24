@@ -108,27 +108,27 @@ export const ExpenseTab: React.FC = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm min-w-[300px]">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm w-full sm:w-auto min-w-0 sm:min-w-[300px]">
                     <h3 className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Total Filtered Expense</h3>
                     <p className="text-2xl font-black text-red-600">{formatMoney(summary.filteredTotal || 0)}</p>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all w-full sm:w-auto"
                 >
                     <Plus size={18} />
                     Add Expense
                 </button>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-6 flex flex-wrap items-end gap-4">
-                    <div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="mb-6 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-end gap-3 sm:gap-4">
+                    <div className="w-full sm:w-auto">
                         <label className="block text-xs font-bold text-slate-500 mb-1">Expense Type</label>
                         <select 
                             value={expenseTypeFilter} 
                             onChange={(e) => setExpenseTypeFilter(e.target.value)}
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                         >
                             <option value="">All Types</option>
                             <option value="EMPLOYEE_SALARY">Employee Salary</option>
@@ -146,12 +146,12 @@ export const ExpenseTab: React.FC = () => {
                         </select>
                     </div>
 
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <label className="block text-xs font-bold text-slate-500 mb-1">Filter Period</label>
                         <select 
                             value={period} 
                             onChange={(e) => setPeriod(e.target.value as any)}
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                         >
                             <option value="ALL">All Time</option>
                             <option value="DAILY">Today</option>
@@ -163,22 +163,22 @@ export const ExpenseTab: React.FC = () => {
 
                     {period === 'CUSTOM' && (
                         <>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Start Date</label>
                                 <input 
                                     type="date" 
                                     value={startDate} 
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">End Date</label>
                                 <input 
                                     type="date" 
                                     value={endDate} 
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
                         </>
@@ -189,7 +189,7 @@ export const ExpenseTab: React.FC = () => {
                     <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading Expenses...</div>
                 ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200">
-                        <table className="w-full text-left text-sm text-slate-600">
+                        <table className="w-full text-left text-sm text-slate-600 min-w-[650px] whitespace-nowrap">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
                                     <th className="border-b border-slate-200 px-4 py-3 font-bold">Date</th>
@@ -235,7 +235,7 @@ export const ExpenseTab: React.FC = () => {
 
                 {/* Pagination Controls */}
                 {!isLoading && expenseData?.total > 0 && (
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
+                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 pt-4">
                         <div className="text-sm text-slate-500 font-medium">
                             Showing <span className="font-bold text-slate-900">{((page - 1) * limit) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(page * limit, expenseData.total)}</span> of <span className="font-bold text-slate-900">{expenseData.total}</span> entries
                         </div>
@@ -262,7 +262,7 @@ export const ExpenseTab: React.FC = () => {
 
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl relative">
+                    <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 sm:p-6 shadow-xl relative">
                         <button onClick={() => setShowModal(false)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                             <X size={20} />
                         </button>

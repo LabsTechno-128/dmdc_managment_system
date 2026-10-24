@@ -71,14 +71,14 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
           <h2 className="text-xl font-semibold text-slate-800">Add New Employee</h2>
           <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           <form id="create-employee-form" onSubmit={handleSubmit((data) => {
             const formatted = {
               ...data,
@@ -96,7 +96,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>
                 <input
@@ -119,7 +119,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
                 <input
@@ -142,7 +142,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                 <input
@@ -164,7 +164,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Designation</label>
                 <input
@@ -187,7 +187,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Monthly Salary (BDT)</label>
                 <input
@@ -218,11 +218,11 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
           </form>
         </div>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end space-x-3">
+        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer px-5 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors"
+            className="cursor-pointer px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-center"
           >
             Cancel
           </button>
@@ -230,7 +230,7 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({ isOpen
             type="submit"
             form="create-employee-form"
             disabled={mutation.isPending}
-            className="cursor-pointer flex items-center space-x-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed text-center"
           >
             {mutation.isPending && <Loader2 size={18} className="animate-spin" />}
             <span>Save Employee</span>

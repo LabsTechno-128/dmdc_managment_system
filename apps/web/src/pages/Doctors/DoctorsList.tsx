@@ -74,13 +74,13 @@ export const DoctorsList: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Doctors</h1>
-          <p className="text-slate-500 mt-1">Manage doctor profiles and schedules</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Doctors</h1>
+          <p className="text-slate-500 mt-1 text-xs sm:text-sm">Manage doctor profiles and schedules</p>
         </div>
         <button onClick={() => navigate('/doctors/new')}
-          className="cursor-pointer flex items-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm"
+          className="cursor-pointer flex items-center justify-center space-x-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-colors font-medium shadow-sm w-full sm:w-auto text-sm"
         >
           <UserPlus size={18} />
           <span>Add Doctor</span>
@@ -119,7 +119,7 @@ export const DoctorsList: React.FC = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px] whitespace-nowrap">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                     <th className="p-4">Doctor</th>

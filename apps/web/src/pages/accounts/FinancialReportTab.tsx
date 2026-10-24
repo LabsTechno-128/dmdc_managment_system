@@ -232,9 +232,9 @@ export const FinancialReportTab: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Filter Bar with Controls & Print Report Action */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end justify-between">
-                <div className="flex flex-wrap gap-4 items-end">
-                    <div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col md:flex-row gap-4 items-stretch md:items-end justify-between">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-stretch sm:items-end">
+                    <div className="w-full sm:w-auto">
                         <label className="block text-xs font-bold text-slate-500 mb-1">Report Period</label>
                         <select 
                             value={period} 
@@ -243,7 +243,7 @@ export const FinancialReportTab: React.FC = () => {
                                 setPeriod(newP);
                                 if (newP === 'DAILY') setGroupBy('DAY');
                             }}
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                         >
                             <option value="DAILY">Today</option>
                             <option value="WEEKLY">This Week</option>
@@ -254,34 +254,34 @@ export const FinancialReportTab: React.FC = () => {
 
                     {period === 'CUSTOM' && (
                         <>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Start Date</label>
                                 <input 
                                     type="date" 
                                     value={startDate} 
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
-                            <div>
+                            <div className="w-full sm:w-auto">
                                 <label className="block text-xs font-bold text-slate-500 mb-1">End Date</label>
                                 <input 
                                     type="date" 
                                     value={endDate} 
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
+                                    className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500"
                                 />
                             </div>
                         </>
                     )}
 
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <label className="block text-xs font-bold text-slate-500 mb-1">Group By</label>
                         <select 
                             value={groupBy} 
                             onChange={(e) => setGroupBy(e.target.value as any)}
                             disabled={period === 'DAILY'}
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 disabled:opacity-50"
+                            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 disabled:opacity-50"
                         >
                             <option value="DAY">Daily</option>
                             <option value="WEEK">Weekly</option>
@@ -291,12 +291,12 @@ export const FinancialReportTab: React.FC = () => {
                 </div>
 
                 {/* Print Report Action Button */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full md:w-auto">
                     <button
                         type="button"
                         onClick={() => setIsPrintModalOpen(true)}
                         disabled={loadingReport || !reportData}
-                        className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                        className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 cursor-pointer w-full md:w-auto"
                     >
                         <Printer size={18} />
                         Print Report
@@ -343,14 +343,14 @@ export const FinancialReportTab: React.FC = () => {
                     </div>
 
                     {/* Income vs Expense Trend Chart */}
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h3 className="text-lg font-black text-slate-900">Income vs Expense Trend</h3>
                                 <p className="text-xs text-slate-500 font-medium">Grouped by {groupBy.toLowerCase()}</p>
                             </div>
                         </div>
-                        <div className="h-[360px]">
+                        <div className="h-[280px] sm:h-[360px]">
                             {loadingChart ? (
                                 <div className="flex h-full items-center justify-center text-sm font-semibold text-slate-500">Loading Chart...</div>
                             ) : chartData && chartData.length > 0 ? (
@@ -362,13 +362,13 @@ export const FinancialReportTab: React.FC = () => {
                     </div>
 
                     {/* On-Screen Tables Section: Breakdown & Detailed Transactions */}
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm space-y-4">
                         <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-4">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('BREAKDOWN')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                                         activeTab === 'BREAKDOWN'
                                             ? 'bg-blue-600 text-white shadow-sm'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -380,7 +380,7 @@ export const FinancialReportTab: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('TRANSACTIONS')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                                         activeTab === 'TRANSACTIONS'
                                             ? 'bg-blue-600 text-white shadow-sm'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -392,7 +392,7 @@ export const FinancialReportTab: React.FC = () => {
                             </div>
 
                             {activeTab === 'TRANSACTIONS' && (
-                                <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                                     {/* Type filter */}
                                     <select
                                         value={transactionType}
@@ -405,14 +405,14 @@ export const FinancialReportTab: React.FC = () => {
                                     </select>
 
                                     {/* Search input */}
-                                    <div className="relative">
+                                    <div className="relative flex-1 sm:flex-initial">
                                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input
                                             type="text"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder="Search ledger..."
-                                            className="rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs font-medium text-slate-700 outline-none focus:border-blue-500 w-44"
+                                            className="rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs font-medium text-slate-700 outline-none focus:border-blue-500 w-full sm:w-44"
                                         />
                                     </div>
                                 </div>
@@ -422,7 +422,7 @@ export const FinancialReportTab: React.FC = () => {
                         {/* Content for TAB 1: PERIODIC BREAKDOWN */}
                         {activeTab === 'BREAKDOWN' && (
                             <div className="overflow-x-auto rounded-xl border border-slate-200">
-                                <table className="w-full text-left text-sm text-slate-600">
+                                <table className="w-full text-left text-sm text-slate-600 min-w-[650px] whitespace-nowrap">
                                     <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                         <tr>
                                             <th className="border-b border-slate-200 px-4 py-3 font-bold">Period / Date</th>
@@ -509,7 +509,7 @@ export const FinancialReportTab: React.FC = () => {
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-xl border border-slate-200">
-                                        <table className="w-full text-left text-sm text-slate-600">
+                                        <table className="w-full text-left text-sm text-slate-600 min-w-[700px] whitespace-nowrap">
                                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                                 <tr>
                                                     <th className="border-b border-slate-200 px-4 py-3 font-bold">Date</th>
@@ -533,7 +533,7 @@ export const FinancialReportTab: React.FC = () => {
                                                         const isIncome = tx.type === 'INCOME';
                                                         let dateStr = 'N/A';
                                                         try {
-                                                            dateStr = format(new Date(tx.date), 'dd MMM yyyy, HH:mm');
+                                                             dateStr = format(new Date(tx.date), 'dd MMM yyyy, HH:mm');
                                                         } catch {
                                                             dateStr = String(tx.date);
                                                         }
@@ -580,7 +580,7 @@ export const FinancialReportTab: React.FC = () => {
 
                                 {/* Pagination Controls */}
                                 {!loadingTransactions && totalTransactionsCount > txLimit && (
-                                    <div className="mt-4 flex items-center justify-between pt-2">
+                                    <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                                         <div className="text-xs text-slate-500 font-medium">
                                             Showing <span className="font-bold text-slate-900">{((txPage - 1) * txLimit) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(txPage * txLimit, totalTransactionsCount)}</span> of <span className="font-bold text-slate-900">{totalTransactionsCount}</span> transactions
                                         </div>

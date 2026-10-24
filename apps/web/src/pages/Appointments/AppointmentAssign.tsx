@@ -32,26 +32,28 @@ function AppointmentAssign() {
 
     return (
         <div className="min-h-screen bg-slate-50 py-8 px-4 print:p-0 print:bg-white">
-            <div className="max-w-[210mm] mx-auto mb-4 flex justify-between items-center print:hidden bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <div className="max-w-[210mm] mx-auto mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 print:hidden bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <div>
                     <h2 className="text-lg font-bold text-slate-800">OPD Visit Ticket</h2>
                     <p className="text-xs text-slate-500">Edit patient info below and print the compact slip</p>
                 </div>
                 <button
                     onClick={handlePrint}
-                    className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center space-x-2"
+                    className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center space-x-2 w-full sm:w-auto justify-center"
                 >
                     <Printer size={18} />
                     <span>Print OPD Slip</span>
                 </button>
             </div>
 
-            <div
-                id="prescription-print"
-                ref={printRef}
-                className="w-[210mm] min-h-[140mm] max-h-[145mm] bg-white p-6 mx-auto text-black flex flex-col shadow-lg print:shadow-none border border-slate-200 print:border-none rounded-3xl print:rounded-none overflow-hidden"
-            >
-                <MedicalForm data={appointment} />
+            <div className="overflow-x-auto pb-4">
+                <div
+                    id="prescription-print"
+                    ref={printRef}
+                    className="w-[210mm] min-h-[140mm] max-h-[145mm] bg-white p-6 mx-auto text-black flex flex-col shadow-lg print:shadow-none border border-slate-200 print:border-none rounded-3xl print:rounded-none overflow-hidden"
+                >
+                    <MedicalForm data={appointment} />
+                </div>
             </div>
         </div>
     );

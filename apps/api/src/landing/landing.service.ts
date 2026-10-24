@@ -417,7 +417,6 @@ export class LandingService implements OnModuleInit {
         const contentRepo = this.databaseService.repoLandingContent();
         const [doctors, content] = await Promise.all([
             repo.find({
-                where: { deletedAt: undefined },
                 order: { createdAt: 'ASC' },
             }),
             contentRepo.findOne({ where: { id: 'default' } }),

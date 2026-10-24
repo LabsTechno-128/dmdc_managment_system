@@ -8,14 +8,14 @@ export const AccountsPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'INCOME' | 'EXPENSE' | 'REPORT'>('INCOME');
 
     return (
-        <div className="min-h-screen bg-[#f4f6fb] text-slate-800 -m-6 p-6">
+        <div className="min-h-screen bg-[#f4f6fb] text-slate-800 -m-3 sm:-m-4 md:-m-6 p-3 sm:p-4 md:p-6">
             <div className="mx-auto max-w-[1200px]">
                 <div className="mb-6 flex flex-col gap-2">
                     <h1 className="text-2xl font-black tracking-tight text-slate-900">Accounts</h1>
                     <p className="text-sm text-slate-500 font-medium">Manage your clinic's income, expenses and financial reports.</p>
                 </div>
 
-                <div className="mb-8 flex gap-2 border-b border-slate-200">
+                <div className="mb-6 sm:mb-8 flex gap-2 border-b border-slate-200 overflow-x-auto whitespace-nowrap">
                     <button
                         onClick={() => setActiveTab('INCOME')}
                         className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all border-b-2 ${

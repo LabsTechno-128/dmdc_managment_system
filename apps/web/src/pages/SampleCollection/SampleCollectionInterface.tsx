@@ -252,10 +252,10 @@ export const SampleCollectionInterface: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">
               Patient Details
             </h3>
             <div className="space-y-3 text-sm">
@@ -281,7 +281,7 @@ export const SampleCollectionInterface: React.FC = () => {
               </div>
             </div>
 
-            <h3 className="text-lg font-bold text-slate-800 mt-6 mb-4 border-b border-slate-100 pb-2">
+            <h3 className="text-base sm:text-lg font-bold text-slate-800 mt-6 mb-4 border-b border-slate-100 pb-2">
               Billing Details
             </h3>
             <div className="space-y-3 text-sm">
@@ -308,9 +308,9 @@ export const SampleCollectionInterface: React.FC = () => {
                 <button
                   onClick={() => initMutation.mutate()}
                   disabled={initMutation.isPending}
-                  className="w-full flex justify-center items-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="w-full flex justify-center items-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm"
                 >
-                  <FlaskConical size={20} />
+                  <FlaskConical size={18} />
                   {initMutation.isPending ? 'Initializing...' : 'Initialize Sample Collection'}
                 </button>
                 <p className="text-xs text-center text-slate-500 mt-2">
@@ -323,9 +323,9 @@ export const SampleCollectionInterface: React.FC = () => {
               <div className="mt-6 pt-6 border-t border-slate-100">
                 <button
                   onClick={() => handlePrint()}
-                  className="w-full flex justify-center items-center gap-2 py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-colors"
+                  className="w-full flex justify-center items-center gap-2 py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-colors text-sm"
                 >
-                  <Printer size={20} />
+                  <Printer size={18} />
                   Print All Barcodes
                 </button>
               </div>
@@ -333,15 +333,15 @@ export const SampleCollectionInterface: React.FC = () => {
           </div>
         </div>
 
-        <div className="md:col-span-2">
+        <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
-              <h3 className="font-bold text-slate-800">Test List & Samples</h3>
+              <h3 className="font-bold text-slate-800 text-sm sm:text-base">Test List & Samples</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-slate-200">
+                  <tr className="border-b border-slate-200 bg-slate-50">
                     <th className="p-4 text-xs font-bold text-slate-500 uppercase">Test Name</th>
                     <th className="p-4 text-xs font-bold text-slate-500 uppercase">Sample Type</th>
                     <th className="p-4 text-xs font-bold text-slate-500 uppercase">Barcode</th>
@@ -420,16 +420,16 @@ export const SampleCollectionInterface: React.FC = () => {
 
       {/* Collect Sample & Inventory Deduction Modal */}
       {selectedSampleForCollection && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <FlaskConical className="text-blue-600" size={20} />
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <div className="pr-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <FlaskConical className="text-blue-600" size={18} />
                   Collect Sample
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5 truncate">
                   Test: <span className="font-semibold text-slate-700">{selectedSampleForCollection.test?.name}</span> ({selectedSampleForCollection.sampleType}) &bull; Barcode: <span className="font-mono text-slate-700">{selectedSampleForCollection.barcode}</span>
                 </p>
               </div>
@@ -437,12 +437,12 @@ export const SampleCollectionInterface: React.FC = () => {
                 onClick={() => setSelectedSampleForCollection(null)}
                 className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
               {/* Equipment and Inventory Deduction Section */}
               <div>
                 <div className="flex justify-between items-center mb-2">
@@ -597,11 +597,11 @@ export const SampleCollectionInterface: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+            <div className="px-5 sm:px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedSampleForCollection(null)}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>
@@ -609,7 +609,7 @@ export const SampleCollectionInterface: React.FC = () => {
                 type="button"
                 onClick={handleConfirmCollection}
                 disabled={statusMutation.isPending || hasInvalidItems}
-                className="px-5 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="w-full sm:w-auto px-5 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-center"
               >
                 {statusMutation.isPending ? (
                   <>Processing...</>

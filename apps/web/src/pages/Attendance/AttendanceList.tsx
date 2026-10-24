@@ -88,16 +88,16 @@ export const AttendanceList: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Attendance Manager</h1>
           <p className="text-slate-500 mt-1">Track check-ins, check-outs, and manage daily attendance logs</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-700 font-semibold shadow-sm text-sm"
+            className="w-full sm:w-auto px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-slate-700 font-semibold shadow-sm text-sm"
           />
           <button
             onClick={() => setIsPrintOpen(true)}
-            className="cursor-pointer flex items-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm"
+            className="cursor-pointer flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm w-full sm:w-auto"
           >
             <Printer size={20} />
             <span>Print Report</span>
@@ -113,34 +113,34 @@ export const AttendanceList: React.FC = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mb-8">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</span>
-          <span className="text-2xl font-black text-slate-800 mt-1.5">{summary.total}</span>
+          <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1.5">{summary.total}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-green-500 uppercase tracking-wider">Present</span>
-          <span className="text-2xl font-black text-green-600 mt-1.5">{summary.present}</span>
+          <span className="text-xl sm:text-2xl font-black text-green-600 mt-1.5">{summary.present}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-red-500 uppercase tracking-wider">Absent</span>
-          <span className="text-2xl font-black text-red-600 mt-1.5">{summary.absent}</span>
+          <span className="text-xl sm:text-2xl font-black text-red-600 mt-1.5">{summary.absent}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">Leave</span>
-          <span className="text-2xl font-black text-amber-600 mt-1.5">{summary.leave}</span>
+          <span className="text-xl sm:text-2xl font-black text-amber-600 mt-1.5">{summary.leave}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-orange-500 uppercase tracking-wider">Half Day</span>
-          <span className="text-2xl font-black text-orange-600 mt-1.5">{summary.halfDay}</span>
+          <span className="text-xl sm:text-2xl font-black text-orange-600 mt-1.5">{summary.halfDay}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Off / Holiday</span>
-          <span className="text-2xl font-black text-slate-600 mt-1.5">{(summary.fridayOff || 0) + (summary.weeklyOff || 0) + (summary.holiday || 0)}</span>
+          <span className="text-xl sm:text-2xl font-black text-slate-600 mt-1.5">{(summary.fridayOff || 0) + (summary.weeklyOff || 0) + (summary.holiday || 0)}</span>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between bg-blue-50/10">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between bg-blue-50/10">
           <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">Not Marked</span>
-          <span className="text-2xl font-black text-blue-600 mt-1.5">{summary.unmarked}</span>
+          <span className="text-xl sm:text-2xl font-black text-blue-600 mt-1.5">{summary.unmarked}</span>
         </div>
       </div>
 
@@ -161,7 +161,7 @@ export const AttendanceList: React.FC = () => {
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
+          <table className="w-full text-left text-sm whitespace-nowrap min-w-[750px]">
             <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-semibold text-slate-600">Employee</th>

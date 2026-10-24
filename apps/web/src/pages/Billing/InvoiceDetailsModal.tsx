@@ -509,7 +509,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
 
                 <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                    <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[550px] whitespace-nowrap">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
                           <th className="p-3.5 w-12 text-center">#</th>
@@ -801,7 +801,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                 {payments.length > 0 ? (
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                      <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[700px] whitespace-nowrap">
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
                             <th className="p-3.5">Date & Time</th>

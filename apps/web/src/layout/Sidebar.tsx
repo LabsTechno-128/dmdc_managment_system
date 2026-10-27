@@ -103,7 +103,7 @@ const ITEMS: NavItem[] = [
         label: 'Landing Page',
         path: '/landing-page',
         icon: Globe,
-        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST],
+        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
     },
     {
         label: 'System & Settings',

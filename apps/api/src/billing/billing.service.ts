@@ -18,6 +18,39 @@ function round(value: number): number {
     return Math.round((Number(value) || 0) * 100) / 100;
 }
 
+function isStrictNonNegativeInteger(value: any): boolean {
+    if (value === undefined || value === null || value === '') {
+        return true;
+    }
+    if (typeof value === 'number') {
+        return Number.isInteger(value) && Number.isFinite(value) && value >= 0;
+    }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') return true;
+        if (!/^\d+$/.test(trimmed)) return false;
+        const num = Number(trimmed);
+        return Number.isInteger(num) && Number.isFinite(num) && num >= 0;
+    }
+    return false;
+}
+
+function isStrictPositiveInteger(value: any): boolean {
+    if (value === undefined || value === null || value === '') {
+        return false;
+    }
+    if (typeof value === 'number') {
+        return Number.isInteger(value) && Number.isFinite(value) && value > 0;
+    }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!/^\d+$/.test(trimmed)) return false;
+        const num = Number(trimmed);
+        return Number.isInteger(num) && Number.isFinite(num) && num > 0;
+    }
+    return false;
+}
+
 @Injectable()
 export class BillingService {
     constructor(
@@ -25,11 +58,101 @@ export class BillingService {
         private readonly settingsService: SettingsService,
     ) { }
 
+    private async generateBillNumber(queryRunner: any, prefixType: 'BILL' | 'CONS'): Promise<string> {
+        const today = new Date();
+        const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+        const prefix = `${prefixType}-${dateStr}-`;
+
+        const lastBillResult = await queryRunner.query(
+            `SELECT "billNumber" FROM billings WHERE "billNumber" LIKE $1 ORDER BY LENGTH("billNumber") DESC, "billNumber" DESC LIMIT 1`,
+            [`${prefix}%`]
+        );
+
+        let seqNumber = 1;
+        if (lastBillResult && lastBillResult.length > 0 && lastBillResult[0]?.billNumber) {
+            const parts = String(lastBillResult[0].billNumber).split('-');
+            const lastSeq = parseInt(parts[parts.length - 1], 10);
+            if (!isNaN(lastSeq)) {
+                seqNumber = lastSeq + 1;
+            }
+
+            let seq = String(seqNumber).padStart(4, '0');
+            let billNumber = `${prefix}${seq}`;
+            let attempts = 0;
+            let exists = await queryRunner.query(
+                `SELECT 1 FROM billings WHERE "billNumber" = $1 LIMIT 1`,
+                [billNumber]
+            );
+            while (exists && exists.length > 0 && attempts < 100) {
+                attempts++;
+                seqNumber++;
+                seq = String(seqNumber).padStart(4, '0');
+                billNumber = `${prefix}${seq}`;
+                exists = await queryRunner.query(
+                    `SELECT 1 FROM billings WHERE "billNumber" = $1 LIMIT 1`,
+                    [billNumber]
+                );
+            }
+            return billNumber;
+        } else if (lastBillResult && lastBillResult.length > 0 && lastBillResult[0]?.count !== undefined) {
+            const count = Number(lastBillResult[0].count) || 0;
+            seqNumber = count + 1;
+            const seq = String(seqNumber).padStart(4, '0');
+            return `${prefix}${seq}`;
+        } else {
+            const seq = String(seqNumber).padStart(4, '0');
+            return `${prefix}${seq}`;
+        }
+    }
+
     async create(data: any, user?: any) {
         const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount, referredBy, vatRate: reqVatRate } = data;
 
-        if (!items || items.length === 0) {
+        if (!items || !Array.isArray(items) || items.length === 0) {
             throw new BadRequestException('Billing items are required');
+        }
+
+        // Validate items and their prices
+        for (const item of items) {
+            if (!item || item.testId === undefined || item.testId === null || item.testId === '') {
+                throw new BadRequestException('Valid test item is required');
+            }
+            if (item.price !== undefined && item.price !== null && item.price !== '') {
+                if (!isStrictNonNegativeInteger(item.price)) {
+                    throw new BadRequestException('Item price must be a valid non-negative integer');
+                }
+            }
+        }
+
+        // Validate discount
+        if (discount !== undefined && discount !== null && discount !== '') {
+            if (!isStrictNonNegativeInteger(discount)) {
+                throw new BadRequestException('Discount must be a valid non-negative integer');
+            }
+        }
+
+        // Validate vatRate
+        if (reqVatRate !== undefined && reqVatRate !== null && reqVatRate !== '') {
+            if (!isStrictNonNegativeInteger(reqVatRate)) {
+                throw new BadRequestException('VAT rate must be a valid non-negative integer');
+            }
+            if (Number(reqVatRate) > 100) {
+                throw new BadRequestException('VAT rate cannot exceed 100%');
+            }
+        }
+
+        // Validate additionalCharges
+        if (additionalCharges !== undefined && additionalCharges !== null && additionalCharges !== '') {
+            if (!isStrictNonNegativeInteger(additionalCharges)) {
+                throw new BadRequestException('Additional charges must be a valid non-negative integer');
+            }
+        }
+
+        // Validate paidAmount
+        if (paidAmount !== undefined && paidAmount !== null && paidAmount !== '') {
+            if (!isStrictNonNegativeInteger(paidAmount)) {
+                throw new BadRequestException('Paid amount must be a valid non-negative integer');
+            }
         }
 
         const dataSource = this.databaseService.getDataSource();
@@ -63,7 +186,7 @@ export class BillingService {
             subtotal = round(subtotal);
 
             // 3. Calculate Discount
-            const discountValue = Number(discount) || 0;
+            const discountValue = (discount === undefined || discount === null || discount === '') ? 0 : Number(discount);
             let discountAmount = 0;
 
             if (discountType === 'PERCENTAGE') {
@@ -80,12 +203,14 @@ export class BillingService {
             // 5. Calculate VAT after Discount
             const hospitalSetting = await this.settingsService.getSettings();
             const vatRate = reqVatRate !== undefined && reqVatRate !== null && reqVatRate !== ''
-                ? Math.max(0, round(Number(reqVatRate)))
+                ? Number(reqVatRate)
                 : (Number(hospitalSetting.defaultVatRate) || 0);
             const vatAmount = round(taxableAmount * (vatRate / 100));
 
             // 6. Additional Charges & Final Invoice Total
-            const additional = round(Math.max(0, Number(additionalCharges) || 0));
+            const additional = (additionalCharges === undefined || additionalCharges === null || additionalCharges === '')
+                ? 0
+                : Number(additionalCharges);
             const totalAmount = round(taxableAmount + vatAmount + additional);
 
             if (totalAmount < 0) {
@@ -93,28 +218,31 @@ export class BillingService {
             }
 
             // 7. Determine Paid Amount, Due Amount and Payment Status
-            const paid = round(Math.max(0, Number(paidAmount) || 0));
+            const paid = (paidAmount === undefined || paidAmount === null || paidAmount === '')
+                ? 0
+                : Number(paidAmount);
             if (paid > totalAmount) {
                 throw new BadRequestException('Paid amount cannot exceed total invoice amount');
             }
-            const due = round(Math.max(0, totalAmount - paid));
 
+            const isPaymentDone = Boolean((data as any).paymentDone || data.paymentStatus === 'Paid');
+
+            let due = round(Math.max(0, totalAmount - paid));
+            let waived = 0;
             let status = 'Unpaid';
-            if (due === 0) {
+
+            if (isPaymentDone) {
+                status = 'Paid';
+                waived = due;
+                due = 0;
+            } else if (due === 0) {
                 status = 'Paid';
             } else if (paid > 0 && due > 0) {
                 status = 'Partial';
             }
 
             // 8. Generate Bill Number
-            const today = new Date();
-            const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-            const countResult = await queryRunner.query(
-                `SELECT COUNT(*) FROM billings WHERE DATE("createdAt") = CURRENT_DATE`
-            );
-            const count = Number(countResult[0]?.count) || 0;
-            const seq = String(count + 1).padStart(4, '0');
-            const billNumber = `BILL-${dateStr}-${seq}`;
+            const billNumber = await this.generateBillNumber(queryRunner, 'BILL');
             const musakChallanNumber = data.musakChallanNumber || billNumber;
 
             // 9. Create Billing Record with Authorization and Identity
@@ -132,10 +260,13 @@ export class BillingService {
                 additionalCharges: additional,
                 totalAmount,
                 paidAmount: paid,
-                waivedAmount: 0,
+                waivedAmount: waived,
                 dueAmount: due,
                 paymentMethod: paymentMethod || 'Cash',
                 paymentStatus: status,
+                settlementReason: waived > 0 ? 'Settled upon creation (Payment Done)' : undefined,
+                settledById: waived > 0 ? (user?.id || undefined) : undefined,
+                settledAt: waived > 0 ? new Date() : undefined,
                 referredBy: referredBy || undefined,
                 musakChallanNumber,
                 createdById: user?.id || undefined,
@@ -166,6 +297,21 @@ export class BillingService {
                     notes: data.notes || 'Initial Payment'
                 });
                 await queryRunner.manager.save(transaction);
+            }
+
+            // 12. Settlement / Waiver Transaction if settled in full
+            if (waived > 0) {
+                const settlementTransaction = queryRunner.manager.create(PaymentTransaction, {
+                    billingId: savedBilling.id,
+                    patientId: savedBilling.patientId,
+                    amount: waived,
+                    paymentMethod: 'Waiver / Settlement',
+                    type: PaymentTransactionType.SETTLEMENT,
+                    receivedById: data.receivedById || user?.id || null,
+                    status: 'Completed',
+                    notes: 'Settled difference upon invoice creation (Payment Done)'
+                });
+                await queryRunner.manager.save(settlementTransaction);
             }
 
             await queryRunner.commitTransaction();
@@ -344,10 +490,10 @@ export class BillingService {
         const billing = await this.databaseService.repoBilling().findOne({ where: { id } });
         if (!billing) throw new BadRequestException('Billing not found');
 
-        const addAmount = round(Number(additionalAmount));
-        if (addAmount <= 0) {
-            throw new BadRequestException('Payment amount must be greater than zero');
+        if (!isStrictPositiveInteger(additionalAmount)) {
+            throw new BadRequestException('Payment amount must be a positive integer');
         }
+        const addAmount = Number(additionalAmount);
 
         return this.createPayment(id, {
             amount: addAmount,
@@ -358,6 +504,31 @@ export class BillingService {
 
     async createConsultationBill(appointmentId: string, data: any, user?: any) {
         const { discountType, discount, additionalCharges, paymentMethod, paidAmount, referredBy, vatRate: reqVatRate } = data;
+
+        // Validate numeric fields for consultation billing
+        if (discount !== undefined && discount !== null && discount !== '') {
+            if (!isStrictNonNegativeInteger(discount)) {
+                throw new BadRequestException('Discount must be a valid non-negative integer');
+            }
+        }
+        if (reqVatRate !== undefined && reqVatRate !== null && reqVatRate !== '') {
+            if (!isStrictNonNegativeInteger(reqVatRate)) {
+                throw new BadRequestException('VAT rate must be a valid non-negative integer');
+            }
+            if (Number(reqVatRate) > 100) {
+                throw new BadRequestException('VAT rate cannot exceed 100%');
+            }
+        }
+        if (additionalCharges !== undefined && additionalCharges !== null && additionalCharges !== '') {
+            if (!isStrictNonNegativeInteger(additionalCharges)) {
+                throw new BadRequestException('Additional charges must be a valid non-negative integer');
+            }
+        }
+        if (paidAmount !== undefined && paidAmount !== null && paidAmount !== '') {
+            if (!isStrictNonNegativeInteger(paidAmount)) {
+                throw new BadRequestException('Paid amount must be a valid non-negative integer');
+            }
+        }
 
         const dataSource = this.databaseService.getDataSource();
         const queryRunner = dataSource.createQueryRunner();
@@ -384,7 +555,7 @@ export class BillingService {
 
             // 2. Calculate values
             const subtotal = round(Number(appointment.consultationFee));
-            const discountValue = Number(discount) || 0;
+            const discountValue = (discount === undefined || discount === null || discount === '') ? 0 : Number(discount);
             let discountAmount = 0;
 
             if (discountType === 'PERCENTAGE') {
@@ -401,39 +572,44 @@ export class BillingService {
             // VAT after Discount
             const hospitalSetting = await this.settingsService.getSettings();
             const vatRate = reqVatRate !== undefined && reqVatRate !== null && reqVatRate !== ''
-                ? Math.max(0, round(Number(reqVatRate)))
+                ? Number(reqVatRate)
                 : (Number(hospitalSetting.defaultVatRate) || 0);
             const vatAmount = round(taxableAmount * (vatRate / 100));
 
-            const additional = round(Math.max(0, Number(additionalCharges) || 0));
+            const additional = (additionalCharges === undefined || additionalCharges === null || additionalCharges === '')
+                ? 0
+                : Number(additionalCharges);
             const totalAmount = round(taxableAmount + vatAmount + additional);
 
             if (totalAmount < 0) {
                 throw new BadRequestException('Total amount cannot be negative');
             }
 
-            const paid = round(Math.max(0, Number(paidAmount) || 0));
+            const paid = (paidAmount === undefined || paidAmount === null || paidAmount === '')
+                ? 0
+                : Number(paidAmount);
             if (paid > totalAmount) {
                 throw new BadRequestException('Paid amount cannot exceed total invoice amount');
             }
-            const due = round(Math.max(0, totalAmount - paid));
 
+            const isPaymentDone = Boolean((data as any).paymentDone || data.paymentStatus === 'Paid');
+
+            let due = round(Math.max(0, totalAmount - paid));
+            let waived = 0;
             let status = 'Unpaid';
-            if (due === 0) {
+
+            if (isPaymentDone) {
+                status = 'Paid';
+                waived = due;
+                due = 0;
+            } else if (due === 0) {
                 status = 'Paid';
             } else if (paid > 0 && due > 0) {
                 status = 'Partial';
             }
 
             // 3. Generate Bill Number
-            const today = new Date();
-            const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-            const countResult = await queryRunner.query(
-                `SELECT COUNT(*) FROM billings WHERE DATE("createdAt") = CURRENT_DATE`
-            );
-            const count = Number(countResult[0]?.count) || 0;
-            const seq = String(count + 1).padStart(4, '0');
-            const billNumber = `CONS-${dateStr}-${seq}`;
+            const billNumber = await this.generateBillNumber(queryRunner, 'CONS');
             const musakChallanNumber = data.musakChallanNumber || billNumber;
 
             // 4. Create Billing Record
@@ -454,10 +630,13 @@ export class BillingService {
                 additionalCharges: additional,
                 totalAmount,
                 paidAmount: paid,
-                waivedAmount: 0,
+                waivedAmount: waived,
                 dueAmount: due,
                 paymentMethod: paymentMethod || 'Cash',
                 paymentStatus: status,
+                settlementReason: waived > 0 ? 'Settled upon creation (Payment Done)' : undefined,
+                settledById: waived > 0 ? (user?.id || undefined) : undefined,
+                settledAt: waived > 0 ? new Date() : undefined,
                 referredBy: referredBy || undefined,
                 musakChallanNumber,
                 createdById: user?.id || undefined,
@@ -490,6 +669,20 @@ export class BillingService {
                 await queryRunner.manager.save(transaction);
             }
 
+            if (waived > 0) {
+                const settlementTransaction = queryRunner.manager.create(PaymentTransaction, {
+                    billingId: savedBilling.id,
+                    patientId: savedBilling.patientId,
+                    amount: waived,
+                    paymentMethod: 'Waiver / Settlement',
+                    type: PaymentTransactionType.SETTLEMENT,
+                    receivedById: data.receivedById || user?.id || null,
+                    status: 'Completed',
+                    notes: 'Settled difference upon consultation bill creation (Payment Done)'
+                });
+                await queryRunner.manager.save(settlementTransaction);
+            }
+
             // 7. Sync appointment payment status
             appointment.paymentStatus = status;
             await queryRunner.manager.save(appointment);
@@ -518,10 +711,10 @@ export class BillingService {
     async createPayment(billingId: string, data: any, user?: any) {
         const { amount, paymentMethod, notes } = data;
 
-        const payAmount = round(Number(amount));
-        if (payAmount <= 0) {
-            throw new BadRequestException('Payment amount must be greater than zero');
+        if (!isStrictPositiveInteger(amount)) {
+            throw new BadRequestException('Payment amount must be a positive integer');
         }
+        const payAmount = Number(amount);
 
         const dataSource = this.databaseService.getDataSource();
         const queryRunner = dataSource.createQueryRunner();
@@ -602,10 +795,10 @@ export class BillingService {
             throw new BadRequestException('A settlement/waiver reason is mandatory');
         }
 
-        const settleAmount = round(Number(data.amount));
-        if (isNaN(settleAmount) || settleAmount <= 0) {
-            throw new BadRequestException('Settlement amount must be greater than zero');
+        if (!isStrictPositiveInteger(data.amount)) {
+            throw new BadRequestException('Settlement amount must be a positive integer');
         }
+        const settleAmount = Number(data.amount);
 
         const dataSource = this.databaseService.getDataSource();
         const queryRunner = dataSource.createQueryRunner();

@@ -14,21 +14,52 @@ import { InvoicePrint } from './InvoicePrint';
 const outsidePatientSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().min(1, 'Phone is required').regex(/^(?:\+88|88)?01[3-9]\d{8}$/, 'Must be a valid Bangladeshi phone number'),
-  age: z.number().min(0, 'Age must be positive').max(150, 'Age must be valid').optional(),
+  age: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? undefined : Number(val)),
+    z.number({ error: 'Age must be a valid number' }).int('Age must be a whole number').min(0, 'Age must be positive').max(150, 'Age must be valid').optional()
+  ),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
 });
 
 const billingSchema = z.object({
   items: z.array(z.object({
     testId: z.string().min(1, 'Test is required'),
-    price: z.number().min(0, 'Price must be positive'),
+    price: z.number({ error: 'Price must be a valid number' })
+      .int('Price must be a whole number')
+      .min(0, 'Price cannot be negative'),
     name: z.string().optional(),
   })).min(1, 'At least one item is required'),
   discountType: z.enum(['PERCENTAGE', 'FIXED']),
-  discount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
-  vatRate: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')).optional(),
-  additionalCharges: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
-  paidAmount: z.preprocess((val) => (val === '' || Number.isNaN(val) ? 0 : Number(val)), z.number().min(0, 'Cannot be negative')),
+  discount: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? 0 : Number(val)),
+    z.number({ error: 'Discount must be a valid number' })
+      .finite('Discount must be a valid number')
+      .int('Discount must be a whole number')
+      .min(0, 'Discount cannot be negative')
+  ),
+  vatRate: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? 0 : Number(val)),
+    z.number({ error: 'VAT rate must be a valid number' })
+      .finite('VAT rate must be a valid number')
+      .int('VAT rate must be a whole number')
+      .min(0, 'VAT rate cannot be negative')
+      .max(100, 'VAT rate cannot exceed 100%')
+  ).optional(),
+  additionalCharges: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? 0 : Number(val)),
+    z.number({ error: 'Additional charges must be a valid number' })
+      .finite('Additional charges must be a valid number')
+      .int('Additional charges must be a whole number')
+      .min(0, 'Additional charges cannot be negative')
+  ),
+  paidAmount: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? 0 : Number(val)),
+    z.number({ error: 'Paid amount must be a valid number' })
+      .finite('Paid amount must be a valid number')
+      .int('Paid amount must be a whole number')
+      .min(0, 'Paid amount cannot be negative')
+  ),
+  paymentDone: z.boolean().optional(),
   paymentMethod: z.string(),
   paymentStatus: z.string(),
   referredBy: z.string().optional(),
@@ -38,12 +69,12 @@ const billingSchema = z.object({
   let discountAmount = 0;
   if (data.discountType === 'PERCENTAGE') {
     if (data.discount > 100) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Max 100%', path: ['discount'] });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Discount percentage cannot exceed 100%', path: ['discount'] });
     }
     discountAmount = Math.round(subtotal * (data.discount / 100) * 100) / 100;
   } else {
     if (data.discount > subtotal) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Discount cannot exceed subtotal', path: ['discount'] });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Discount cannot exceed subtotal (৳${subtotal.toFixed(2)})`, path: ['discount'] });
     }
     discountAmount = data.discount;
   }
@@ -54,7 +85,11 @@ const billingSchema = z.object({
   const totalAmount = Math.round((taxableAmount + vatAmount + (data.additionalCharges || 0)) * 100) / 100;
 
   if (data.paidAmount > totalAmount) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Paid amount cannot exceed final invoice total', path: ['paidAmount'] });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Paid amount cannot exceed total bill amount (৳${totalAmount.toFixed(2)})`,
+      path: ['paidAmount']
+    });
   }
 });
 
@@ -103,6 +138,7 @@ export const NewBilling: React.FC = () => {
       vatRate: 0,
       additionalCharges: 0,
       paidAmount: 0,
+      paymentDone: false,
       paymentMethod: 'Cash',
       paymentStatus: 'Unpaid',
       referredBy: ''
@@ -148,6 +184,7 @@ export const NewBilling: React.FC = () => {
   const watchVatRate = Number(billingForm.watch('vatRate')) || 0;
   const watchAdditionalCharges = Number(billingForm.watch('additionalCharges')) || 0;
   const watchPaidAmount = Number(billingForm.watch('paidAmount')) || 0;
+  const watchPaymentDone = Boolean(billingForm.watch('paymentDone'));
 
   const subtotal = watchItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
   let discountAmount = 0;
@@ -159,14 +196,31 @@ export const NewBilling: React.FC = () => {
   const taxableAmount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
   const vatAmount = Math.round(taxableAmount * (watchVatRate / 100) * 100) / 100;
   const totalAmount = Math.round((taxableAmount + vatAmount + watchAdditionalCharges) * 100) / 100;
-  const dueAmount = Math.max(0, Math.round((totalAmount - watchPaidAmount) * 100) / 100);
+
+  const rawDue = Math.max(0, Math.round((totalAmount - watchPaidAmount) * 100) / 100);
+  const dueAmount = watchPaymentDone ? 0 : rawDue;
+  const waivedDiff = watchPaymentDone ? rawDue : 0;
 
   const handlePayFull = () => {
-    billingForm.setValue('paidAmount', totalAmount, { shouldValidate: true });
+    billingForm.setValue('paidAmount', Math.round(totalAmount), { shouldValidate: true });
+    billingForm.setValue('paymentDone', true, { shouldValidate: true });
+  };
+
+  const handleTogglePaymentDone = (checked: boolean) => {
+    billingForm.setValue('paymentDone', checked, { shouldValidate: true });
+    if (checked) {
+      billingForm.setValue('paymentStatus', 'Paid');
+      const currentPaid = Number(billingForm.getValues('paidAmount')) || 0;
+      if (currentPaid === 0 && totalAmount > 0) {
+        billingForm.setValue('paidAmount', Math.floor(totalAmount), { shouldValidate: true });
+      }
+    }
   };
 
   useEffect(() => {
-    if (totalAmount > 0) {
+    if (watchPaymentDone) {
+      billingForm.setValue('paymentStatus', 'Paid');
+    } else if (totalAmount > 0) {
       if (dueAmount === 0) {
         billingForm.setValue('paymentStatus', 'Paid');
       } else if (watchPaidAmount > 0 && dueAmount > 0) {
@@ -177,7 +231,13 @@ export const NewBilling: React.FC = () => {
     } else {
       billingForm.setValue('paymentStatus', 'Paid');
     }
-  }, [watchPaidAmount, totalAmount, dueAmount, billingForm]);
+  }, [watchPaymentDone, watchPaidAmount, totalAmount, dueAmount, billingForm]);
+
+  useEffect(() => {
+    if (billingForm.formState.isSubmitted || billingForm.formState.touchedFields.paidAmount || billingForm.formState.touchedFields.discount) {
+      billingForm.trigger(['paidAmount', 'discount']);
+    }
+  }, [totalAmount, subtotal, billingForm]);
 
   // Patient Search
   const searchPatient = async () => {
@@ -536,7 +596,7 @@ export const NewBilling: React.FC = () => {
                     <label className="block text-xs font-semibold text-slate-500 mb-1">Discount Value</label>
                     <input
                       type="number"
-                      step="0.01"
+                      step="1"
                       min="0"
                       {...billingForm.register('discount', { valueAsNumber: true })}
                       className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.discount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
@@ -572,11 +632,15 @@ export const NewBilling: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    step="0.1"
+                    step="1"
                     min="0"
                     max="100"
                     {...billingForm.register('vatRate', { valueAsNumber: true })}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none text-right font-mono"
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${
+                      billingForm.formState.errors.vatRate
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-slate-300 focus:border-primary'
+                    }`}
                     placeholder="0"
                   />
                   <div className="flex gap-1 shrink-0">
@@ -596,6 +660,9 @@ export const NewBilling: React.FC = () => {
                     ))}
                   </div>
                 </div>
+                {billingForm.formState.errors.vatRate && (
+                  <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.vatRate.message as string}</p>
+                )}
               </div>
 
               {/* Additional Charges */}
@@ -605,6 +672,7 @@ export const NewBilling: React.FC = () => {
                 </label>
                 <input
                   type="number"
+                  step="1"
                   min="0"
                   {...billingForm.register('additionalCharges', { valueAsNumber: true })}
                   className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${billingForm.formState.errors.additionalCharges ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
@@ -639,7 +707,7 @@ export const NewBilling: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  step="any"
+                  step="1"
                   {...billingForm.register('paidAmount', { valueAsNumber: true })}
                   className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono font-semibold ${
                     billingForm.formState.errors.paidAmount
@@ -652,14 +720,43 @@ export const NewBilling: React.FC = () => {
                 )}
               </div>
 
+              {/* Payment Done / Full Settlement Checkbox */}
+              <div className="pt-2">
+                <label className="flex items-center gap-3 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl cursor-pointer hover:bg-emerald-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={watchPaymentDone}
+                    onChange={(e) => handleTogglePaymentDone(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-950">Payment Done</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+                        Status: Paid
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700/80 mt-0.5">
+                      Mark as fully settled regardless of fractional change or small cash difference.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
               {/* Outstanding Due Amount */}
               <div className="pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center text-sm font-bold">
                   <span className={dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}>Outstanding Due</span>
-                  <span className={`font-mono text-base ${dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                  <span className={`font-mono text-base ${dueAmount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                     ৳ {dueAmount.toFixed(2)} BDT
                   </span>
                 </div>
+                {watchPaymentDone && waivedDiff > 0 && (
+                  <div className="flex justify-between items-center text-xs text-slate-600 mt-2 font-medium bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                    <span>Settled / Waived Difference:</span>
+                    <span className="font-mono font-bold text-slate-800">৳ {waivedDiff.toFixed(2)} BDT</span>
+                  </div>
+                )}
               </div>
 
               {/* Payment Method & Status */}

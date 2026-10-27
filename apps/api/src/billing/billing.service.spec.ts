@@ -365,4 +365,353 @@ describe('BillingService', () => {
             expect(savedBillingStore.authorizedAt).toBeDefined();
         });
     });
+
+    describe('Feature: Strict Non-Negative Integer & Maximum Bill Amount Validation', () => {
+        beforeEach(() => {
+            mockQueryRunner.manager.findOne = jest.fn<any>().mockImplementation((entity: any, options: any) => {
+                const name = entity?.name || '';
+                if (name === 'Patients') return Promise.resolve({ id: 'pat-1', patientType: 'OUTPATIENT' });
+                if (name === 'LabTest') {
+                    const id = options?.where?.id;
+                    if (id === 1) return Promise.resolve({ id: 1, billRate: 500 });
+                    if (id === 2) return Promise.resolve({ id: 2, billRate: 300 });
+                    return Promise.resolve({ id: Number(id) || 1, billRate: 500 });
+                }
+                if (name === 'Billing') return Promise.resolve(savedBillingStore);
+                return Promise.resolve(null);
+            });
+        });
+
+        it('Case 1: Accepts valid positive integer and zero for all fields', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // bill rate: 500
+                discountType: 'FIXED',
+                discount: 100,
+                vatRate: 5,
+                additionalCharges: 50,
+                paidAmount: 470, // 500 - 100 = 400 taxable; vat 5% = 20; + 50 = 470 total
+            };
+
+            await service.create(billData);
+
+            expect(savedBillingStore).toBeDefined();
+            expect(savedBillingStore.subtotal).toBe(500);
+            expect(savedBillingStore.discountAmount).toBe(100);
+            expect(savedBillingStore.vatAmount).toBe(20);
+            expect(savedBillingStore.additionalCharges).toBe(50);
+            expect(savedBillingStore.totalAmount).toBe(470);
+            expect(savedBillingStore.paidAmount).toBe(470);
+            expect(savedBillingStore.dueAmount).toBe(0);
+            expect(savedBillingStore.paymentStatus).toBe('Paid');
+        });
+
+        it('Case 2: Accepts zero where permitted (discount=0, vatRate=0, additionalCharges=0, paidAmount=0)', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                discountType: 'FIXED',
+                discount: 0,
+                vatRate: 0,
+                additionalCharges: 0,
+                paidAmount: 0,
+            };
+
+            await service.create(billData);
+
+            expect(savedBillingStore.subtotal).toBe(500);
+            expect(savedBillingStore.discountAmount).toBe(0);
+            expect(savedBillingStore.vatAmount).toBe(0);
+            expect(savedBillingStore.additionalCharges).toBe(0);
+            expect(savedBillingStore.totalAmount).toBe(500);
+            expect(savedBillingStore.paidAmount).toBe(0);
+            expect(savedBillingStore.dueAmount).toBe(500);
+            expect(savedBillingStore.paymentStatus).toBe('Unpaid');
+        });
+
+        it('Case 3: Rejects negative number for discount', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                discount: -10,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 4: Rejects decimal floating-point number for discount (e.g. 10.5)', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                discount: 10.5,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 5: Rejects negative number for vatRate', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                vatRate: -5,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 6: Rejects decimal floating-point number for vatRate (e.g. 7.5)', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                vatRate: 7.5,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 7: Rejects vatRate exceeding 100%', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                vatRate: 105,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 8: Rejects negative number for additionalCharges', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                additionalCharges: -20,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 9: Rejects decimal for additionalCharges (e.g. 10.5)', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                additionalCharges: 10.5,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 10: Rejects negative number for paidAmount', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                paidAmount: -50,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 11: Rejects decimal for paidAmount (e.g. 10.5)', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                paidAmount: 10.5,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 12: Rejects invalid string / NaN / Infinity in API payloads', async () => {
+            await expect(service.create({
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                discount: 'invalid-string',
+            })).rejects.toThrow(BadRequestException);
+
+            await expect(service.create({
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                paidAmount: Infinity,
+            })).rejects.toThrow(BadRequestException);
+
+            await expect(service.create({
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                additionalCharges: 'NaN',
+            })).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 13: Enforces maximum discount: original bill 500, dependent discount 501 is rejected', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500
+                discountType: 'FIXED',
+                discount: 501,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 14: Enforces maximum discount: original bill 500, dependent discount 500 is accepted', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500
+                discountType: 'FIXED',
+                discount: 500,
+                paidAmount: 0,
+            };
+
+            await service.create(billData);
+
+            expect(savedBillingStore.subtotal).toBe(500);
+            expect(savedBillingStore.discountAmount).toBe(500);
+            expect(savedBillingStore.taxableAmount).toBe(0);
+            expect(savedBillingStore.totalAmount).toBe(0);
+            expect(savedBillingStore.dueAmount).toBe(0);
+            expect(savedBillingStore.paymentStatus).toBe('Paid');
+        });
+
+        it('Case 15: Enforces maximum paidAmount: original bill 500, dependent paidAmount 501 is rejected', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500 total
+                discount: 0,
+                vatRate: 0,
+                paidAmount: 501,
+            };
+
+            await expect(service.create(billData)).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 16: Enforces maximum paidAmount: original bill 500, dependent paidAmount 500 is accepted', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500 total
+                discount: 0,
+                vatRate: 0,
+                paidAmount: 500,
+            };
+
+            await service.create(billData);
+
+            expect(savedBillingStore.totalAmount).toBe(500);
+            expect(savedBillingStore.paidAmount).toBe(500);
+            expect(savedBillingStore.dueAmount).toBe(0);
+            expect(savedBillingStore.paymentStatus).toBe('Paid');
+        });
+
+        it('Case 17: Maximum changes dynamically when original bill amount changes', async () => {
+            // Bill with 1 test = 500. Attempting to pay 600 is rejected.
+            await expect(service.create({
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500
+                paidAmount: 600,
+            })).rejects.toThrow(BadRequestException);
+
+            // Same bill with 2 tests = 500 + 300 = 800. Paying 600 is now accepted!
+            await service.create({
+                patientId: 'pat-1',
+                items: [{ testId: 1 }, { testId: 2 }], // 500 + 300 = 800
+                paidAmount: 600,
+            });
+
+            expect(savedBillingStore.subtotal).toBe(800);
+            expect(savedBillingStore.totalAmount).toBe(800);
+            expect(savedBillingStore.paidAmount).toBe(600);
+            expect(savedBillingStore.dueAmount).toBe(200);
+            expect(savedBillingStore.paymentStatus).toBe('Partial');
+        });
+
+        it('Case 18: Empty or missing optional values follow existing business defaults', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }],
+                // discount, vatRate, additionalCharges, paidAmount are all omitted
+            };
+
+            await service.create(billData);
+
+            expect(savedBillingStore.subtotal).toBe(500);
+            expect(savedBillingStore.discountAmount).toBe(0);
+            expect(savedBillingStore.vatAmount).toBe(0);
+            expect(savedBillingStore.additionalCharges).toBe(0);
+            expect(savedBillingStore.totalAmount).toBe(500);
+            expect(savedBillingStore.paidAmount).toBe(0);
+            expect(savedBillingStore.dueAmount).toBe(500);
+            expect(savedBillingStore.paymentStatus).toBe('Unpaid');
+        });
+
+        it('Case 19: Rejects non-integer payment in subsequent createPayment and updatePayment', async () => {
+            savedBillingStore = {
+                id: 'bill-123',
+                patientId: 'pat-1',
+                totalAmount: 500,
+                paidAmount: 200,
+                dueAmount: 300,
+                paymentStatus: 'Partial',
+            };
+
+            // Rejects decimal in createPayment
+            await expect(
+                service.createPayment('bill-123', { amount: 10.5, paymentMethod: 'Cash' })
+            ).rejects.toThrow(BadRequestException);
+
+            // Rejects negative in createPayment
+            await expect(
+                service.createPayment('bill-123', { amount: -10, paymentMethod: 'Cash' })
+            ).rejects.toThrow(BadRequestException);
+
+            // Rejects decimal in updatePayment
+            await expect(
+                service.updatePayment('bill-123', 50.5)
+            ).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 20: Rejects non-integer settlement amount in settleBalance', async () => {
+            savedBillingStore = {
+                id: 'bill-999',
+                patientId: 'pat-1',
+                totalAmount: 500,
+                paidAmount: 400,
+                dueAmount: 100,
+                paymentStatus: 'Partial',
+            };
+
+            const adminUser = { id: 'admin-1', role: UserRole.ADMIN };
+
+            // Decimal rejected
+            await expect(
+                service.settleBalance('bill-999', { amount: 25.5, reason: 'Special discount' }, adminUser)
+            ).rejects.toThrow(BadRequestException);
+
+            // Negative rejected
+            await expect(
+                service.settleBalance('bill-999', { amount: -25, reason: 'Special discount' }, adminUser)
+            ).rejects.toThrow(BadRequestException);
+        });
+
+        it('Case 21: Payment Done checkbox marks bill Paid and settles difference as waived', async () => {
+            const billData = {
+                patientId: 'pat-1',
+                items: [{ testId: 1 }], // 500
+                paidAmount: 450, // patient gives 450 on 500 bill
+                paymentDone: true,
+            };
+
+            await service.create(billData, { id: 'user-1' });
+
+            expect(savedBillingStore.totalAmount).toBe(500);
+            expect(savedBillingStore.paidAmount).toBe(450);
+            expect(savedBillingStore.waivedAmount).toBe(50);
+            expect(savedBillingStore.dueAmount).toBe(0);
+            expect(savedBillingStore.paymentStatus).toBe('Paid');
+            expect(savedBillingStore.settlementReason).toContain('Settled upon creation');
+
+            // Should have recorded both payment of 450 and settlement of 50
+            const paymentTx = savedPaymentsStore.find(p => p.type === PaymentTransactionType.PAYMENT);
+            const settleTx = savedPaymentsStore.find(p => p.type === PaymentTransactionType.SETTLEMENT);
+            expect(paymentTx).toBeDefined();
+            expect(paymentTx.amount).toBe(450);
+            expect(settleTx).toBeDefined();
+            expect(settleTx.amount).toBe(50);
+        });
+    });
 });

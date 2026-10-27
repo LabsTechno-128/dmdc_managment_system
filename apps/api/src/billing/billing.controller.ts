@@ -5,6 +5,8 @@ import { Roles } from '../common/roles.decorator';
 import { UserRole } from '@hospital/database';
 import { BillingService } from './billing.service';
 
+import { CreateBillingDto } from './dto/create-billing.dto';
+
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
 @Controller('billing')
@@ -12,7 +14,7 @@ export class BillingController {
     constructor(private readonly billingService: BillingService) { }
 
     @Post()
-    create(@Body() data: any, @Req() req?: any) {
+    create(@Body() data: CreateBillingDto, @Req() req?: any) {
         return this.billingService.create(data, req?.user);
     }
 

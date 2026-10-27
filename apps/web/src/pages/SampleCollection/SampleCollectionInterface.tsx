@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -18,22 +18,76 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useReactToPrint } from 'react-to-print';
+import JsBarcode from 'jsbarcode';
 
 interface UsedItemInput {
   itemId: string;
   quantity: number;
 }
 
+// Reusable SVG Barcode generator using JsBarcode
+const BarcodeSvg: React.FC<{ value: string; width?: number; height?: number }> = ({
+  value,
+  width = 1.3,
+  height = 28
+}) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (svgRef.current && value) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: 'CODE128',
+          width,
+          height,
+          displayValue: false,
+          margin: 0,
+          background: 'transparent',
+          lineColor: '#000000'
+        });
+      } catch (err) {
+        console.warn('Failed to render barcode:', err);
+      }
+    }
+  }, [value, width, height]);
+
+  return <svg ref={svgRef} className="max-w-full h-auto inline-block" />;
+};
+
+// Helper to format items used for a sample
+const getSampleItemsSummary = (sample: any) => {
+  if (!sample.inventoryItems || sample.inventoryItems.length === 0) {
+    return 'No equipment logged';
+  }
+  const map = new Map<string, { name: string; quantity: number }>();
+  for (const si of sample.inventoryItems) {
+    const key = si.itemId || si.item?.id || si.id;
+    const name = si.item?.name || 'Equipment';
+    const qty = Number(si.quantity) || 0;
+    const existing = map.get(key);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      map.set(key, { name, quantity: qty });
+    }
+  }
+  return Array.from(map.values())
+    .map(i => `${i.quantity}x ${i.name}`)
+    .join(', ');
+};
+
 export const SampleCollectionInterface: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement>(null);
+  const singlePrintRef = useRef<HTMLDivElement>(null);
 
   // Modal State for Collection & Inventory Deduction
   const [selectedSampleForCollection, setSelectedSampleForCollection] = useState<any | null>(null);
   const [usedItems, setUsedItems] = useState<UsedItemInput[]>([]);
   const [collectionNotes, setCollectionNotes] = useState('');
+  const [singleSampleToPrint, setSingleSampleToPrint] = useState<any | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['sample-collection-billing', id],
@@ -87,10 +141,11 @@ export const SampleCollectionInterface: React.FC = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Sample collected and inventory deducted successfully!');
+      toast.success('Sample updated and inventory recorded successfully!');
       setSelectedSampleForCollection(null);
       setUsedItems([]);
       setCollectionNotes('');
+      refetch();
       queryClient.invalidateQueries({ queryKey: ['sample-collection-billing', id] });
       queryClient.invalidateQueries({ queryKey: ['inventory-items-available'] });
       queryClient.invalidateQueries({ queryKey: ['stock-usages'] });
@@ -98,7 +153,7 @@ export const SampleCollectionInterface: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-alerts'] });
     },
     onError: (err: any) => {
-      toast.error(err?.message || err?.response?.data?.message || 'Failed to update status');
+      toast.error(err?.message || err?.response?.data?.message || 'Failed to update sample');
     }
   });
 
@@ -118,7 +173,7 @@ export const SampleCollectionInterface: React.FC = () => {
           padding: 0 !important;
           background: white;
         }
-        #print-barcode {
+        #print-barcode, #print-single-barcode {
           width: 100%;
           height: 100%;
           margin: 0;
@@ -143,6 +198,100 @@ export const SampleCollectionInterface: React.FC = () => {
     `
   });
 
+  const handleSinglePrint = useReactToPrint({
+    contentRef: singlePrintRef,
+    documentTitle: `Barcode-${singleSampleToPrint?.barcode || 'Print'}`,
+    pageStyle: `
+      @page {
+        size: auto !important;
+        margin: 0 !important;
+      }
+      @media print {
+        html, body {
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white;
+        }
+        #print-single-barcode {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+        .barcode-label {
+          width: 100% !important;
+          height: 100vh !important;
+          padding: 2mm;
+          margin: 0;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background: white;
+        }
+      }
+    `
+  });
+
+  const triggerSinglePrint = (sample: any) => {
+    setSingleSampleToPrint(sample);
+    setTimeout(() => {
+      handleSinglePrint();
+    }, 50);
+  };
+
+  const billing = data?.billing;
+  const initialized = data?.initialized;
+  const samples = data?.samples;
+  const isPaid = billing?.paymentStatus === 'Paid';
+
+  // Calculate collection-wide equipment totals across all samples (called unconditionally above early returns)
+  const allCollectionItems: Array<{ id: string; name: string; unit?: string; quantity: number }> =
+    React.useMemo(() => {
+      if (!samples || !Array.isArray(samples)) return [];
+      const itemMap = new Map<string, { id: string; name: string; unit?: string; quantity: number }>();
+
+      for (const sample of samples) {
+        if (sample.inventoryItems && Array.isArray(sample.inventoryItems)) {
+          for (const si of sample.inventoryItems) {
+            const itemId = si.itemId || si.item?.id;
+            const name = si.item?.name || 'Equipment / Consumable';
+            const unit = si.item?.unit || 'pcs';
+            const qty = Number(si.quantity) || 0;
+            if (itemId) {
+              const existing = itemMap.get(itemId);
+              if (existing) {
+                existing.quantity += qty;
+              } else {
+                itemMap.set(itemId, { id: itemId, name, unit, quantity: qty });
+              }
+            }
+          }
+        }
+      }
+      return Array.from(itemMap.values());
+    }, [samples]);
+
+  const totalCollectionItemsCount: number = allCollectionItems.reduce(
+    (sum: number, item) => sum + item.quantity,
+    0
+  );
+
+  const openCollectModal = (sample: any) => {
+    setSelectedSampleForCollection(sample);
+    // Pre-populate with 1 empty item selector if inventory items exist and no items logged yet
+    if (inventoryItemsData.length > 0 && (!sample.inventoryItems || sample.inventoryItems.length === 0)) {
+      setUsedItems([{ itemId: '', quantity: 1 }]);
+    } else {
+      setUsedItems([]);
+    }
+    setCollectionNotes(sample.notes || '');
+  };
+
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading billing information...</div>;
   }
@@ -157,9 +306,6 @@ export const SampleCollectionInterface: React.FC = () => {
       </div>
     );
   }
-
-  const { billing, initialized, samples } = data;
-  const isPaid = billing.paymentStatus === 'Paid';
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -331,6 +477,52 @@ export const SampleCollectionInterface: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Collection Equipment & Supplies Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Package className="text-blue-600" size={18} />
+                Equipment &amp; Supplies Used
+              </h3>
+              <span
+                className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                  totalCollectionItemsCount > 0
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}
+              >
+                {totalCollectionItemsCount} item{totalCollectionItemsCount === 1 ? '' : 's'} total
+              </span>
+            </div>
+
+            {allCollectionItems.length > 0 ? (
+              <div className="space-y-2">
+                {allCollectionItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="flex justify-between items-center p-2.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-sm transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Package size={14} className="text-blue-500 shrink-0" />
+                      <span className="font-medium text-slate-800 truncate">{item.name}</span>
+                    </div>
+                    <span className="font-bold text-slate-900 font-mono shrink-0 ml-2 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs">
+                      {item.quantity} {item.unit || 'pcs'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <Package className="mx-auto text-slate-400 mb-1" size={24} />
+                <p className="text-xs font-semibold text-slate-600">No equipment logged yet</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Supplies used will be tracked here across all collections &amp; recollections.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="lg:col-span-2">
@@ -351,66 +543,126 @@ export const SampleCollectionInterface: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {samples.map((sample: any) => (
-                    <tr
-                      key={sample.id || sample.barcodePreview}
-                      className={!initialized ? 'opacity-60 bg-slate-50' : 'hover:bg-slate-50'}
-                    >
-                      <td className="p-4 font-medium text-slate-800">{sample.test?.name}</td>
-                      <td className="p-4 text-slate-600">{sample.sampleType}</td>
-                      <td className="p-4 font-mono text-sm text-slate-600">
-                        {sample.barcode || sample.barcodePreview}
-                      </td>
-                      <td className="p-4">
-                        {sample.inventoryItems && sample.inventoryItems.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {sample.inventoryItems.map((si: any) => (
-                              <span
-                                key={si.id}
-                                className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200"
-                              >
-                                <Package size={11} className="text-slate-400" />
-                                {si.quantity}x {si.item?.name || 'Item'}
+                  {samples.map((sample: any) => {
+                    const sampleItems = sample.inventoryItems || [];
+                    const groupedMap = new Map<string, { id: string; name: string; unit?: string; quantity: number }>();
+                    for (const si of sampleItems) {
+                      const key = si.itemId || si.item?.id || si.id;
+                      const name = si.item?.name || 'Item';
+                      const unit = si.item?.unit || 'pcs';
+                      const qty = Number(si.quantity) || 0;
+                      const ex = groupedMap.get(key);
+                      if (ex) {
+                        ex.quantity += qty;
+                      } else {
+                        groupedMap.set(key, { id: key, name, unit, quantity: qty });
+                      }
+                    }
+                    const groupedList = Array.from(groupedMap.values());
+                    const sampleItemsCount = groupedList.reduce((acc, si) => acc + si.quantity, 0);
+
+                    return (
+                      <tr
+                        key={sample.id || sample.barcodePreview}
+                        className={!initialized ? 'opacity-60 bg-slate-50' : 'hover:bg-slate-50'}
+                      >
+                        <td className="p-4 font-medium text-slate-800">{sample.test?.name}</td>
+                        <td className="p-4 text-slate-600">{sample.sampleType}</td>
+                        <td className="p-4 font-mono text-sm text-slate-600">
+                          {sample.barcode || sample.barcodePreview}
+                        </td>
+                        <td className="p-4">
+                          {groupedList.length > 0 ? (
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full border border-blue-200">
+                                  <Package size={11} className="text-blue-600" />
+                                  {sampleItemsCount} item{sampleItemsCount === 1 ? '' : 's'} used
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {groupedList.map((si: any) => (
+                                  <span
+                                    key={si.id}
+                                    className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200"
+                                  >
+                                    <Package size={11} className="text-slate-400" />
+                                    {si.quantity}x {si.name}
+                                  </span>
+                                ))}
+                              </div>
+                              {sample.status === 'COLLECTED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => openCollectModal(sample)}
+                                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1 pt-0.5"
+                                >
+                                  <Plus size={11} /> Add More
+                                </button>
+                              )}
+                            </div>
+                          ) : sample.status === 'COLLECTED' ? (
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200">
+                                0 items logged
                               </span>
-                            ))}
-                          </div>
-                        ) : sample.status === 'COLLECTED' ? (
-                          <span className="text-xs text-slate-400 italic">No equipment logged</span>
-                        ) : (
-                          <span className="text-xs text-slate-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">{getStatusBadge(sample.status)}</td>
-                      <td className="p-4 text-right">
-                        {initialized && (sample.status === 'PENDING' || sample.status === 'RECOLLECTION_REQUIRED') && (
-                          <button
-                            onClick={() => {
-                              setSelectedSampleForCollection(sample);
-                              setUsedItems([]);
-                              setCollectionNotes(sample.notes || '');
-                            }}
-                            className="px-3 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded font-medium text-sm transition-colors cursor-pointer"
-                          >
-                            Collect
-                          </button>
-                        )}
-                        {initialized && sample.status === 'COLLECTED' && (
-                          <button
-                            onClick={() =>
-                              statusMutation.mutate({
-                                sampleId: sample.id,
-                                status: 'RECOLLECTION_REQUIRED'
-                              })
-                            }
-                            disabled={statusMutation.isPending}
-                            className="px-3 py-1 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded font-medium text-sm transition-colors cursor-pointer disabled:opacity-50"
-                          >
-                            Recollect
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                              <button
+                                type="button"
+                                onClick={() => openCollectModal(sample)}
+                                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                              >
+                                + Log Equipment
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
+                        </td>
+                        <td className="p-4">{getStatusBadge(sample.status)}</td>
+                        <td className="p-4 text-right">
+                          {initialized && (sample.status === 'PENDING' || sample.status === 'RECOLLECTION_REQUIRED') && (
+                            <button
+                              onClick={() => openCollectModal(sample)}
+                              className="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm transition-colors cursor-pointer shadow-sm"
+                            >
+                              Collect
+                            </button>
+                          )}
+                          {initialized && sample.status === 'COLLECTED' && (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => triggerSinglePrint(sample)}
+                                title="Print Label"
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors cursor-pointer border border-slate-200 flex items-center gap-1 text-xs"
+                              >
+                                <Printer size={14} />
+                              </button>
+                              {groupedList.length === 0 && (
+                                <button
+                                  onClick={() => openCollectModal(sample)}
+                                  className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-medium transition-colors cursor-pointer border border-blue-200"
+                                >
+                                  Log Items
+                                </button>
+                              )}
+                              <button
+                                onClick={() =>
+                                  statusMutation.mutate({
+                                    sampleId: sample.id,
+                                    status: 'RECOLLECTION_REQUIRED'
+                                  })
+                                }
+                                disabled={statusMutation.isPending}
+                                className="px-2.5 py-1 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 border border-orange-200"
+                              >
+                                Recollect
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -427,7 +679,9 @@ export const SampleCollectionInterface: React.FC = () => {
               <div className="pr-2">
                 <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
                   <FlaskConical className="text-blue-600" size={18} />
-                  Collect Sample
+                  {selectedSampleForCollection.status === 'COLLECTED'
+                    ? 'Log Additional Equipment'
+                    : 'Collect Sample'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5 truncate">
                   Test: <span className="font-semibold text-slate-700">{selectedSampleForCollection.test?.name}</span> ({selectedSampleForCollection.sampleType}) &bull; Barcode: <span className="font-mono text-slate-700">{selectedSampleForCollection.barcode}</span>
@@ -447,10 +701,17 @@ export const SampleCollectionInterface: React.FC = () => {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <div>
-                    <label className="block text-sm font-bold text-slate-800">
-                      Equipment & Consumables Used
-                    </label>
-                    <p className="text-xs text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <label className="block text-sm font-bold text-slate-800">
+                        Equipment &amp; Consumables Used
+                      </label>
+                      {usedItems.filter(u => u.itemId).length > 0 && (
+                        <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200">
+                          {usedItems.filter(u => u.itemId).reduce((sum, u) => sum + (Number(u.quantity) || 0), 0)} item(s) selected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Select syringes, collection tubes, or consumables used. Available stock will decrease automatically.
                     </p>
                   </div>
@@ -625,46 +886,104 @@ export const SampleCollectionInterface: React.FC = () => {
         </div>
       )}
 
-      {/* Hidden Print Area */}
+      {/* Hidden Print Area - All Barcodes */}
       <div className="hidden">
         <div ref={printRef} id="print-barcode">
           {initialized &&
             samples.map((sample: any) => (
               <div key={sample.id} className="barcode-label">
-                {/* Content left-aligned but block centered */}
                 <div className="w-full flex justify-center">
-                  <div className="w-11/12 flex flex-col items-start justify-center text-left">
-                    {/* 1. Name and Age/Gender */}
-                    <div className="font-bold text-[12px] text-black truncate w-full leading-tight flex items-center justify-start gap-1">
+                  <div className="w-11/12 flex flex-col items-start justify-center text-left py-1">
+                    {/* 1. Patient Name */}
+                    <div className="text-[12px] font-bold text-black truncate w-full leading-tight">
+                      <span className="text-[9px] font-normal text-slate-500 uppercase block">Patient Name</span>
                       <span className="truncate">{billing.patient?.name}</span>
-                      {(billing.patient?.age || billing.patient?.gender) && (
-                        <span className="text-[10px] shrink-0 whitespace-nowrap">
-                          ({billing.patient?.age ? `${billing.patient.age}y` : ''}
-                          {billing.patient?.age && billing.patient?.gender ? ' ' : ''}
-                          {billing.patient?.gender ? billing.patient.gender.charAt(0) : ''})
-                        </span>
-                      )}
                     </div>
 
-                    {/* 2. Patient ID */}
-                    <div className="text-[10px] font-bold text-black leading-tight mt-[2px]">
-                      ID: {billing.patient?.patientId}
+                    {/* 2. Bill ID & 3. Sample ID */}
+                    <div className="w-full flex justify-between items-center text-[10px] text-black leading-tight mt-1 border-t border-slate-200 pt-0.5">
+                      <div>
+                        <span className="text-[9px] text-slate-500 block">Bill ID</span>
+                        <strong className="font-mono">{billing.billNumber}</strong>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] text-slate-500 block">Sample ID</span>
+                        <strong className="font-mono">
+                          {sample.id ? sample.id.slice(0, 8).toUpperCase() : sample.barcode}
+                        </strong>
+                      </div>
                     </div>
 
-                    {/* 3. Test Name */}
-                    <div className="font-bold text-[11px] text-black truncate w-full mt-[2px]">
-                      {sample.test?.name}
+                    {/* 4. Barcode */}
+                    <div className="w-full flex flex-col items-center justify-center my-1">
+                      <BarcodeSvg value={sample.barcode} width={1.2} height={26} />
+                      <span className="text-[9px] font-mono font-bold text-black tracking-wider mt-0.5">
+                        {sample.barcode}
+                      </span>
                     </div>
 
-                    {/* 4. Barcode Text */}
-                    <div className="w-full flex flex-col items-start justify-center overflow-hidden mt-[2px]">
-                      <span className="text-[10px] font-bold text-black leading-tight">Sample No:</span>
-                      <h1 className="text-[9px] font-bold text-black leading-tight">{sample.barcode}</h1>
+                    {/* 5. Item Name Used */}
+                    <div className="w-full text-[10px] leading-tight border-t border-slate-200 pt-1">
+                      <span className="text-[9px] text-slate-500 uppercase block">Item Name Used</span>
+                      <span className="font-semibold text-black break-words">
+                        {getSampleItemsSummary(sample)}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
+        </div>
+      </div>
+
+      {/* Hidden Print Area - Single Sample Barcode */}
+      <div className="hidden">
+        <div ref={singlePrintRef} id="print-single-barcode">
+          {singleSampleToPrint && (
+            <div className="barcode-label">
+              <div className="w-full flex justify-center">
+                <div className="w-11/12 flex flex-col items-start justify-center text-left py-1">
+                  {/* 1. Patient Name */}
+                  <div className="text-[12px] font-bold text-black truncate w-full leading-tight">
+                    <span className="text-[9px] font-normal text-slate-500 uppercase block">Patient Name</span>
+                    <span className="truncate">{billing.patient?.name}</span>
+                  </div>
+
+                  {/* 2. Bill ID & 3. Sample ID */}
+                  <div className="w-full flex justify-between items-center text-[10px] text-black leading-tight mt-1 border-t border-slate-200 pt-0.5">
+                    <div>
+                      <span className="text-[9px] text-slate-500 block">Bill ID</span>
+                      <strong className="font-mono">{billing.billNumber}</strong>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9px] text-slate-500 block">Sample ID</span>
+                      <strong className="font-mono">
+                        {singleSampleToPrint.id
+                          ? singleSampleToPrint.id.slice(0, 8).toUpperCase()
+                          : singleSampleToPrint.barcode}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* 4. Barcode */}
+                  <div className="w-full flex flex-col items-center justify-center my-1">
+                    <BarcodeSvg value={singleSampleToPrint.barcode} width={1.2} height={26} />
+                    <span className="text-[9px] font-mono font-bold text-black tracking-wider mt-0.5">
+                      {singleSampleToPrint.barcode}
+                    </span>
+                  </div>
+
+                  {/* 5. Item Name Used */}
+                  <div className="w-full text-[10px] leading-tight border-t border-slate-200 pt-1">
+                    <span className="text-[9px] text-slate-500 uppercase block">Item Name Used</span>
+                    <span className="font-semibold text-black break-words">
+                      {getSampleItemsSummary(singleSampleToPrint)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

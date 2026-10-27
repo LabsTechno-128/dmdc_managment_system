@@ -9,12 +9,12 @@ export class SampleCollectionService {
     constructor(
         private readonly db: DatabaseService,
         private readonly inventoryService: InventoryService
-    ) {}
+    ) { }
 
     // Search Billings for Sample Collection
     async searchBillings(query: string) {
         const billingRepo = this.db.repoBilling();
-        
+
         let whereCondition: any = {};
         if (query) {
             whereCondition = [
@@ -97,7 +97,7 @@ export class SampleCollectionService {
     // Initialize sample collections for a billing
     async initializeSamples(billingId: string) {
         const billingRepo = this.db.repoBilling();
-        
+
         const billing = await billingRepo.findOne({
             where: { id: billingId },
             relations: {
@@ -133,7 +133,7 @@ export class SampleCollectionService {
 
             const samplesToCreate = validItems.map((item, index) => {
                 const barcode = `${billing.patient.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`;
-                
+
                 return queryRunner.manager.create(SampleCollection, {
                     billingId: billing.id,
                     billingItemId: item.id,
@@ -193,7 +193,9 @@ export class SampleCollectionService {
                 relations: {
                     test: true,
                     patient: true,
-                    inventoryItems: true
+                    inventoryItems: {
+                        item: true
+                    }
                 }
             });
 
@@ -201,15 +203,32 @@ export class SampleCollectionService {
                 throw new NotFoundException('Sample not found');
             }
 
-            // Prevent duplicate deduction if already COLLECTED
+            // Allow logging equipment if already COLLECTED (e.g. phlebotomist adding supplies used):
             if (status === SampleStatus.COLLECTED && sample.status === SampleStatus.COLLECTED) {
                 if (aggregatedItems.size > 0) {
-                    throw new BadRequestException('Sample has already been collected. Stock deduction cannot be repeated.');
+                    for (const [itemId, quantity] of aggregatedItems.entries()) {
+                        await this.inventoryService.deductStockWithManager(queryRunner.manager, {
+                            itemId,
+                            quantity,
+                            department: 'Sample Collection',
+                            notes: `Sample collection (${sample.barcode})${notes ? ': ' + notes : ''}`,
+                            usedById: userId,
+                            usageDate: new Date()
+                        });
+
+                        const scItem = queryRunner.manager.create(SampleCollectionItem, {
+                            sampleCollectionId: sample.id,
+                            itemId,
+                            quantity
+                        });
+                        await queryRunner.manager.save(scItem);
+                    }
                 }
-                // If merely updating notes on an already collected sample
+                // If updating notes on an already collected sample
                 if (notes !== undefined) {
-                    sample.notes = notes;
-                    await queryRunner.manager.save(sample);
+                    await queryRunner.manager.update(SampleCollection, sample.id, {
+                        notes
+                    });
                 }
                 await queryRunner.commitTransaction();
                 return await this.getSampleWithRelations(sampleId);
@@ -238,17 +257,14 @@ export class SampleCollectionService {
                 }
             }
 
-            // Update sample fields
-            sample.status = status;
-            if (status === SampleStatus.COLLECTED) {
-                sample.collectedAt = new Date();
-                sample.collectedById = userId;
-            }
-            if (notes !== undefined) {
-                sample.notes = notes;
-            }
+            // Update sample fields directly via update() to prevent TypeORM relation overwrite
+            await queryRunner.manager.update(SampleCollection, sample.id, {
+                status,
+                collectedAt: status === SampleStatus.COLLECTED ? new Date() : sample.collectedAt,
+                collectedById: status === SampleStatus.COLLECTED ? userId : sample.collectedById,
+                notes: notes !== undefined ? notes : sample.notes
+            });
 
-            await queryRunner.manager.save(sample);
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();

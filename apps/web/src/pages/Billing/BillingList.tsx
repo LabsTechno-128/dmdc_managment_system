@@ -70,16 +70,33 @@ export const BillingList: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [settlementReason, setSettlementReason] = useState('');
+  const [paymentDone, setPaymentDone] = useState(false);
 
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
 
   const updatePaymentMutation = useMutation({
-    mutationFn: ({ id, amount, paymentMethod, notes }: { id: string; amount: number; paymentMethod: string; notes?: string }) =>
-      api.post(`/billing/${id}/payments`, { amount, paymentMethod, notes }),
+    mutationFn: ({
+      id,
+      amount,
+      paymentMethod,
+      notes,
+      paymentDone
+    }: {
+      id: string;
+      amount: number;
+      paymentMethod: string;
+      notes?: string;
+      paymentDone?: boolean;
+    }) =>
+      api.post(`/billing/${id}/payments`, { amount, paymentMethod, notes, paymentDone }),
     onSuccess: (res, variables) => {
       queryClient.invalidateQueries({ queryKey: ['billings'] });
-      toast.success('Payment recorded successfully');
+      toast.success(
+        variables.paymentDone
+          ? 'Payment recorded and balance settled (Paid in full)'
+          : 'Payment recorded successfully'
+      );
       const updatedBilling = res.data?.data || res.data;
       const originalBilling = billings.find((b: any) => b.id === variables.id);
       setPrintingBilling({ ...originalBilling, ...updatedBilling });
@@ -109,7 +126,8 @@ export const BillingList: React.FC = () => {
   const handleOpenPaymentModal = (billing: any, defaultTab: 'PAY' | 'SETTLE' = 'PAY') => {
     setPaymentModalData(billing);
     setPaymentModalTab(defaultTab);
-    setPaymentInput(String(billing.dueAmount));
+    setPaymentInput(''); // No default value set
+    setPaymentDone(false);
     setPaymentMethod('Cash');
     setPaymentNotes('');
     setSettlementReason('');
@@ -117,8 +135,12 @@ export const BillingList: React.FC = () => {
 
   const handleSubmitAction = () => {
     const amt = Number(paymentInput);
-    if (isNaN(amt) || amt <= 0 || amt > paymentModalData.dueAmount) {
-      toast.error(`Invalid amount. Please enter a value between 0.01 and ${paymentModalData.dueAmount}`);
+    if (!paymentInput || isNaN(amt) || amt <= 0 || amt > paymentModalData.dueAmount) {
+      toast.error(`Invalid amount. Please enter a value between 1 and ${paymentModalData.dueAmount}`);
+      return;
+    }
+    if (!Number.isInteger(amt)) {
+      toast.error('Payment amount must be a whole number');
       return;
     }
 
@@ -127,7 +149,8 @@ export const BillingList: React.FC = () => {
         id: paymentModalData.id,
         amount: amt,
         paymentMethod,
-        notes: paymentNotes || 'Payment against due'
+        notes: paymentNotes || (paymentDone ? 'Payment against due (marked as Paid)' : 'Payment against due'),
+        paymentDone
       });
     } else {
       if (!settlementReason.trim()) {
@@ -372,7 +395,8 @@ export const BillingList: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setPaymentModalTab('PAY');
-                      setPaymentInput(String(paymentModalData.dueAmount));
+                      setPaymentInput('');
+                      setPaymentDone(false);
                     }}
                     className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${paymentModalTab === 'PAY' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600'
                       }`}
@@ -383,7 +407,7 @@ export const BillingList: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setPaymentModalTab('SETTLE');
-                      setPaymentInput(String(paymentModalData.dueAmount));
+                      setPaymentInput('');
                     }}
                     className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${paymentModalTab === 'SETTLE' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-600'
                       }`}
@@ -426,19 +450,24 @@ export const BillingList: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {paymentModalTab === 'PAY' ? 'Amount to Collect (BDT)' : 'Amount to Settle / Waive (BDT)'}
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    {paymentModalTab === 'PAY' ? 'Amount to Collect (BDT)' : 'Amount to Settle / Waive (BDT)'}
+                  </label>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Current Due: <span className="font-mono font-bold text-rose-600">{Number(paymentModalData.dueAmount).toLocaleString()} BDT</span>
+                  </span>
+                </div>
                 <div className="relative">
                   <input
                     type="number"
-                    step="any"
-                    min="0.01"
+                    step="1"
+                    min="1"
                     max={paymentModalData.dueAmount}
                     autoFocus
                     value={paymentInput}
                     onChange={e => setPaymentInput(e.target.value)}
-                    placeholder={`Max: ${paymentModalData.dueAmount}`}
+                    placeholder="Enter amount to pay..."
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none font-mono font-semibold"
                   />
                   <button
@@ -450,6 +479,67 @@ export const BillingList: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {paymentModalTab === 'PAY' && (
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl cursor-pointer hover:bg-emerald-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={paymentDone}
+                      onChange={(e) => setPaymentDone(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-950">Payment Done</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          paymentDone ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/80 text-slate-600'
+                        }`}>
+                          {paymentDone ? 'Status: Paid' : 'Status: Partial'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700/80 mt-0.5">
+                        Mark invoice as fully settled. If paid amount is less than due, the remaining balance will be settled/waived.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Dynamic calculation preview */}
+                  {(() => {
+                    const entered = Number(paymentInput) || 0;
+                    const due = Number(paymentModalData.dueAmount || 0);
+                    const remainingDiff = Math.max(0, due - entered);
+
+                    if (entered > 0) {
+                      return (
+                        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1 text-xs">
+                          <div className="flex justify-between text-slate-600">
+                            <span>Amount Paying:</span>
+                            <span className="font-mono font-bold text-emerald-600">
+                              {entered.toLocaleString()} BDT
+                            </span>
+                          </div>
+                          {paymentDone && remainingDiff > 0 && (
+                            <div className="flex justify-between text-purple-700">
+                              <span>Settled / Waived Difference:</span>
+                              <span className="font-mono font-bold">
+                                - {remainingDiff.toLocaleString()} BDT
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-slate-800 font-bold border-t border-slate-200 pt-1">
+                            <span>Remaining Due:</span>
+                            <span className={`font-mono ${paymentDone || remainingDiff === 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {paymentDone || remainingDiff === 0 ? '0 BDT (Paid in full)' : `${remainingDiff.toLocaleString()} BDT`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
 
               {paymentModalTab === 'PAY' ? (
                 <>
@@ -510,6 +600,7 @@ export const BillingList: React.FC = () => {
                   updatePaymentMutation.isPending ||
                   settleMutation.isPending ||
                   !paymentInput ||
+                  Number(paymentInput) <= 0 ||
                   (paymentModalTab === 'SETTLE' && !settlementReason.trim())
                 }
                 className={`px-5 py-2 text-xs font-semibold text-white rounded-xl transition-colors disabled:opacity-50 cursor-pointer ${paymentModalTab === 'SETTLE'
@@ -521,7 +612,9 @@ export const BillingList: React.FC = () => {
                   ? 'Processing...'
                   : paymentModalTab === 'SETTLE'
                     ? 'Confirm Settlement / Waiver'
-                    : 'Submit Payment'}
+                    : paymentDone
+                      ? 'Submit & Mark as Paid'
+                      : 'Submit Payment'}
               </button>
             </div>
           </div>

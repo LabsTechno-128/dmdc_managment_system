@@ -730,7 +730,7 @@ export class BillingService {
 
             const totalAmount = round(Number(billing.totalAmount));
             let currentPaid = round(Number(billing.paidAmount));
-            const currentWaived = round(Number(billing.waivedAmount || 0));
+            let currentWaived = round(Number(billing.waivedAmount || 0));
             const currentDue = round(Math.max(0, totalAmount - currentPaid - currentWaived));
 
             if (payAmount > currentDue) {
@@ -752,16 +752,44 @@ export class BillingService {
 
             // 2. Update Billing
             currentPaid = round(currentPaid + payAmount);
-            const newDue = round(Math.max(0, totalAmount - currentPaid - currentWaived));
+            let newDue = round(Math.max(0, totalAmount - currentPaid - currentWaived));
 
+            const isPaymentDone = Boolean(data.paymentDone);
             let status = 'Unpaid';
-            if (newDue === 0) {
+
+            if (isPaymentDone && newDue > 0) {
+                const remainingDiff = newDue;
+                currentWaived = round(currentWaived + remainingDiff);
+                newDue = 0;
+                status = 'Paid';
+
+                const settlementTransaction = queryRunner.manager.create(PaymentTransaction, {
+                    billingId: billing.id,
+                    patientId: billing.patientId,
+                    amount: remainingDiff,
+                    paymentMethod: 'Waiver / Settlement',
+                    type: PaymentTransactionType.SETTLEMENT,
+                    receivedById: data.receivedById || user?.id || null,
+                    status: 'Completed',
+                    notes: notes
+                        ? `Settled difference upon payment (Payment Done): ${notes}`
+                        : 'Settled difference upon payment (Payment Done)'
+                });
+                await queryRunner.manager.save(settlementTransaction);
+
+                billing.settlementReason = billing.settlementReason
+                    ? `${billing.settlementReason}; Settled upon payment (Payment Done)`
+                    : 'Settled upon payment (Payment Done)';
+                billing.settledById = user?.id || null;
+                billing.settledAt = new Date();
+            } else if (newDue === 0) {
                 status = 'Paid';
             } else if (currentPaid > 0 && newDue > 0) {
                 status = 'Partial';
             }
 
             billing.paidAmount = currentPaid;
+            billing.waivedAmount = currentWaived;
             billing.dueAmount = newDue;
             billing.paymentStatus = status;
             await queryRunner.manager.save(billing);
@@ -777,7 +805,19 @@ export class BillingService {
 
             await queryRunner.commitTransaction();
 
-            return transaction;
+            const updatedBilling = await this.databaseService.repoBilling().findOne({
+                where: { id: billingId },
+                relations: {
+                    patient: true,
+                    createdBy: true,
+                    authorizedBy: true,
+                    settledBy: true,
+                    items: { test: true },
+                    payments: true
+                }
+            });
+
+            return updatedBilling || transaction;
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw error;

@@ -58,6 +58,7 @@ const ITEMS: NavItem[] = [
         children: [
             { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
+            { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.SUPER_ADMIN, UserRole.XRAY_REPORT, UserRole.USG_REPORT] },
             { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
         ]

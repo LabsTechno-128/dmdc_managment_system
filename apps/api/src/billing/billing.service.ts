@@ -6,6 +6,7 @@ import {
     BillingItem,
     PatientType,
     Patients,
+    Doctor,
     LabTest,
     Appointment,
     PaymentTransaction,
@@ -49,6 +50,27 @@ function isStrictPositiveInteger(value: any): boolean {
         return Number.isInteger(num) && Number.isFinite(num) && num > 0;
     }
     return false;
+}
+
+export const MAX_TEST_AVAILABILITY_NOTE_LENGTH = 2000;
+
+export function normalizeTestAvailabilityNote(value: any): string | null | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value === null) {
+        return null;
+    }
+    if (typeof value !== 'string') {
+        throw new BadRequestException('Test availability note must be a string');
+    }
+    const trimmed = value.trim();
+    if (trimmed.length > MAX_TEST_AVAILABILITY_NOTE_LENGTH) {
+        throw new BadRequestException(
+            `Test availability note cannot exceed ${MAX_TEST_AVAILABILITY_NOTE_LENGTH} characters`
+        );
+    }
+    return trimmed.length > 0 ? trimmed : null;
 }
 
 @Injectable()
@@ -106,7 +128,7 @@ export class BillingService {
     }
 
     async create(data: any, user?: any) {
-        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount, referredBy, vatRate: reqVatRate } = data;
+        const { items, patientId, discountType, discount, additionalCharges, paymentMethod, paidAmount, referredBy, referredByDoctorId, testAvailabilityNote, vatRate: reqVatRate } = data;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new BadRequestException('Billing items are required');
@@ -154,6 +176,24 @@ export class BillingService {
                 throw new BadRequestException('Paid amount must be a valid non-negative integer');
             }
         }
+
+        // Validate referredBy and referredByDoctorId
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (referredBy !== undefined && referredBy !== null) {
+            if (typeof referredBy !== 'string') {
+                throw new BadRequestException('Referred by must be a string');
+            }
+            if (referredBy.trim().length > 255) {
+                throw new BadRequestException('Referred by cannot exceed 255 characters');
+            }
+        }
+        if (referredByDoctorId !== undefined && referredByDoctorId !== null && String(referredByDoctorId).trim() !== '') {
+            if (!UUID_REGEX.test(String(referredByDoctorId).trim())) {
+                throw new BadRequestException('Invalid referredByDoctorId format');
+            }
+        }
+
+        const resolvedTestAvailabilityNote = normalizeTestAvailabilityNote(testAvailabilityNote) ?? null;
 
         const dataSource = this.databaseService.getDataSource();
         const queryRunner = dataSource.createQueryRunner();
@@ -245,6 +285,22 @@ export class BillingService {
             const billNumber = await this.generateBillNumber(queryRunner, 'BILL');
             const musakChallanNumber = data.musakChallanNumber || billNumber;
 
+            // 8b. Resolve Referred By (Existing Doctor vs Manual Referral)
+            let resolvedReferredByDoctorId: string | undefined = undefined;
+            let resolvedReferredBy: string | undefined = (referredBy && String(referredBy).trim()) ? String(referredBy).trim() : undefined;
+
+            if (referredByDoctorId !== undefined && referredByDoctorId !== null && String(referredByDoctorId).trim() !== '') {
+                const docId = String(referredByDoctorId).trim();
+                const referringDoctor = await queryRunner.manager.findOne(Doctor, { where: { id: docId } });
+                if (!referringDoctor) {
+                    throw new BadRequestException('Referred doctor not found');
+                }
+                resolvedReferredByDoctorId = referringDoctor.id;
+                const fullDocName = `${(referringDoctor.firstName || '').trim()} ${(referringDoctor.lastName || '').trim()}`.trim();
+                const formattedDocName = /^dr\.?\s+/i.test(fullDocName) ? fullDocName : `Dr. ${fullDocName}`;
+                resolvedReferredBy = resolvedReferredBy || formattedDocName;
+            }
+
             // 9. Create Billing Record with Authorization and Identity
             const newBilling = queryRunner.manager.create(Billing, {
                 billNumber,
@@ -267,7 +323,9 @@ export class BillingService {
                 settlementReason: waived > 0 ? 'Settled upon creation (Payment Done)' : undefined,
                 settledById: waived > 0 ? (user?.id || undefined) : undefined,
                 settledAt: waived > 0 ? new Date() : undefined,
-                referredBy: referredBy || undefined,
+                referredBy: resolvedReferredBy,
+                referredByDoctorId: resolvedReferredByDoctorId,
+                testAvailabilityNote: resolvedTestAvailabilityNote,
                 musakChallanNumber,
                 createdById: user?.id || undefined,
                 authorizedById: user?.id || undefined,
@@ -321,6 +379,7 @@ export class BillingService {
                 relations: {
                     patient: { appointments: true },
                     items: { test: true },
+                    referredByDoctor: true,
                     createdBy: true,
                     authorizedBy: true,
                     settledBy: true
@@ -348,6 +407,7 @@ export class BillingService {
             .leftJoinAndSelect('billing.createdBy', 'createdBy')
             .leftJoinAndSelect('billing.authorizedBy', 'authorizedBy')
             .leftJoinAndSelect('billing.settledBy', 'settledBy')
+            .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
             .orderBy('billing.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
@@ -389,6 +449,7 @@ export class BillingService {
             where: { id },
             relations: {
                 patient: true,
+                referredByDoctor: true,
                 createdBy: true,
                 authorizedBy: true,
                 settledBy: true
@@ -469,6 +530,7 @@ export class BillingService {
 
         return {
             ...billing,
+            testAvailabilityNote: billing.testAvailabilityNote ?? null,
             taxableAmount,
             vatRate,
             vatAmount,
@@ -479,6 +541,66 @@ export class BillingService {
             clinic,
             hospitalSetting: clinic
         };
+    }
+
+    async update(id: string, data: any, user?: any) {
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!id || !UUID_REGEX.test(id)) {
+            throw new BadRequestException('Invalid invoice ID format');
+        }
+
+        if (user && user.role === UserRole.USER) {
+            throw new ForbiddenException('You are not authorized to update this invoice');
+        }
+
+        const billing = await this.databaseService.repoBilling().findOne({ where: { id } });
+        if (!billing) {
+            throw new NotFoundException('Invoice not found');
+        }
+
+        if (data && Object.prototype.hasOwnProperty.call(data, 'testAvailabilityNote')) {
+            const normalizedNote = normalizeTestAvailabilityNote(data.testAvailabilityNote);
+            billing.testAvailabilityNote = normalizedNote ?? null;
+        }
+
+        if (data && Object.prototype.hasOwnProperty.call(data, 'referredBy')) {
+            if (data.referredBy !== undefined && data.referredBy !== null && typeof data.referredBy !== 'string') {
+                throw new BadRequestException('Referred by must be a string');
+            }
+            const trimmedRef = data.referredBy ? String(data.referredBy).trim() : '';
+            if (trimmedRef.length > 255) {
+                throw new BadRequestException('Referred by cannot exceed 255 characters');
+            }
+            billing.referredBy = trimmedRef || null;
+        }
+
+        if (data && Object.prototype.hasOwnProperty.call(data, 'referredByDoctorId')) {
+            const rawDocId = data.referredByDoctorId ? String(data.referredByDoctorId).trim() : '';
+            if (rawDocId) {
+                if (!UUID_REGEX.test(rawDocId)) {
+                    throw new BadRequestException('Invalid referredByDoctorId format');
+                }
+                const referringDoctor = await this.databaseService.repoDoctor().findOne({ where: { id: rawDocId } });
+                if (!referringDoctor) {
+                    throw new BadRequestException('Referred doctor not found');
+                }
+                billing.referredByDoctorId = referringDoctor.id;
+                const fullDocName = `${(referringDoctor.firstName || '').trim()} ${(referringDoctor.lastName || '').trim()}`.trim();
+                const formattedDocName = /^dr\.?\s+/i.test(fullDocName) ? fullDocName : `Dr. ${fullDocName}`;
+                if (!billing.referredBy) {
+                    billing.referredBy = formattedDocName;
+                }
+            } else {
+                billing.referredByDoctorId = null;
+            }
+        }
+
+        if (data && typeof data.paymentStatus === 'string' && data.paymentStatus.trim()) {
+            billing.paymentStatus = data.paymentStatus.trim();
+        }
+
+        await this.databaseService.repoBilling().save(billing);
+        return this.findOne(id, user);
     }
 
     async updateStatus(id: string, paymentStatus: string) {
@@ -638,6 +760,7 @@ export class BillingService {
                 settledById: waived > 0 ? (user?.id || undefined) : undefined,
                 settledAt: waived > 0 ? new Date() : undefined,
                 referredBy: referredBy || undefined,
+                testAvailabilityNote: normalizeTestAvailabilityNote(data.testAvailabilityNote) ?? null,
                 musakChallanNumber,
                 createdById: user?.id || undefined,
                 authorizedById: user?.id || undefined,

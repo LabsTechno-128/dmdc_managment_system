@@ -1,5 +1,5 @@
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class BillingItemDto {
     @IsNotEmpty({ message: 'Test ID is required' })
@@ -68,7 +68,19 @@ export class CreateBillingDto {
 
     @IsOptional()
     @IsString()
-    referredBy?: string;
+    @MaxLength(255, { message: 'Referred by cannot exceed 255 characters' })
+    referredBy?: string | null;
+
+    @IsOptional()
+    @Transform(({ value }) => (value === '' ? null : value))
+    @IsUUID('all', { message: 'Referred by doctor ID must be a valid UUID' })
+    referredByDoctorId?: string | null;
+
+    @IsOptional()
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @IsString({ message: 'Test availability note must be a string' })
+    @MaxLength(2000, { message: 'Test availability note cannot exceed 2000 characters' })
+    testAvailabilityNote?: string | null;
 
     @IsOptional()
     musakChallanNumber?: string;

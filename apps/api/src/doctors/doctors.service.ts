@@ -1,6 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { Doctor } from '@hospital/database';
+
+export function formatDoctorDisplayName(firstName?: string, lastName?: string): string {
+    const full = `${(firstName || '').trim()} ${(lastName || '').trim()}`.trim();
+    if (!full) return '';
+    return /^dr\.?\s+/i.test(full) ? full : `Dr. ${full}`;
+}
 
 @Injectable()
 export class DoctorsService {
@@ -10,15 +16,87 @@ export class DoctorsService {
         return this.databaseService.repoDoctor().save(data);
     }
 
+    private applyDoctorSearchFilter(qb: any, search?: string) {
+        if (search === undefined || search === null) return;
+        if (typeof search !== 'string') {
+            throw new BadRequestException('Search query must be a string');
+        }
+        const trimmed = search.trim();
+        if (trimmed.length > 100) {
+            throw new BadRequestException('Search query cannot exceed 100 characters');
+        }
+        if (!trimmed) return;
+
+        // Strip optional leading "Dr." or "Dr " prefix so "Dr. Rahman" matches "Rahman"
+        const cleaned = trimmed.replace(/^dr\.?\s*/i, '').trim();
+        if (!cleaned) return;
+
+        const tokens = cleaned.split(/\s+/).filter(Boolean);
+        if (tokens.length === 1) {
+            qb.where(
+                '(doctor.firstName ILIKE :search OR doctor.lastName ILIKE :search OR doctor.specialization ILIKE :search OR doctor.degree ILIKE :search OR doctor.department ILIKE :search)',
+                { search: `%${tokens[0]}%` }
+            );
+        } else {
+            tokens.forEach((token, idx) => {
+                const paramName = `search_${idx}`;
+                const clause = `(doctor.firstName ILIKE :${paramName} OR doctor.lastName ILIKE :${paramName} OR doctor.specialization ILIKE :${paramName} OR doctor.degree ILIKE :${paramName} OR doctor.department ILIKE :${paramName})`;
+                if (idx === 0) {
+                    qb.where(clause, { [paramName]: `%${token}%` });
+                } else {
+                    qb.andWhere(clause, { [paramName]: `%${token}%` });
+                }
+            });
+        }
+    }
+
+    async autocomplete(search?: string, limit: number = 10) {
+        if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 50)) {
+            throw new BadRequestException('Limit must be an integer between 1 and 50');
+        }
+
+        const safeLimit = limit || 10;
+        const qb = this.databaseService.repoDoctor().createQueryBuilder('doctor')
+            .select([
+                'doctor.id',
+                'doctor.firstName',
+                'doctor.lastName',
+                'doctor.specialization',
+                'doctor.degree',
+                'doctor.department',
+            ])
+            .take(safeLimit)
+            .orderBy('doctor.firstName', 'ASC')
+            .addOrderBy('doctor.lastName', 'ASC');
+
+        this.applyDoctorSearchFilter(qb, search);
+
+        const doctors = await qb.getMany();
+        return doctors.map((doc) => ({
+            id: doc.id,
+            firstName: doc.firstName,
+            lastName: doc.lastName,
+            name: formatDoctorDisplayName(doc.firstName, doc.lastName),
+            specialization: doc.specialization,
+            degree: doc.degree || null,
+            department: doc.department || null,
+        }));
+    }
+
     async findAll(page: number = 1, limit: number = 10, search?: string) {
+        if (!Number.isInteger(page) || page < 1) {
+            throw new BadRequestException('Page must be a positive integer');
+        }
+        if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+            throw new BadRequestException('Limit must be an integer between 1 and 100');
+        }
+
         const qb = this.databaseService.repoDoctor().createQueryBuilder('doctor')
             .skip((page - 1) * limit)
             .take(limit)
             .orderBy('doctor.createdAt', 'DESC');
 
-        if (search) {
-            qb.where('doctor.firstName ILIKE :search OR doctor.lastName ILIKE :search OR doctor.specialization ILIKE :search', { search: `%${search}%` });
-        }
+        this.applyDoctorSearchFilter(qb, search);
 
         const [data, total] = await qb.getManyAndCount();
 

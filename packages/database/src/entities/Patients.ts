@@ -7,10 +7,13 @@ import {
     UpdateDateColumn,
     BaseEntity,
     OneToMany,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
 import { Appointment } from './Appointment';
 import { Report } from './Report';
 import { Billing } from './Billing';
+import { Doctor } from './Doctor';
 
 import { Gender, PatientType } from '../enums';
 export { Gender, PatientType };
@@ -90,6 +93,16 @@ export class Patients extends BaseEntity {
         default: PatientType.IN_HOUSE
     })
     patientType!: PatientType;
+
+    @Column({ type: 'varchar', nullable: true })
+    referredBy?: string | null;
+
+    @Column({ type: 'uuid', nullable: true })
+    referredByDoctorId?: string | null;
+
+    @ManyToOne(() => Doctor, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'referredByDoctorId' })
+    referredByDoctor?: Doctor | null;
 
     @OneToMany(() => Appointment, (appointment) => appointment.patient)
     appointments!: Appointment[];

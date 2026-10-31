@@ -10,6 +10,7 @@ import {
     OneToMany
 } from 'typeorm';
 import { Patients } from './Patients';
+import { Doctor } from './Doctor';
 import { PatientType } from '../enums';
 import { BillingItem } from './BillingItem';
 import { User } from './User';
@@ -130,8 +131,19 @@ export class Billing {
     @Column({ length: 50, default: 'Unpaid' })
     paymentStatus!: string;
 
-    @Column({ nullable: true })
-    referredBy?: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    referredBy?: string | null;
+
+    @Column({ type: 'uuid', nullable: true })
+    referredByDoctorId?: string | null;
+
+    @ManyToOne(() => Doctor, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'referredByDoctorId' })
+    referredByDoctor?: Doctor | null;
+
+    @Column({ name: 'test_availability_note', type: 'text', nullable: true })
+    testAvailabilityNote?: string | null;
 
     @CreateDateColumn()
     createdAt!: Date;

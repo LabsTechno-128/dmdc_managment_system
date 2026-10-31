@@ -6,6 +6,7 @@ import { UserRole } from '@hospital/database';
 import { BillingService } from './billing.service';
 
 import { CreateBillingDto } from './dto/create-billing.dto';
+import { UpdateBillingDto } from './dto/update-billing.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
@@ -33,6 +34,12 @@ export class BillingController {
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.USER)
     findOne(@Param('id') id: string, @Req() req?: any) {
         return this.billingService.findOne(id, req?.user);
+    }
+
+    @Patch(':id')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.ACCOUNTANT, UserRole.DOCTOR)
+    update(@Param('id') id: string, @Body() data: UpdateBillingDto, @Req() req?: any) {
+        return this.billingService.update(id, data, req?.user);
     }
 
     @Patch(':id/status')

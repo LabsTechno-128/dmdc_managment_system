@@ -17,8 +17,10 @@ import {
   RefreshCw,
   Tag,
   ShieldCheck,
-  Receipt
+  Receipt,
+  Edit3
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { api } from '../../lib/api';
 import { toast } from 'react-toastify';
@@ -37,14 +39,18 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   onClose,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
   const canAuthorize = isAdmin || user?.role === 'receptionist' || user?.role === 'accountant';
+  const canEditNote = canAuthorize || user?.role === 'doctor';
 
   const [isSettling, setIsSettling] = useState(false);
   const [settleAmount, setSettleAmount] = useState('');
   const [settleReason, setSettleReason] = useState('');
+  const [isEditingAvailabilityNote, setIsEditingAvailabilityNote] = useState(false);
+  const [availabilityNoteInput, setAvailabilityNoteInput] = useState('');
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -113,6 +119,27 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
       toast.error(err.response?.data?.message || 'Failed to authorize invoice');
     }
   });
+
+  const updateAvailabilityNoteMutation = useMutation({
+    mutationFn: (note: string | null) =>
+      api.patch(`/billing/${invoiceId}`, { testAvailabilityNote: note }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['billing-details', invoiceId] });
+      queryClient.invalidateQueries({ queryKey: ['billings'] });
+      toast.success('Test availability note updated');
+      setIsEditingAvailabilityNote(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to update test availability note');
+    },
+  });
+
+  useEffect(() => {
+    if (invoice) {
+      setAvailabilityNoteInput(invoice.testAvailabilityNote || '');
+    }
+    setIsEditingAvailabilityNote(false);
+  }, [invoice?.id, invoice?.testAvailabilityNote]);
 
   if (!isOpen || !invoiceId) return null;
 
@@ -222,6 +249,20 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {invoice && canEditNote && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate(`/billing/${invoice.id}/edit`);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-primary bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-colors cursor-pointer"
+                title="Edit billing record"
+              >
+                <Edit3 size={15} />
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+            )}
             {invoice && (
               <button
                 type="button"
@@ -454,7 +495,9 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                     <div>
                       <span className="text-slate-400 block text-[11px]">Referred By</span>
                       <span className="font-medium text-slate-700">
-                        {invoice.doctor?.name || invoice.referredBy || 'Self / Walk-in'}
+                        {invoice.referredByDoctor
+                          ? `Dr. ${invoice.referredByDoctor.firstName || ''} ${invoice.referredByDoctor.lastName || ''}`.trim()
+                          : invoice.referredBy || invoice.doctor?.name || 'Self / Walk-in'}
                       </span>
                     </div>
                   </div>
@@ -653,6 +696,92 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Test Availability Note Section */}
+              {(invoice.testAvailabilityNote || canEditNote) && (
+                <div className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-amber-600 shrink-0" />
+                      <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Test Availability Note
+                      </h3>
+                    </div>
+                    {canEditNote && !isEditingAvailabilityNote && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAvailabilityNoteInput(invoice.testAvailabilityNote || '');
+                          setIsEditingAvailabilityNote(true);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-800 bg-white hover:bg-amber-100/70 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit3 size={12} />
+                        <span>{invoice.testAvailabilityNote ? 'Edit Note' : 'Add Note'}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingAvailabilityNote ? (
+                    <div className="space-y-2">
+                      <textarea
+                        rows={3}
+                        maxLength={2000}
+                        value={availabilityNoteInput}
+                        onChange={(e) => setAvailabilityNoteInput(e.target.value)}
+                        placeholder="Enter when the test will be available or when the report is expected..."
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-amber-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none resize-y"
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {availabilityNoteInput.length}/2000
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {invoice.testAvailabilityNote && (
+                            <button
+                              type="button"
+                              disabled={updateAvailabilityNoteMutation.isPending}
+                              onClick={() => updateAvailabilityNoteMutation.mutate(null)}
+                              className="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 bg-white border border-rose-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              Clear Note
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsEditingAvailabilityNote(false);
+                              setAvailabilityNoteInput(invoice.testAvailabilityNote || '');
+                            }}
+                            className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={updateAvailabilityNoteMutation.isPending}
+                            onClick={() => {
+                              const trimmed = availabilityNoteInput.trim();
+                              updateAvailabilityNoteMutation.mutate(trimmed.length > 0 ? trimmed : null);
+                            }}
+                            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {updateAvailabilityNoteMutation.isPending ? 'Saving...' : 'Save Note'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : invoice.testAvailabilityNote ? (
+                    <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {invoice.testAvailabilityNote}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">
+                      No test availability or expected report delivery note recorded for this invoice.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Staff Authorization & Identity Banner */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">

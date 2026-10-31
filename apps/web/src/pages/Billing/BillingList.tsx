@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FileText, Plus, CheckCircle, Clock, Search, Printer, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { FileText, Plus, CheckCircle, Clock, Search, Printer, ChevronLeft, ChevronRight, Eye, Edit } from 'lucide-react';
 import { TableSkeleton } from '../../components/skeleton/TableSkeleton';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
@@ -319,6 +319,13 @@ export const BillingList: React.FC = () => {
                             title="View Invoice Details"
                           >
                             <Eye size={15} />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/billing/${billing.id}/edit`)}
+                            className="inline-flex items-center p-1.5 text-slate-600 hover:text-primary bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                            title="Edit Invoice / Test Availability Note"
+                          >
+                            <Edit size={15} />
                           </button>
                           <button
                             onClick={() => setPrintingBilling(billing)}

@@ -122,6 +122,7 @@ function App() {
               <Route path="/billing" element={<BillingList />} />
               <Route path="/billing/:id" element={<BillingList />} />
               <Route path="/billing/new" element={<NewBilling />} />
+              <Route path="/billing/:id/edit" element={<NewBilling />} />
               <Route path="/reports" element={<ReportsList />} />
               <Route path="/appointments" element={<AppointmentsList />} />
               <Route path="/appointments/create" element={<NewAppointment />} />

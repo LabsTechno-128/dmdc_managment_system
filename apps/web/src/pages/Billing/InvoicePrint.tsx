@@ -170,7 +170,9 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             <div className="col-span-2">
               <span className="text-slate-500">Referred By: </span>
               <strong className="text-slate-900 truncate inline-block max-w-[200px] align-bottom">
-                {billing.referredBy || (billing.doctor ? `Dr. ${billing.doctor.name}` : 'Self / Direct')}
+                {billing.referredByDoctor
+                  ? `Dr. ${billing.referredByDoctor.firstName || ''} ${billing.referredByDoctor.lastName || ''}`.trim()
+                  : billing.referredBy || (billing.doctor ? `Dr. ${billing.doctor.firstName || ''} ${billing.doctor.lastName || ''}`.trim() || billing.doctor.name : 'Self / Direct')}
               </strong>
             </div>
           </div>
@@ -188,6 +190,14 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         <div className="flex justify-between items-start gap-3 pt-1">
           {/* Terms & Payment Notice */}
           <div className="flex-1 space-y-1 text-[8px] text-slate-500 pt-0.5 pr-2">
+            {billing.testAvailabilityNote && (
+              <div className="border border-slate-300 rounded p-1.5 bg-amber-50/50 space-y-0.5 text-slate-800">
+                <p className="font-bold text-slate-900 text-[8px] uppercase tracking-wide">
+                  Test Availability / Expected Report Note:
+                </p>
+                <p className="whitespace-pre-wrap leading-snug">{billing.testAvailabilityNote}</p>
+              </div>
+            )}
             <div className="border border-slate-200 rounded p-1.5 bg-slate-50/60 space-y-0.5">
               <p className="font-semibold text-slate-700 text-[8px]">Notice & Terms:</p>
               <p>• Please collect test reports within 3 days. Bring this invoice at delivery.</p>

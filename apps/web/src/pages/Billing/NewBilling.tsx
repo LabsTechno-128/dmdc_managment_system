@@ -1,19 +1,33 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '../../lib/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Printer, Search, User, FileText, CheckCircle2, Stethoscope, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
 import { InvoicePrint } from './InvoicePrint';
+import {
+  BD_PHONE_REGEX,
+  type DoctorSuggestion,
+  type ReferralState,
+  formatDoctorName,
+  isExpectedPhoneLengthReached,
+  isExpectedAgeLengthReached,
+  focusNextField,
+  handleReferralInputEdit,
+  handleReferralDoctorSelect,
+  handleReferralBlur,
+  buildReferralSubmissionPayload,
+  splitTextForHighlight,
+} from './outsideFormHelpers';
 
 // Schema for outside patient
 const outsidePatientSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(1, 'Phone is required').regex(/^(?:\+88|88)?01[3-9]\d{8}$/, 'Must be a valid Bangladeshi phone number'),
+  phone: z.string().min(1, 'Phone is required').regex(BD_PHONE_REGEX, 'Must be a valid Bangladeshi phone number'),
   age: z.preprocess(
     (val) => (val === '' || val === undefined || val === null || (typeof val === 'number' && Number.isNaN(val)) ? undefined : Number(val)),
     z.number({ error: 'Age must be a valid number' }).int('Age must be a whole number').min(0, 'Age must be positive').max(150, 'Age must be valid').optional()
@@ -63,9 +77,15 @@ const billingSchema = z.object({
   paymentMethod: z.string(),
   paymentStatus: z.string(),
   referredBy: z.string().optional(),
+  referredByDoctorId: z.string().nullable().optional(),
+  testAvailabilityNote: z
+    .string()
+    .max(2000, 'Test availability note cannot exceed 2000 characters')
+    .optional()
+    .nullable(),
 }).superRefine((data, ctx) => {
   const subtotal = data.items.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
-  
+
   let discountAmount = 0;
   if (data.discountType === 'PERCENTAGE') {
     if (data.discount > 100) {
@@ -78,7 +98,7 @@ const billingSchema = z.object({
     }
     discountAmount = data.discount;
   }
-  
+
   const taxableAmount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
   const vatRate = Number(data.vatRate) || 0;
   const vatAmount = Math.round(taxableAmount * (vatRate / 100) * 100) / 100;
@@ -95,8 +115,21 @@ const billingSchema = z.object({
 
 export const NewBilling: React.FC = () => {
   const navigate = useNavigate();
+  const { id: routeBillingId } = useParams<{ id?: string }>();
+  const [searchParams] = useSearchParams();
+  const editBillingId = routeBillingId || searchParams.get('edit') || null;
+  const isEditMode = Boolean(editBillingId);
+  const hasHydratedEditRef = useRef<string | null>(null);
   const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement>(null);
+  const billingWorkspaceRef = useRef<HTMLDivElement>(null);
+  const outsideNameInputRef = useRef<HTMLInputElement | null>(null);
+  const referredByInputRef = useRef<HTMLInputElement | null>(null);
+  const referralContainerRef = useRef<HTMLDivElement>(null);
+
+  const prevPhoneValueRef = useRef<string>('');
+  const prevAgeValueRef = useRef<string>('');
+  const genderArrowKeyRef = useRef<boolean>(false);
 
   const [activeTab, setActiveTab] = useState<'EXISTING' | 'OUTSIDE'>('EXISTING');
   const [searchPatientId, setSearchPatientId] = useState('');
@@ -105,6 +138,27 @@ export const NewBilling: React.FC = () => {
   const [isSearchingPatient, setIsSearchingPatient] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [createdInvoice, setCreatedInvoice] = useState<any>(null);
+
+  // Referred By Autocomplete State
+  const [referralState, setReferralState] = useState<ReferralState>({
+    referredBy: '',
+    referredByDoctorId: null,
+    selectedDoctor: null,
+  });
+  const referralStateRef = useRef<ReferralState>({
+    referredBy: '',
+    referredByDoctorId: null,
+    selectedDoctor: null,
+  });
+  const [doctorSuggestions, setDoctorSuggestions] = useState<DoctorSuggestion[]>([]);
+  const [isDoctorDropdownOpen, setIsDoctorDropdownOpen] = useState(false);
+  const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
+  const [doctorSearchError, setDoctorSearchError] = useState<string | null>(null);
+  const [highlightedDoctorIndex, setHighlightedDoctorIndex] = useState<number>(-1);
+  const [hasSearchedCurrentQuery, setHasSearchedCurrentQuery] = useState(false);
+
+  const doctorDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const doctorAbortControllerRef = useRef<AbortController | null>(null);
 
   // Queries
   const { data: tests } = useQuery({
@@ -123,10 +177,21 @@ export const NewBilling: React.FC = () => {
     },
   });
 
+  const { data: existingBilling, isLoading: isLoadingExistingBilling } = useQuery({
+    queryKey: ['billing-details', editBillingId],
+    queryFn: async () => {
+      if (!editBillingId) return null;
+      const res = await api.get(`/billing/${editBillingId}`);
+      return res.data?.data || res.data || res;
+    },
+    enabled: isEditMode,
+    staleTime: 0,
+  });
+
   // Forms
   const outsideForm = useForm({
     resolver: zodResolver(outsidePatientSchema),
-    defaultValues: { name: '', phone: '', age: undefined, gender: 'MALE' }
+    defaultValues: { name: '', phone: '', age: undefined, gender: 'MALE' as const }
   });
 
   const billingForm = useForm({
@@ -141,19 +206,317 @@ export const NewBilling: React.FC = () => {
       paymentDone: false,
       paymentMethod: 'Cash',
       paymentStatus: 'Unpaid',
-      referredBy: ''
+      referredBy: '',
+      referredByDoctorId: null as string | null,
+      testAvailabilityNote: '',
     }
   });
 
+  // Focus first field when switching to OUTSIDE tab
+  useEffect(() => {
+    if (activeTab === 'OUTSIDE') {
+      const timer = setTimeout(() => {
+        if (outsideNameInputRef.current && !outsideNameInputRef.current.disabled) {
+          outsideNameInputRef.current.focus();
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
+
+  // Close doctor autocomplete dropdown on outside click without losing manual input
+  useEffect(() => {
+    const handleDocumentMouseDown = (event: MouseEvent) => {
+      if (
+        referralContainerRef.current &&
+        !referralContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsDoctorDropdownOpen(false);
+        setHighlightedDoctorIndex(-1);
+      }
+    };
+    document.addEventListener('mousedown', handleDocumentMouseDown);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentMouseDown);
+    };
+  }, []);
+
+  // Cleanup debounce & abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (doctorDebounceTimerRef.current) {
+        clearTimeout(doctorDebounceTimerRef.current);
+      }
+      if (doctorAbortControllerRef.current) {
+        doctorAbortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const updateReferralState = useCallback(
+    (nextState: ReferralState, options?: { shouldDirty?: boolean; shouldValidate?: boolean }) => {
+      referralStateRef.current = nextState;
+      setReferralState(nextState);
+      if (referredByInputRef.current && referredByInputRef.current.value !== nextState.referredBy) {
+        referredByInputRef.current.value = nextState.referredBy;
+      }
+      billingForm.setValue('referredBy', nextState.referredBy, {
+        shouldDirty: options?.shouldDirty ?? true,
+        shouldValidate: options?.shouldValidate ?? true,
+      });
+      billingForm.setValue('referredByDoctorId', nextState.referredByDoctorId, {
+        shouldDirty: options?.shouldDirty ?? true,
+        shouldValidate: options?.shouldValidate ?? true,
+      });
+    },
+    [billingForm]
+  );
+
+  // Debounced dynamic doctor search with request cancellation
+  const triggerDoctorSearch = useCallback((query: string) => {
+    if (doctorDebounceTimerRef.current) {
+      clearTimeout(doctorDebounceTimerRef.current);
+    }
+    if (doctorAbortControllerRef.current) {
+      doctorAbortControllerRef.current.abort();
+    }
+
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setDoctorSuggestions([]);
+      setIsDoctorDropdownOpen(false);
+      setIsSearchingDoctors(false);
+      setDoctorSearchError(null);
+      setHasSearchedCurrentQuery(false);
+      return;
+    }
+
+    setIsDoctorDropdownOpen(true);
+    setIsSearchingDoctors(true);
+    setDoctorSearchError(null);
+    setHasSearchedCurrentQuery(false);
+
+    doctorDebounceTimerRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      doctorAbortControllerRef.current = controller;
+
+      try {
+        let res: any;
+        try {
+          res = await api.get('/doctors/autocomplete', {
+            params: { search: trimmed, limit: 10 },
+            signal: controller.signal,
+          });
+        } catch (primaryErr: any) {
+          if (
+            controller.signal.aborted ||
+            primaryErr?.name === 'CanceledError' ||
+            primaryErr?.name === 'AbortError' ||
+            primaryErr?.code === 'ERR_CANCELED'
+          ) {
+            throw primaryErr;
+          }
+          // Fallback to GET /doctors if /doctors/autocomplete endpoint is not yet active on the running server
+          const fallbackQuery = trimmed.replace(/^dr\.?\s*/i, '').trim() || trimmed;
+          res = await api.get('/doctors', {
+            params: { page: 1, limit: 10, search: fallbackQuery },
+            signal: controller.signal,
+          });
+        }
+
+        if (controller.signal.aborted) return;
+
+        const rawList = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : Array.isArray(res)
+              ? res
+              : [];
+
+        const normalized: DoctorSuggestion[] = rawList.map((doc: any) => ({
+          id: String(doc.id),
+          firstName: doc.firstName || doc.first_name || '',
+          lastName: doc.lastName || doc.last_name || '',
+          name: formatDoctorName(doc),
+          specialization: doc.specialization || '',
+          degree: doc.degree || null,
+          department: doc.department || null,
+        }));
+
+        setDoctorSuggestions(normalized);
+        setHighlightedDoctorIndex(-1);
+        setHasSearchedCurrentQuery(true);
+        setIsSearchingDoctors(false);
+      } catch (err: any) {
+        if (
+          controller.signal.aborted ||
+          err?.name === 'CanceledError' ||
+          err?.name === 'AbortError' ||
+          err?.code === 'ERR_CANCELED'
+        ) {
+          return;
+        }
+        setDoctorSuggestions([]);
+        setHasSearchedCurrentQuery(true);
+        setIsSearchingDoctors(false);
+        setDoctorSearchError('Could not load doctor suggestions. You can still enter the name manually.');
+      }
+    }, 280);
+  }, []);
+
+  const handleReferredByChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    const nextState = handleReferralInputEdit(referralStateRef.current, newValue);
+    updateReferralState(nextState);
+    triggerDoctorSearch(newValue);
+  };
+
+  const handleSelectDoctorSuggestion = (doctor: DoctorSuggestion) => {
+    if (doctorDebounceTimerRef.current) {
+      clearTimeout(doctorDebounceTimerRef.current);
+    }
+    if (doctorAbortControllerRef.current) {
+      doctorAbortControllerRef.current.abort();
+    }
+
+    const nextState = handleReferralDoctorSelect(doctor);
+    updateReferralState(nextState);
+    setIsDoctorDropdownOpen(false);
+    setIsSearchingDoctors(false);
+    setHighlightedDoctorIndex(-1);
+
+    setTimeout(() => {
+      if (referredByInputRef.current && billingWorkspaceRef.current) {
+        focusNextField(referredByInputRef.current, billingWorkspaceRef.current);
+      }
+    }, 0);
+  };
+
+  const handleReferredByBlur = () => {
+    const nextState = handleReferralBlur(referralStateRef.current);
+    updateReferralState(nextState, { shouldDirty: false, shouldValidate: true });
+  };
+
+  const handleReferredByKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      if (doctorSuggestions.length > 0) {
+        e.preventDefault();
+        setIsDoctorDropdownOpen(true);
+        setHighlightedDoctorIndex((prev) => (prev + 1) % doctorSuggestions.length);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      if (isDoctorDropdownOpen && doctorSuggestions.length > 0) {
+        e.preventDefault();
+        setHighlightedDoctorIndex((prev) => (prev <= 0 ? doctorSuggestions.length - 1 : prev - 1));
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (isDoctorDropdownOpen) {
+        e.preventDefault();
+        setIsDoctorDropdownOpen(false);
+        setHighlightedDoctorIndex(-1);
+      }
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      setIsDoctorDropdownOpen(false);
+      setHighlightedDoctorIndex(-1);
+      handleReferredByBlur();
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = e.currentTarget;
+
+      if (
+        isDoctorDropdownOpen &&
+        highlightedDoctorIndex >= 0 &&
+        highlightedDoctorIndex < doctorSuggestions.length
+      ) {
+        handleSelectDoctorSuggestion(doctorSuggestions[highlightedDoctorIndex]);
+        return;
+      }
+
+      setIsDoctorDropdownOpen(false);
+      setHighlightedDoctorIndex(-1);
+      handleReferredByBlur();
+      focusNextField(target, billingWorkspaceRef.current);
+    }
+  };
+
   // Populate default VAT from clinic settings when loaded
   useEffect(() => {
-    if (settings && settings.defaultVatRate !== undefined) {
+    if (!isEditMode && settings && settings.defaultVatRate !== undefined) {
       const cur = billingForm.getValues('vatRate');
       if (cur === 0 || cur === undefined) {
         billingForm.setValue('vatRate', Number(settings.defaultVatRate) || 0);
       }
     }
-  }, [settings, billingForm]);
+  }, [settings, billingForm, isEditMode]);
+
+  // Hydrate form when editing an existing billing record
+  useEffect(() => {
+    if (!isEditMode || !existingBilling || hasHydratedEditRef.current === existingBilling.id) {
+      return;
+    }
+    hasHydratedEditRef.current = existingBilling.id;
+
+    if (existingBilling.patient) {
+      setActiveTab('EXISTING');
+      setSelectedPatient(existingBilling.patient);
+    }
+
+    const initialReferredBy = existingBilling.referredByDoctor
+      ? formatDoctorName(existingBilling.referredByDoctor)
+      : existingBilling.referredBy || '';
+    const initialReferralState: ReferralState = {
+      referredBy: initialReferredBy,
+      referredByDoctorId: existingBilling.referredByDoctorId || null,
+      selectedDoctor: existingBilling.referredByDoctor
+        ? {
+            id: String(existingBilling.referredByDoctor.id),
+            firstName: existingBilling.referredByDoctor.firstName || '',
+            lastName: existingBilling.referredByDoctor.lastName || '',
+            name: initialReferredBy,
+            specialization: existingBilling.referredByDoctor.specialization || '',
+          }
+        : null,
+    };
+    referralStateRef.current = initialReferralState;
+    setReferralState(initialReferralState);
+
+    const mappedItems = Array.isArray(existingBilling.items)
+      ? existingBilling.items.map((item: any) => ({
+          testId: String(item.testId || item.test?.id || item.id || '1'),
+          name: item.test?.name || item.name || item.description || 'Diagnostic Test',
+          price: Math.round(Number(item.price || item.test?.billRate || 0)),
+        }))
+      : [];
+
+    billingForm.reset({
+      items: mappedItems,
+      discountType: (existingBilling.discountType === 'PERCENTAGE' ? 'PERCENTAGE' : 'FIXED') as 'PERCENTAGE' | 'FIXED',
+      discount: Math.round(Number(existingBilling.discount || 0)),
+      vatRate: Math.round(Number(existingBilling.vatRate || 0)),
+      additionalCharges: Math.round(Number(existingBilling.additionalCharges || 0)),
+      paidAmount: Math.round(Number(existingBilling.paidAmount || 0)),
+      paymentDone: existingBilling.paymentStatus === 'Paid',
+      paymentMethod: existingBilling.paymentMethod || 'Cash',
+      paymentStatus: existingBilling.paymentStatus || 'Unpaid',
+      referredBy: initialReferredBy,
+      referredByDoctorId: existingBilling.referredByDoctorId || null,
+      testAvailabilityNote: existingBilling.testAvailabilityNote ?? '',
+    });
+  }, [isEditMode, existingBilling, billingForm]);
 
   const { fields: billingItems, append: appendItem, remove: removeItem } = useFieldArray({
     control: billingForm.control,
@@ -286,7 +649,48 @@ export const NewBilling: React.FC = () => {
     }
   });
 
+  const updateBillingMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any; print?: boolean }) =>
+      api.patch(`/billing/${id}`, payload),
+    onSuccess: (res, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['billings'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-details', variables.id] });
+      toast.success('Billing record updated successfully');
+      if (variables.print) {
+        setCreatedInvoice(res.data?.data || res.data);
+      } else {
+        navigate('/billing');
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to update billing record');
+    },
+  });
+
   const onSubmitBilling = async (data: any, shouldPrint: boolean = false) => {
+    const latestReferral = referralStateRef.current;
+    const referralPayload = buildReferralSubmissionPayload({
+      referredBy: latestReferral.referredBy || data.referredBy,
+      referredByDoctorId: latestReferral.referredByDoctorId ?? data.referredByDoctorId,
+    });
+
+    const rawNote = typeof data.testAvailabilityNote === 'string' ? data.testAvailabilityNote.trim() : '';
+    const normalizedNote = rawNote.length > 0 ? rawNote : null;
+
+    if (isEditMode && editBillingId) {
+      updateBillingMutation.mutate({
+        id: editBillingId,
+        payload: {
+          testAvailabilityNote: normalizedNote,
+          referredBy: referralPayload.referredBy ?? null,
+          referredByDoctorId: referralPayload.referredByDoctorId,
+          paymentStatus: data.paymentStatus,
+        },
+        print: shouldPrint,
+      });
+      return;
+    }
+
     if (activeTab === 'EXISTING' && !selectedPatient) {
       setPatientSearchError('Please select a patient first');
       return;
@@ -300,7 +704,10 @@ export const NewBilling: React.FC = () => {
       if (!patientValid) return;
       try {
         const patientData = outsideForm.getValues();
-        const res = await createPatientMutation.mutateAsync(patientData);
+        const res = await createPatientMutation.mutateAsync({
+          ...patientData,
+          ...referralPayload,
+        });
         finalPatientId = res.data?.data?.id || res.data?.id;
         setSelectedPatient(res.data?.data || res.data); // Keep for print
       } catch (e: any) {
@@ -312,6 +719,8 @@ export const NewBilling: React.FC = () => {
     // Submit Billing
     createBillingMutation.mutate({
       ...data,
+      ...referralPayload,
+      testAvailabilityNote: normalizedNote,
       patientId: finalPatientId,
       print: shouldPrint
     });
@@ -335,6 +744,26 @@ export const NewBilling: React.FC = () => {
     e.target.value = ''; // Reset select
   };
 
+  // Outside Form field registrations with automatic navigation handlers
+  const nameReg = outsideForm.register('name');
+  const phoneReg = outsideForm.register('phone');
+  const ageReg = outsideForm.register('age', { valueAsNumber: true });
+  const genderReg = outsideForm.register('gender');
+
+  const handleBillingFieldEnter = (
+    e: React.KeyboardEvent<HTMLElement>,
+    fieldName?: keyof z.infer<typeof billingSchema>
+  ) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const target = e.currentTarget;
+    if (fieldName) {
+      void billingForm.trigger(fieldName);
+    }
+    focusNextField(target, billingWorkspaceRef.current);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto pb-20">
       {/* Hidden Print Container */}
@@ -350,19 +779,32 @@ export const NewBilling: React.FC = () => {
           <ArrowLeft size={20} className="text-slate-600" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Patient Billing</h1>
-          <p className="text-slate-500 mt-1">Create and manage diagnostic test invoices</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {isEditMode ? 'Edit Patient Billing' : 'Patient Billing'}
+          </h1>
+          <p className="text-slate-500 mt-1">
+            {isEditMode
+              ? `Update invoice details and test availability note${existingBilling?.billNumber ? ` (${existingBilling.billNumber})` : ''}`
+              : 'Create and manage diagnostic test invoices'}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {isEditMode && isLoadingExistingBilling && (
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 text-sm text-slate-600 shadow-xs">
+          <Loader2 size={18} className="animate-spin text-primary" />
+          <span>Loading existing billing record...</span>
+        </div>
+      )}
+
+      <div ref={billingWorkspaceRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Left Column - Patient & Tests */}
         <div className="lg:col-span-2 space-y-6">
 
           {/* Patient Selection Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="border-b border-slate-100 bg-slate-50 p-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-visible">
+            <div className="border-b border-slate-100 bg-slate-50 p-4 rounded-t-2xl">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <User size={20} className="text-primary" />
                 Select Patient
@@ -397,11 +839,16 @@ export const NewBilling: React.FC = () => {
                         placeholder="Search by Patient ID, Name, or Phone..."
                         value={searchPatientId}
                         onChange={(e) => setSearchPatientId(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && searchPatient()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            searchPatient();
+                          }
+                        }}
                         className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none text-sm"
                       />
                     </div>
-                    <button onClick={searchPatient}
+                    <button type="button" onClick={searchPatient}
                       disabled={isSearchingPatient}
                       className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-70 text-sm cursor-pointer"
                     >
@@ -455,24 +902,128 @@ export const NewBilling: React.FC = () => {
 
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4" data-testid="outside-patient-form">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
-                    <input {...outsideForm.register('name')} className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none" />
+                    <label htmlFor="outside-name" className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                    <input
+                      id="outside-name"
+                      type="text"
+                      {...nameReg}
+                      ref={(el) => {
+                        nameReg.ref(el);
+                        outsideNameInputRef.current = el;
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const target = e.currentTarget;
+                          if (target.value.trim().length > 0) {
+                            void outsideForm.trigger('name');
+                          }
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+                    />
                     {outsideForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{outsideForm.formState.errors.name.message as string}</p>}
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Phone *</label>
-                    <input {...outsideForm.register('phone')} className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none" />
+                    <label htmlFor="outside-phone" className="block text-sm font-medium text-slate-700 mb-1">Phone *</label>
+                    <input
+                      id="outside-phone"
+                      type="tel"
+                      {...phoneReg}
+                      onChange={async (e) => {
+                        const target = e.currentTarget;
+                        const nextVal = target.value;
+                        const prevVal = prevPhoneValueRef.current;
+                        prevPhoneValueRef.current = nextVal;
+                        await phoneReg.onChange(e);
+
+                        if (isExpectedPhoneLengthReached(nextVal, prevVal)) {
+                          void outsideForm.trigger('phone');
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const target = e.currentTarget;
+                          if (target.value.trim().length > 0) {
+                            void outsideForm.trigger('phone');
+                          }
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+                    />
                     {outsideForm.formState.errors.phone && <p className="text-red-500 text-xs mt-1">{outsideForm.formState.errors.phone.message as string}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Age</label>
-                    <input type="number" {...outsideForm.register('age', { valueAsNumber: true })} className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none" />
+                    <label htmlFor="outside-age" className="block text-sm font-medium text-slate-700 mb-1">Age</label>
+                    <input
+                      id="outside-age"
+                      type="number"
+                      min="0"
+                      max="150"
+                      {...ageReg}
+                      onChange={async (e) => {
+                        const target = e.currentTarget;
+                        const nextVal = target.value;
+                        const prevVal = prevAgeValueRef.current;
+                        prevAgeValueRef.current = nextVal;
+                        await ageReg.onChange(e);
+
+                        if (isExpectedAgeLengthReached(nextVal, prevVal)) {
+                          void outsideForm.trigger('age');
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const target = e.currentTarget;
+                          if (target.value.trim().length > 0) {
+                            void outsideForm.trigger('age');
+                          }
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+                    />
+                    {outsideForm.formState.errors.age && <p className="text-red-500 text-xs mt-1">{outsideForm.formState.errors.age.message as string}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Gender</label>
-                    <select {...outsideForm.register('gender')} className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none">
+                    <label htmlFor="outside-gender" className="block text-sm font-medium text-slate-700 mb-1">Gender</label>
+                    <select
+                      id="outside-gender"
+                      {...genderReg}
+                      onKeyDown={(e) => {
+                        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                          genderArrowKeyRef.current = true;
+                          return;
+                        }
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          genderArrowKeyRef.current = false;
+                          const target = e.currentTarget;
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                      }}
+                      onChange={async (e) => {
+                        const target = e.currentTarget;
+                        await genderReg.onChange(e);
+                        if (!genderArrowKeyRef.current) {
+                          focusNextField(target, billingWorkspaceRef.current);
+                        }
+                        genderArrowKeyRef.current = false;
+                      }}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none"
+                    >
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
                       <option value="OTHER">Other</option>
@@ -482,18 +1033,182 @@ export const NewBilling: React.FC = () => {
               )}
             </div>
 
-            <div className="border-t border-slate-100 bg-slate-50/80 p-6">
-              <label className="block text-sm font-bold text-slate-800 mb-2">Referred By <span className="text-slate-400 font-normal">(Optional)</span></label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Enter referring doctor's name (e.g. Dr. John Doe)"
-                  {...billingForm.register('referredBy')}
-                  className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none transition-all bg-white shadow-sm"
-                />
+            {/* Referred By – Doctor Autocomplete & Manual Entry */}
+            <div className="border-t border-slate-100 bg-slate-50/80 p-6 rounded-b-2xl" ref={referralContainerRef}>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="referred-by-input" className="block text-sm font-bold text-slate-800">
+                  Referred By <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                {referralState.referredByDoctorId && referralState.selectedDoctor ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <CheckCircle2 size={12} className="text-emerald-600" />
+                    Registered Doctor Linked
+                  </span>
+                ) : referralState.referredBy.trim() ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200/80 text-slate-700">
+                    Manual Referral
+                  </span>
+                ) : null}
               </div>
-              <p className="text-xs text-slate-500 mt-2 font-medium">This referral will be printed on the patient's invoice.</p>
+
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                <input
+                  id="referred-by-input"
+                  ref={referredByInputRef}
+                  type="text"
+                  name="referredBy"
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={isDoctorDropdownOpen}
+                  aria-autocomplete="list"
+                  aria-controls="referred-by-doctor-listbox"
+                  aria-activedescendant={
+                    isDoctorDropdownOpen && highlightedDoctorIndex >= 0
+                      ? `doctor-option-${highlightedDoctorIndex}`
+                      : undefined
+                  }
+                  placeholder="Search existing doctor or enter referring doctor's name (e.g. Dr. Rahman)"
+                  value={referralState.referredBy}
+                  onChange={handleReferredByChange}
+                  onFocus={() => {
+                    if (referralState.referredBy.trim() && !referralState.referredByDoctorId) {
+                      if (doctorSuggestions.length > 0 || hasSearchedCurrentQuery) {
+                        setIsDoctorDropdownOpen(true);
+                      } else {
+                        triggerDoctorSearch(referralState.referredBy);
+                      }
+                    }
+                  }}
+                  onBlur={handleReferredByBlur}
+                  onKeyDown={handleReferredByKeyDown}
+                  className="w-full pl-11 pr-10 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none transition-all bg-white shadow-sm"
+                />
+
+                {isSearchingDoctors && (
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-primary" aria-label="Searching doctors">
+                    <Loader2 size={18} className="animate-spin" />
+                  </div>
+                )}
+
+                {/* Doctor Autocomplete Dropdown */}
+                {isDoctorDropdownOpen && referralState.referredBy.trim().length > 0 && (
+                  <div
+                    id="referred-by-doctor-listbox"
+                    role="listbox"
+                    aria-label="Doctor suggestions"
+                    className="absolute left-0 right-0 z-30 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto divide-y divide-slate-100"
+                  >
+                    {isSearchingDoctors ? (
+                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-slate-500">
+                        <Loader2 size={16} className="animate-spin text-primary" />
+                        <span>Searching doctors...</span>
+                      </div>
+                    ) : doctorSearchError ? (
+                      <div className="p-3.5 text-xs text-amber-700 bg-amber-50/70 flex items-start gap-2">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-600" />
+                        <div>
+                          <p className="font-semibold">{doctorSearchError}</p>
+                          <p className="text-slate-600 mt-0.5">
+                            Press Enter or Tab to keep <strong>"{referralState.referredBy.trim()}"</strong> as a manual referral.
+                          </p>
+                        </div>
+                      </div>
+                    ) : doctorSuggestions.length > 0 ? (
+                      doctorSuggestions.map((doc, idx) => {
+                        const displayName = formatDoctorName(doc);
+                        const nameSegments = splitTextForHighlight(displayName, referralState.referredBy);
+                        const specSegments = splitTextForHighlight(doc.specialization || '', referralState.referredBy);
+                        const isHighlighted = idx === highlightedDoctorIndex;
+
+                        return (
+                          <div
+                            key={doc.id}
+                            id={`doctor-option-${idx}`}
+                            role="option"
+                            aria-selected={isHighlighted}
+                            onMouseDown={(e) => {
+                              // Prevent input blur and immediately select doctor
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSelectDoctorSuggestion(doc);
+                            }}
+                            onMouseEnter={() => setHighlightedDoctorIndex(idx)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (referralStateRef.current.referredByDoctorId !== doc.id) {
+                                handleSelectDoctorSuggestion(doc);
+                              }
+                            }}
+                            className={`px-4 py-3 cursor-pointer transition-colors flex items-center justify-between gap-3 ${isHighlighted ? 'bg-primary/10 text-slate-900' : 'hover:bg-slate-50 text-slate-800'
+                              }`}
+                          >
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+                                <Stethoscope size={16} />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-slate-900 truncate">
+                                  {nameSegments.map((seg, i) =>
+                                    seg.highlight ? (
+                                      <mark key={i} className="bg-amber-100 text-slate-900 font-bold rounded px-0.5">
+                                        {seg.text}
+                                      </mark>
+                                    ) : (
+                                      <span key={i}>{seg.text}</span>
+                                    )
+                                  )}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-0.5">
+                                  {doc.specialization && (
+                                    <span className="font-medium text-slate-600">
+                                      {specSegments.map((seg, i) =>
+                                        seg.highlight ? (
+                                          <mark key={i} className="bg-amber-100 text-slate-800 font-semibold rounded px-0.5">
+                                            {seg.text}
+                                          </mark>
+                                        ) : (
+                                          <span key={i}>{seg.text}</span>
+                                        )
+                                      )}
+                                    </span>
+                                  )}
+                                  {doc.degree && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{doc.degree}</span>
+                                    </>
+                                  )}
+                                  {doc.department && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{doc.department}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="text-[11px] font-semibold text-primary shrink-0">
+                              Select
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : hasSearchedCurrentQuery ? (
+                      <div className="p-4 text-center space-y-1">
+                        <p className="text-sm font-semibold text-slate-700">No matching doctor found</p>
+                        <p className="text-xs text-slate-500">
+                          Press <strong>Enter</strong> or <strong>Tab</strong> to continue with{' '}
+                          <span className="font-semibold text-slate-700">"{referralState.referredBy.trim()}"</span> as a manual referral.
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-2 font-medium">
+                Select a registered doctor from suggestions or type any external doctor's name manually. This referral will be printed on the patient's invoice.
+              </p>
             </div>
           </div>
 
@@ -509,7 +1224,9 @@ export const NewBilling: React.FC = () => {
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <select
+                  aria-label="Search and select test or service"
                   onChange={handleTestSelection}
+                  onKeyDown={(e) => handleBillingFieldEnter(e)}
                   className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:border-primary focus:outline-none appearance-none bg-slate-50 hover:bg-white transition-colors cursor-pointer"
                 >
                   <option value="">Search and select test or service...</option>
@@ -563,6 +1280,50 @@ export const NewBilling: React.FC = () => {
               {billingForm.formState.errors.items && (
                 <p className="text-red-500 text-sm mt-2">{billingForm.formState.errors.items.message as string}</p>
               )}
+
+              {/* Test Availability Note */}
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="test-availability-note" className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <Clock size={16} className="text-primary" />
+                    <span>Test Availability Note</span>
+                    <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {(billingForm.watch('testAvailabilityNote') || '').length}/2000
+                  </span>
+                </div>
+                <textarea
+                  id="test-availability-note"
+                  rows={3}
+                  maxLength={2000}
+                  placeholder="Enter when the test will be available or when the report is expected..."
+                  {...billingForm.register('testAvailabilityNote')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const target = e.currentTarget;
+                      void billingForm.trigger('testAvailabilityNote');
+                      focusNextField(target, billingWorkspaceRef.current);
+                    }
+                  }}
+                  className={`w-full px-4 py-3 text-sm border rounded-xl focus:ring-2 focus:outline-none transition-all bg-slate-50/60 focus:bg-white resize-y ${
+                    billingForm.formState.errors.testAvailabilityNote
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-slate-300 focus:border-primary'
+                  }`}
+                />
+                {billingForm.formState.errors.testAvailabilityNote ? (
+                  <p className="text-red-500 text-xs mt-1">
+                    {billingForm.formState.errors.testAvailabilityNote.message as string}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    Specify test availability, sample collection schedule, or expected report delivery time (e.g., "Report will be ready after 24 hours").
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -586,6 +1347,7 @@ export const NewBilling: React.FC = () => {
                     <label className="block text-xs font-semibold text-slate-500 mb-1">Discount Type</label>
                     <select
                       {...billingForm.register('discountType')}
+                      onKeyDown={(e) => handleBillingFieldEnter(e, 'discountType')}
                       className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none"
                     >
                       <option value="PERCENTAGE">%</option>
@@ -599,6 +1361,7 @@ export const NewBilling: React.FC = () => {
                       step="1"
                       min="0"
                       {...billingForm.register('discount', { valueAsNumber: true })}
+                      onKeyDown={(e) => handleBillingFieldEnter(e, 'discount')}
                       className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right ${billingForm.formState.errors.discount ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                     />
                     {billingForm.formState.errors.discount && (
@@ -636,11 +1399,11 @@ export const NewBilling: React.FC = () => {
                     min="0"
                     max="100"
                     {...billingForm.register('vatRate', { valueAsNumber: true })}
-                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${
-                      billingForm.formState.errors.vatRate
+                    onKeyDown={(e) => handleBillingFieldEnter(e, 'vatRate')}
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${billingForm.formState.errors.vatRate
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                         : 'border-slate-300 focus:border-primary'
-                    }`}
+                      }`}
                     placeholder="0"
                   />
                   <div className="flex gap-1 shrink-0">
@@ -649,11 +1412,10 @@ export const NewBilling: React.FC = () => {
                         key={rate}
                         type="button"
                         onClick={() => billingForm.setValue('vatRate', rate, { shouldValidate: true })}
-                        className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${
-                          watchVatRate === rate
+                        className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${watchVatRate === rate
                             ? 'bg-primary text-white border-primary font-bold'
                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         {rate}%
                       </button>
@@ -675,6 +1437,7 @@ export const NewBilling: React.FC = () => {
                   step="1"
                   min="0"
                   {...billingForm.register('additionalCharges', { valueAsNumber: true })}
+                  onKeyDown={(e) => handleBillingFieldEnter(e, 'additionalCharges')}
                   className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${billingForm.formState.errors.additionalCharges ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-300 focus:border-primary'}`}
                 />
                 {billingForm.formState.errors.additionalCharges && (
@@ -709,11 +1472,11 @@ export const NewBilling: React.FC = () => {
                   min="0"
                   step="1"
                   {...billingForm.register('paidAmount', { valueAsNumber: true })}
-                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono font-semibold ${
-                    billingForm.formState.errors.paidAmount
+                  onKeyDown={(e) => handleBillingFieldEnter(e, 'paidAmount')}
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono font-semibold ${billingForm.formState.errors.paidAmount
                       ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                       : 'border-slate-300 focus:border-primary'
-                  }`}
+                    }`}
                 />
                 {billingForm.formState.errors.paidAmount && (
                   <p className="text-xs text-red-500 mt-1 text-right">{billingForm.formState.errors.paidAmount.message as string}</p>
@@ -764,7 +1527,11 @@ export const NewBilling: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 mb-1">Payment Method</label>
-                    <select {...billingForm.register('paymentMethod')} className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none">
+                    <select
+                      {...billingForm.register('paymentMethod')}
+                      onKeyDown={(e) => handleBillingFieldEnter(e, 'paymentMethod')}
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:border-primary focus:outline-none"
+                    >
                       <option value="Cash">Cash</option>
                       <option value="Card">Card</option>
                       <option value="Mobile">bKash / Nagad / Mobile</option>
@@ -777,8 +1544,8 @@ export const NewBilling: React.FC = () => {
                         dueAmount === 0
                           ? 'text-emerald-700'
                           : watchPaidAmount > 0
-                          ? 'text-blue-700'
-                          : 'text-amber-700'
+                            ? 'text-blue-700'
+                            : 'text-amber-700'
                       }>
                         {billingForm.watch('paymentStatus')}
                       </span>
@@ -790,18 +1557,22 @@ export const NewBilling: React.FC = () => {
               <div className="pt-4 flex flex-col gap-3">
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, false))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  disabled={createBillingMutation.isPending || updateBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
                   className="w-full py-3 bg-white border border-primary text-primary hover:bg-primary/5 rounded-xl font-bold transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  Save Only
+                  {isEditMode ? 'Update Changes' : 'Save Only'}
                 </button>
                 <button type="button"
                   onClick={() => billingForm.handleSubmit((d) => onSubmitBilling(d, true))()}
-                  disabled={createBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
+                  disabled={createBillingMutation.isPending || updateBillingMutation.isPending || createPatientMutation.isPending || billingItems.length === 0}
                   className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_14px_0_rgb(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] disabled:opacity-50 cursor-pointer"
                 >
                   <Printer size={18} />
-                  {createBillingMutation.isPending ? 'Processing...' : 'Save & Print'}
+                  {createBillingMutation.isPending || updateBillingMutation.isPending
+                    ? 'Processing...'
+                    : isEditMode
+                      ? 'Update & Print'
+                      : 'Save & Print'}
                 </button>
               </div>
             </div>

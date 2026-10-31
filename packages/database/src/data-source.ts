@@ -28,6 +28,7 @@ import { ParameterResult } from './entities/ParameterResult'
 import { LabResult } from './entities/LabResult'
 import { LandingContent } from './entities/LandingContent'
 import { HospitalSetting } from './entities/HospitalSetting'
+import { AddTestAvailabilityNoteToBillings1730400000000 } from './migrations/1730400000000-AddTestAvailabilityNoteToBillings'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
@@ -63,5 +64,5 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
     ],
     synchronize: true,
     logging: false,
-    migrations: [],
+    migrations: [AddTestAvailabilityNoteToBillings1730400000000],
 })

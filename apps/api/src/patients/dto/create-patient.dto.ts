@@ -1,5 +1,6 @@
 import { Gender, PatientType } from '@hospital/database';
-import { IsEnum, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreatePatientDto {
 
@@ -43,5 +44,15 @@ export class CreatePatientDto {
     @IsString()
     @IsOptional()
     address?: string;
+
+    @IsString()
+    @IsOptional()
+    @MaxLength(255)
+    referredBy?: string | null;
+
+    @IsOptional()
+    @Transform(({ value }) => (value === '' ? null : value))
+    @IsUUID('all', { message: 'Referred by doctor ID must be a valid UUID' })
+    referredByDoctorId?: string | null;
 
 }

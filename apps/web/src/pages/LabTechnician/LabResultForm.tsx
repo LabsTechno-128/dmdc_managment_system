@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
+import { RichTextEditor } from '../../components/editor/RichTextEditor';
 
 interface Field {
     id: string;
@@ -22,12 +23,12 @@ interface LabResultFormProps {
 
 const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testName, initialData, onClose, onSuccess }) => {
     const [fields, setFields] = useState<Field[]>([]);
-    
+
     // Map initial parameterResults array to a key-value object: { [testParameterId]: resultValue }
-    const initialMap = Array.isArray(initialData?.parameterResults) 
-        ? initialData.parameterResults.reduce((acc: any, pr: any) => ({ ...acc, [pr.testParameterId]: pr.resultValue }), {}) 
+    const initialMap = Array.isArray(initialData?.parameterResults)
+        ? initialData.parameterResults.reduce((acc: any, pr: any) => ({ ...acc, [pr.testParameterId]: pr.resultValue }), {})
         : {};
-        
+
     const [formData, setFormData] = useState<Record<string, string>>(initialMap);
     const [remarks, setRemarks] = useState(initialData?.remarks || '');
     const [loading, setLoading] = useState(true);
@@ -96,9 +97,9 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl flex flex-col max-h-[92vh]">
                 <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate pr-2">Enter Result: {testName}</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate pr-2">Enter Result: {testName}  </h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">✕</button>
                 </div>
 
@@ -128,7 +129,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                                                 className="border rounded p-2 flex-1 text-sm focus:ring-2 focus:ring-blue-500 w-full"
                                             >
                                                 <option value="">Select...</option>
-                                                {f.dataType === 'POSITIVE_NEGATIVE' 
+                                                {f.dataType === 'POSITIVE_NEGATIVE'
                                                     ? ['Positive', 'Negative'].map(opt => <option key={opt} value={opt}>{opt}</option>)
                                                     : f.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)
                                                 }
@@ -155,13 +156,17 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                     )}
 
                     <div className="mt-6 border-t pt-4">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Remarks / Report</label>
-                        <textarea
+                        <label htmlFor="lab-result-remarks-editor" className="block text-sm font-medium text-slate-700 mb-2">
+                            Remarks / Report
+                        </label>
+                        <RichTextEditor
+                            id="lab-result-remarks-editor"
                             value={remarks}
-                            onChange={(e) => setRemarks(e.target.value)}
-                            className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500"
-                            rows={4}
+                            onChange={(html) => setRemarks(html)}
                             placeholder="Type the report or any additional notes here..."
+                            minHeight={200}
+                            maxHeight={380}
+                            enableAI={true}
                         />
                     </div>
                 </div>

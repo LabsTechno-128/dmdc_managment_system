@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useReactToPrint } from 'react-to-print';
 import { InvoicePrint } from '../Billing/InvoicePrint';
+import { isRichTextEmpty, normalizeInitialContentToHtml } from '../../components/editor/richTextUtils';
 
 export const ReportPreview: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -204,10 +205,13 @@ export const ReportPreview: React.FC = () => {
                         </div>
 
                         {/* Remarks */}
-                        {remarks && (
+                        {remarks && !isRichTextEmpty(remarks) && (
                             <div className="mb-16">
                                 <h3 className="font-bold text-slate-900 mb-2">Remarks:</h3>
-                                <p className="text-slate-700">{remarks}</p>
+                                <div
+                                    className="text-slate-700 text-sm leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-2 [&_th]:bg-slate-50 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-400 [&_blockquote]:pl-3 [&_blockquote]:italic"
+                                    dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(remarks) }}
+                                />
                             </div>
                         )}
 

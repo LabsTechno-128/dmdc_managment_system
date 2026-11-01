@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../../lib/api';
+import { RichTextEditor } from '../../components/editor/RichTextEditor';
+import { isRichTextEmpty, normalizeInitialContentToHtml } from '../../components/editor/richTextUtils';
 
 export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ result, onClose }) => {
     const [remarks, setRemarks] = useState('');
@@ -25,7 +27,7 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
     };
 
     const handleReject = async () => {
-        if (!remarks.trim()) {
+        if (isRichTextEmpty(remarks)) {
             setError('Remarks are required for rejection to inform the technician.');
             return;
         }
@@ -147,22 +149,30 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                 </div>
             </div>
 
-            {result.remarks && (
+            {result.remarks && !isRichTextEmpty(result.remarks) && (
                 <div className="bg-blue-50 p-4 rounded-md border border-blue-100 text-sm">
-                    <h3 className="font-semibold text-blue-800 mb-1">Technician Remarks</h3>
-                    <p className="text-blue-900">{result.remarks}</p>
+                    <h3 className="font-semibold text-blue-800 mb-2">Technician Remarks</h3>
+                    <div
+                        className="text-blue-900 prose prose-sm max-w-none [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-blue-200 [&_th]:p-2 [&_td]:border [&_td]:border-blue-200 [&_td]:p-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                        dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(result.remarks) }}
+                    />
                 </div>
             )}
 
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200 space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Reviewer Remarks (Optional if Verifying, Required if Rejecting)</label>
-                    <textarea 
+                    <label htmlFor="reviewer-remarks-editor" className="block text-sm font-medium text-slate-700 mb-2">
+                        Reviewer Remarks (Optional if Verifying, Required if Rejecting)
+                    </label>
+                    <RichTextEditor
+                        id="reviewer-remarks-editor"
                         value={remarks}
-                        onChange={(e) => setRemarks(e.target.value)}
-                        className="w-full border rounded-md p-3 focus:ring-2 focus:ring-blue-500 min-h-[100px] text-sm"
+                        onChange={(html) => setRemarks(html)}
                         placeholder="Add your comments here..."
-                    ></textarea>
+                        minHeight={130}
+                        maxHeight={280}
+                        enableAI={true}
+                    />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">

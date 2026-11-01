@@ -8,7 +8,7 @@ import { UserRole, LabResultStatus } from '@hospital/database';
 @Controller('lab-result')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LabResultController {
-    constructor(private readonly labResultService: LabResultService) {}
+    constructor(private readonly labResultService: LabResultService) { }
 
     @Get('billing/:billingId')
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
@@ -82,5 +82,11 @@ export class LabResultController {
         @Req() req: any
     ) {
         return this.labResultService.rejectResult(sampleId, body.remarks);
+    }
+
+    @Post('ai/assist')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.DOCTOR, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
+    async aiAssist(@Body() body: any, @Req() req: any) {
+        return this.labResultService.aiAssist(body, req.user?.id || 'user');
     }
 }

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from
 import { DatabaseService } from '../database/database.service';
 import { LabResultStatus, SampleStatus, LabResult, TestParameter, ParameterResult, LabTest, Billing, SampleCollection } from '@hospital/database';
 import { In } from 'typeorm';
+import { sanitizeRichTextHtml, processAiTextTransformation, checkAiRateLimit, type AiAssistRequest } from './rich-text-ai.helper';
 
 @Injectable()
 export class LabResultService implements OnModuleInit {
@@ -124,14 +125,14 @@ export class LabResultService implements OnModuleInit {
                 sampleId: sample.id,
                 patientId: sample.patientId,
                 status,
-                remarks,
+                remarks: remarks !== undefined ? sanitizeRichTextHtml(remarks) : '',
                 performedById,
                 performedAt: new Date()
             });
             labResult = await this.databaseService.repoLabResult().save(labResult);
         } else {
             labResult.status = status;
-            if (remarks) labResult.remarks = remarks;
+            if (remarks !== undefined) labResult.remarks = sanitizeRichTextHtml(remarks);
             labResult.performedById = performedById;
             labResult.performedAt = new Date();
             labResult = await this.databaseService.repoLabResult().save(labResult);
@@ -243,9 +244,14 @@ export class LabResultService implements OnModuleInit {
 
         result.status = LabResultStatus.REJECTED;
         if (remarks) {
-            result.remarks = remarks;
+            result.remarks = sanitizeRichTextHtml(remarks);
         }
 
         return this.databaseService.repoLabResult().save(result);
+    }
+
+    async aiAssist(payload: AiAssistRequest, userId: string) {
+        checkAiRateLimit(userId);
+        return processAiTextTransformation(payload);
     }
 }

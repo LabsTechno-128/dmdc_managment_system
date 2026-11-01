@@ -42,15 +42,15 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
 
   const formattedInvoiceDate = billing.createdAt
     ? new Date(billing.createdAt).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
     : new Date().toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      });
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
 
   return (
     <div
@@ -217,13 +217,12 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
 
             <div className="flex items-center gap-1.5 pt-0.5">
               <span className="text-slate-600 font-medium">Payment Status:</span>
-              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-                billing.paymentStatus === 'Paid'
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  : billing.paymentStatus === 'Partial'
+              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${billing.paymentStatus === 'Paid'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                : billing.paymentStatus === 'Partial'
                   ? 'bg-blue-100 text-blue-800 border border-blue-300'
                   : 'bg-amber-100 text-amber-800 border border-amber-300'
-              }`}>
+                }`}>
                 {billing.paymentStatus || 'UNPAID'}
               </span>
             </div>
@@ -237,51 +236,51 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             <div className="p-1.5 space-y-1 text-[8px]">
               <div className="flex justify-between text-slate-600">
                 <span className="text-[9px]">Subtotal:</span>
-                <span className="font-mono text-[8px] font-semibold">{subtotal.toFixed(2)} BDT</span>
+                <span className="font-mono text-[8px] font-semibold">{subtotal.toFixed(0)} BDT</span>
               </div>
 
               {discountAmount > 0 && (
                 <div className="flex justify-between text-rose-600">
                   <span className="text-[9px]">
-                    Discount {billing.discountType === 'PERCENTAGE' ? `(${billing.discount}%)` : ''}:
+                    Discount {billing.discountType === 'PERCENTAGE' ? `(${Number(billing?.discount)?.toFixed(0)}%)` : ''}:
                   </span>
-                  <span className="font-mono text-[8px] font-semibold">- {discountAmount.toFixed(2)} BDT</span>
+                  <span className="font-mono text-[8px] font-semibold">- {discountAmount.toFixed(0)} BDT</span>
                 </div>
               )}
 
               <div className="flex justify-between bg-slate-50 px-1 py-0.5 rounded text-slate-700 border border-slate-200">
                 <span className="text-[9px] font-semibold">Taxable Amount:</span>
-                <span className="font-mono text-[8px] font-bold">{taxableAmount.toFixed(2)} BDT</span>
+                <span className="font-mono text-[8px] font-bold">{taxableAmount.toFixed(0)} BDT</span>
               </div>
 
               <div className="flex justify-between text-slate-600">
                 <span className="text-[9px]">VAT ({vatRate}%):</span>
                 <span className="font-mono text-[8px] font-semibold">
-                  {vatAmount > 0 ? `+ ${vatAmount.toFixed(2)}` : '0.00'} BDT
+                  {vatAmount > 0 ? `+ ${vatAmount.toFixed(0)}` : '0.00'} BDT
                 </span>
               </div>
 
               {additionalCharges > 0 && (
                 <div className="flex justify-between text-slate-600">
                   <span className="text-[9px]">Additional Charges:</span>
-                  <span className="font-mono text-[8px] font-semibold">+ {additionalCharges.toFixed(2)} BDT</span>
+                  <span className="font-mono text-[8px] font-semibold">+ {additionalCharges.toFixed(0)} BDT</span>
                 </div>
               )}
 
               <div className="flex justify-between border-t-2 border-slate-800 pt-1 text-slate-900 font-bold">
                 <span className="text-[10px] uppercase">Invoice Total:</span>
-                <span className="font-mono text-[10px]">{totalAmount.toFixed(2)} BDT</span>
+                <span className="font-mono text-[10px]">{totalAmount.toFixed(0)} BDT</span>
               </div>
 
               <div className="flex justify-between text-emerald-700 font-bold pt-0.5">
                 <span className="text-[9px]">Amount Paid:</span>
-                <span className="font-mono text-[8px]">{paidAmount.toFixed(2)} BDT</span>
+                <span className="font-mono text-[8px]">{paidAmount.toFixed(0)} BDT</span>
               </div>
 
               {waivedAmount > 0 && (
                 <div className="flex justify-between text-purple-700 font-semibold">
                   <span className="text-[9px]">Waived / Settled:</span>
-                  <span className="font-mono text-[8px]">- {waivedAmount.toFixed(2)} BDT</span>
+                  <span className="font-mono text-[8px]">- {waivedAmount.toFixed(0)} BDT</span>
                 </div>
               )}
 
@@ -290,7 +289,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
                   Outstanding Due:
                 </span>
                 <span className={`font-mono text-[9px] ${dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
-                  {dueAmount.toFixed(2)} BDT
+                  {dueAmount.toFixed(0)} BDT
                 </span>
               </div>
             </div>

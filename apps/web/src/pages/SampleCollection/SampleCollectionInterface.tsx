@@ -488,12 +488,7 @@ export const SampleCollectionInterface: React.FC = () => {
 
   const openCollectModal = (sample: any) => {
     setSelectedSampleForCollection(sample);
-    // Pre-populate with 1 empty item selector if inventory items exist and no items logged yet
-    if (inventoryItemsData.length > 0 && (!sample.inventoryItems || sample.inventoryItems.length === 0)) {
-      setUsedItems([{ itemId: '', quantity: 1 }]);
-    } else {
-      setUsedItems([]);
-    }
+    setUsedItems([{ itemId: '', quantity: 1 }]);
     setCollectionNotes(sample.notes || '');
   };
 
@@ -560,16 +555,28 @@ export const SampleCollectionInterface: React.FC = () => {
     });
   };
 
-  const hasInvalidItems = usedItems.some(u => {
-    if (!u.itemId) return true;
-    const inv = inventoryItemsData.find((item: any) => item.id === u.itemId);
-    if (!inv) return true;
-    return u.quantity <= 0 || u.quantity > inv.currentStock;
-  });
+  const hasInvalidItems =
+    usedItems.length === 0 ||
+    usedItems.some(u => {
+      if (!u.itemId) return true;
+      const inv = inventoryItemsData.find((item: any) => item.id === u.itemId);
+      if (!inv) return true;
+      return u.quantity <= 0 || u.quantity > inv.currentStock;
+    });
+
+  const isCollectionNotesEmpty = !collectionNotes.trim();
+  const isCollectionFormInvalid = hasInvalidItems || isCollectionNotesEmpty;
 
   const handleConfirmCollection = () => {
     if (!selectedSampleForCollection) return;
-    if (hasInvalidItems) return;
+    if (hasInvalidItems) {
+      toast.error('Please add and select at least one valid inventory item');
+      return;
+    }
+    if (isCollectionNotesEmpty) {
+      toast.error('Collection notes are required');
+      return;
+    }
 
     statusMutation.mutate({
       sampleId: selectedSampleForCollection.id,
@@ -909,7 +916,7 @@ export const SampleCollectionInterface: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <label className="block text-sm font-bold text-slate-800">
-                        Equipment &amp; Consumables Used
+                        Equipment &amp; Consumables Used <span className="text-red-500">*</span>
                       </label>
                       {usedItems.filter(u => u.itemId).length > 0 && (
                         <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200">
@@ -931,9 +938,9 @@ export const SampleCollectionInterface: React.FC = () => {
                 </div>
 
                 {usedItems.length === 0 ? (
-                  <div className="p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-center text-xs text-slate-500">
-                    <Package className="mx-auto text-slate-400 mb-1" size={24} />
-                    <p>No inventory items selected. Click &quot;Add Item&quot; if supplies were used, or proceed if none are required.</p>
+                  <div className="p-4 bg-red-50/60 border border-dashed border-red-300 rounded-xl text-center text-xs text-red-600">
+                    <Package className="mx-auto text-red-400 mb-1" size={24} />
+                    <p className="font-medium">At least one inventory item is required. Click &quot;Add Item&quot; to select supplies used.</p>
                   </div>
                 ) : (
                   <div className="space-y-3 mt-3">
@@ -955,14 +962,19 @@ export const SampleCollectionInterface: React.FC = () => {
                             {/* Item Selector */}
                             <div className="flex-1">
                               <label className="block text-xs font-medium text-slate-600 mb-1">
-                                Item
+                                Item <span className="text-red-500">*</span>
                               </label>
                               <select
+                                required
                                 value={usedItem.itemId}
                                 onChange={e =>
                                   handleItemChange(index, 'itemId', e.target.value)
                                 }
-                                className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 ${
+                                  !usedItem.itemId
+                                    ? 'border-amber-300 focus:ring-blue-500'
+                                    : 'border-slate-200 focus:ring-blue-500'
+                                }`}
                               >
                                 <option value="">-- Select Item --</option>
                                 {inventoryItemsData.map((item: any) => (
@@ -980,10 +992,11 @@ export const SampleCollectionInterface: React.FC = () => {
                             {/* Quantity Input */}
                             <div className="w-28">
                               <label className="block text-xs font-medium text-slate-600 mb-1">
-                                Qty {selectedInvItem ? `(${selectedInvItem.unit})` : ''}
+                                Qty {selectedInvItem ? `(${selectedInvItem.unit})` : ''} <span className="text-red-500">*</span>
                               </label>
                               <input
                                 type="number"
+                                required
                                 min="1"
                                 max={selectedInvItem?.currentStock || 9999}
                                 value={usedItem.quantity}
@@ -1050,15 +1063,25 @@ export const SampleCollectionInterface: React.FC = () => {
               {/* Notes Input */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Collection Notes (Optional)
+                  Collection Notes <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={2}
+                  required
                   value={collectionNotes}
                   onChange={e => setCollectionNotes(e.target.value)}
                   placeholder="e.g. Left arm venipuncture, fast completed, good sample volume..."
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 ${
+                    isCollectionNotesEmpty
+                      ? 'border-amber-300 focus:ring-blue-500'
+                      : 'border-slate-200 focus:ring-blue-500'
+                  }`}
                 />
+                {isCollectionNotesEmpty && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Please enter collection notes and select at least one item to confirm collection.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1074,7 +1097,7 @@ export const SampleCollectionInterface: React.FC = () => {
               <button
                 type="button"
                 onClick={handleConfirmCollection}
-                disabled={statusMutation.isPending || hasInvalidItems}
+                disabled={statusMutation.isPending || isCollectionFormInvalid}
                 className="w-full sm:w-auto px-5 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-center"
               >
                 {statusMutation.isPending ? (
@@ -1116,14 +1139,14 @@ export const SampleCollectionInterface: React.FC = () => {
                 <div key={sample.id} className="barcode-label">
                   <div className="w-full h-full flex items-center justify-center p-1">
                     <div className="w-full max-w-[260px] rounded-2xl border border-slate-300 bg-white px-3.5 py-2.5 flex items-center justify-between gap-3 text-left font-sans text-black">
-                      <div className="min-w-0 flex-1 space-y-0.5 text-[11px] font-bold leading-snug text-black">
-                        <div className="truncate">PTN Name : {patientName}</div>
+                      <div className="min-w-0 flex-1 space-y-0.5 text-[8px] font-bold leading-snug text-black">
+                        <div >PTN Name : {patientName}</div>
                         <div>
                           Age: {patientAge}&nbsp;&nbsp;Sex: {patientSex}
                         </div>
-                        <div className="truncate">Phone : {patientPhone}</div>
-                        <div className="truncate">PTN ID : {patientId}</div>
-                        <div className="truncate">Bill ID : {billNo}</div>
+                        <div >Phone : {patientPhone}</div>
+                        <div >PTN ID : {patientId}</div>
+                        <div >Bill ID : {billNo}</div>
                       </div>
                       <div className="shrink-0 flex items-center justify-center pt-1">
                         <SampleQrMatrixSvg

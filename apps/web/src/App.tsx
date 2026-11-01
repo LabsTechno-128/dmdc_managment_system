@@ -5,7 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 
 const RootRedirect = () => {
   const { user } = useAuthStore();
-  if (user?.role === 'lab_technician') {
+  if (user?.role === 'lab_technician' || user?.role === 'usg_report' || user?.role === 'xray_report') {
     return <Navigate to="/test-counter" replace />;
   }
   if (user?.role === 'receptionist') {
@@ -109,7 +109,7 @@ function App() {
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
             {/* Root Route */}
-            <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'lab_technician', 'receptionist']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'lab_technician', 'receptionist', 'usg_report', 'xray_report']} />}>
               <Route path="/" element={<RootRedirect />} />
             </Route>
 
@@ -172,7 +172,7 @@ function App() {
             </Route>
 
             {/* Lab Technician Routes (Sample Collection) */}
-            <Route element={<ProtectedRoute allowedRoles={['lab_technician', 'super_admin']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'lab_technician', 'usg_report', 'xray_report', 'receptionist']} />}>
               <Route path="/test-counter" element={<TestCounter />} />
               <Route path="/reagents" element={<Placeholder title="Re-agents & Sample Pots" />} />
             </Route>

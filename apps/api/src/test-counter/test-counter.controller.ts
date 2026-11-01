@@ -6,10 +6,10 @@ import { UserRole } from '@hospital/database';
 import { TestCounterService } from './test-counter.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN, UserRole.ADMIN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
 @Controller('test-counter')
 export class TestCounterController {
-    constructor(private readonly testCounterService: TestCounterService) {}
+    constructor(private readonly testCounterService: TestCounterService) { }
 
     @Get()
     getQueue(@Query() query: any) {

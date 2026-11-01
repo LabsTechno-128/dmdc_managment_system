@@ -66,7 +66,7 @@ export class LabTestsController {
   // --- Parameters ---
 
   @Get(':id/parameters')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN, UserRole.DOCTOR)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.DOCTOR, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
   getParameters(@Param('id', ParseIntPipe) testId: number) {
     return this.service.getParameters(testId);
   }

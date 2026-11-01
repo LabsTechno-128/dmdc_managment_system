@@ -11,13 +11,13 @@ export class LabResultController {
     constructor(private readonly labResultService: LabResultService) {}
 
     @Get('billing/:billingId')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async getTestsByBillingId(@Param('billingId') billingId: string) {
         return this.labResultService.getTestsByBillingId(billingId);
     }
 
     @Get('barcode/:barcode')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async getByBarcode(@Param('barcode') barcode: string) {
         return this.labResultService.getByBarcode(barcode);
     }
@@ -25,7 +25,7 @@ export class LabResultController {
     // Removed obsolete getTemplate route
 
     @Post(':sampleId/draft')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async saveDraft(
         @Param('sampleId') sampleId: string,
         @Body() body: { resultData: any, remarks: string },
@@ -41,7 +41,7 @@ export class LabResultController {
     }
 
     @Post(':sampleId/submit')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async submitResult(
         @Param('sampleId') sampleId: string,
         @Body() body: { resultData: any, remarks: string },
@@ -57,7 +57,7 @@ export class LabResultController {
     }
 
     @Post(':sampleId/recollect')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async recollectSample(@Param('sampleId') sampleId: string) {
         return this.labResultService.recollectSample(sampleId);
     }

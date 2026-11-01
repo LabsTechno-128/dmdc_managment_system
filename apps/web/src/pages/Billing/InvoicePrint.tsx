@@ -61,11 +61,27 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         : billing.patientType || '';
 
   const referredByDisplay = billing.referredByDoctor
-    ? `Dr. ${billing.referredByDoctor.firstName || ''} ${billing.referredByDoctor.lastName || ''}`.trim()
+    ? (() => {
+        const docName = `Dr. ${billing.referredByDoctor.firstName || ''} ${billing.referredByDoctor.lastName || ''}`.trim();
+        const docSpec = (billing.referredByDoctor.specialization || '').trim();
+        if (billing.referredBy && billing.referredBy.trim()) {
+          const refText = billing.referredBy.trim();
+          return docSpec && !refText.toLowerCase().includes(docSpec.toLowerCase())
+            ? `${refText} (${docSpec})`
+            : refText;
+        }
+        return docSpec ? `${docName} (${docSpec})` : docName;
+      })()
     : billing.referredBy ||
       (billing.doctor
-        ? `Dr. ${billing.doctor.firstName || ''} ${billing.doctor.lastName || ''}`.trim() ||
-          billing.doctor.name
+        ? (() => {
+            const docName =
+              `Dr. ${billing.doctor.firstName || ''} ${billing.doctor.lastName || ''}`.trim() ||
+              billing.doctor.name ||
+              '';
+            const docSpec = (billing.doctor.specialization || '').trim();
+            return docSpec && docName ? `${docName} (${docSpec})` : docName;
+          })()
         : '');
 
   const subtotal = Number(billing.subtotal || 0);

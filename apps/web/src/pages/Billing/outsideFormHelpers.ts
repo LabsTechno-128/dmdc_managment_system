@@ -34,6 +34,26 @@ export function formatDoctorName(doctor: Partial<DoctorSuggestion> | null | unde
 }
 
 /**
+ * Formats a doctor record with both name and specialization (e.g. "Dr. John Doe (Cardiology)").
+ */
+export function formatDoctorWithSpecialization(
+  doctor: Partial<DoctorSuggestion> | null | undefined
+): string {
+  const baseName = formatDoctorName(doctor);
+  if (!baseName) return '';
+  const anyDoc = doctor as any;
+  const spec =
+    (typeof doctor?.specialization === 'string' && doctor.specialization.trim()) ||
+    (typeof anyDoc?.specialty === 'string' && anyDoc.specialty.trim()) ||
+    '';
+  if (!spec) return baseName;
+  if (baseName.toLowerCase().includes(spec.toLowerCase())) {
+    return baseName;
+  }
+  return `${baseName} (${spec})`;
+}
+
+/**
  * Checks whether a Bangladeshi phone number has reached its expected input length
  * (11 digits for 01XXXXXXXXX, 13 for 8801XXXXXXXXX, 14 for +8801XXXXXXXXX)
  * and is valid while typing forward.
@@ -207,11 +227,14 @@ export function handleReferralInputEdit(
   const selectedName = currentState.selectedDoctor
     ? formatDoctorName(currentState.selectedDoctor)
     : null;
+  const selectedNameWithSpec = currentState.selectedDoctor
+    ? formatDoctorWithSpecialization(currentState.selectedDoctor)
+    : null;
 
   if (
     currentState.referredByDoctorId &&
-    selectedName &&
-    newInputValue === selectedName
+    ((selectedName && newInputValue === selectedName) ||
+      (selectedNameWithSpec && newInputValue === selectedNameWithSpec))
   ) {
     return {
       ...currentState,
@@ -228,15 +251,19 @@ export function handleReferralInputEdit(
 
 /**
  * Updates referral state when the user selects an existing doctor from autocomplete suggestions.
+ * Collects both the doctor's name and specialization.
  */
 export function handleReferralDoctorSelect(doctor: DoctorSuggestion): ReferralState {
   const displayName = formatDoctorName(doctor);
+  const displayWithSpec = formatDoctorWithSpecialization(doctor);
+  const specialization = (doctor.specialization || '').trim();
   return {
-    referredBy: displayName,
+    referredBy: displayWithSpec,
     referredByDoctorId: doctor.id,
     selectedDoctor: {
       ...doctor,
       name: displayName,
+      specialization,
     },
   };
 }

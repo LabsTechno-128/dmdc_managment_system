@@ -14,6 +14,7 @@ import {
   type DoctorSuggestion,
   type ReferralState,
   formatDoctorName,
+  formatDoctorWithSpecialization,
   isExpectedPhoneLengthReached,
   isExpectedAgeLengthReached,
   focusNextField,
@@ -78,6 +79,7 @@ const billingSchema = z.object({
   paymentStatus: z.string(),
   referredBy: z.string().optional(),
   referredByDoctorId: z.string().nullable().optional(),
+  referredBySpecialization: z.string().nullable().optional(),
   testAvailabilityNote: z
     .string()
     .max(2000, 'Test availability note cannot exceed 2000 characters')
@@ -208,6 +210,7 @@ export const NewBilling: React.FC = () => {
       paymentStatus: 'Unpaid',
       referredBy: '',
       referredByDoctorId: null as string | null,
+      referredBySpecialization: null as string | null,
       testAvailabilityNote: '',
     }
   });
@@ -268,6 +271,14 @@ export const NewBilling: React.FC = () => {
         shouldDirty: options?.shouldDirty ?? true,
         shouldValidate: options?.shouldValidate ?? true,
       });
+      billingForm.setValue(
+        'referredBySpecialization',
+        nextState.selectedDoctor?.specialization || null,
+        {
+          shouldDirty: options?.shouldDirty ?? true,
+          shouldValidate: options?.shouldValidate ?? true,
+        }
+      );
     },
     [billingForm]
   );
@@ -476,7 +487,7 @@ export const NewBilling: React.FC = () => {
     }
 
     const initialReferredBy = existingBilling.referredByDoctor
-      ? formatDoctorName(existingBilling.referredByDoctor)
+      ? formatDoctorWithSpecialization(existingBilling.referredByDoctor)
       : existingBilling.referredBy || '';
     const initialReferralState: ReferralState = {
       referredBy: initialReferredBy,
@@ -486,7 +497,7 @@ export const NewBilling: React.FC = () => {
             id: String(existingBilling.referredByDoctor.id),
             firstName: existingBilling.referredByDoctor.firstName || '',
             lastName: existingBilling.referredByDoctor.lastName || '',
-            name: initialReferredBy,
+            name: formatDoctorName(existingBilling.referredByDoctor),
             specialization: existingBilling.referredByDoctor.specialization || '',
           }
         : null,
@@ -514,6 +525,7 @@ export const NewBilling: React.FC = () => {
       paymentStatus: existingBilling.paymentStatus || 'Unpaid',
       referredBy: initialReferredBy,
       referredByDoctorId: existingBilling.referredByDoctorId || null,
+      referredBySpecialization: existingBilling.referredByDoctor?.specialization || null,
       testAvailabilityNote: existingBilling.testAvailabilityNote ?? '',
     });
   }, [isEditMode, existingBilling, billingForm]);
@@ -1040,10 +1052,18 @@ export const NewBilling: React.FC = () => {
                   Referred By <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 {referralState.referredByDoctorId && referralState.selectedDoctor ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    <CheckCircle2 size={12} className="text-emerald-600" />
-                    Registered Doctor Linked
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {referralState.selectedDoctor.specialization && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        <Stethoscope size={12} className="text-blue-600" />
+                        {referralState.selectedDoctor.specialization}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <CheckCircle2 size={12} className="text-emerald-600" />
+                      Registered Doctor Linked
+                    </span>
+                  </div>
                 ) : referralState.referredBy.trim() ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200/80 text-slate-700">
                     Manual Referral

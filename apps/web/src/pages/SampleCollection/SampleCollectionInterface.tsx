@@ -525,21 +525,21 @@ export const SampleCollectionInterface: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="lg:col-span-2 min-w-0">
+          <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
               <h3 className="font-bold text-slate-800 text-sm sm:text-base">Test List & Samples</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
+            <div className="w-full max-w-[1000px] max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
+              <table className="w-full max-w-[1000px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase">Test Name</th>
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase">Sample Type</th>
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase">Barcode</th>
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase">Items Used</th>
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                    <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Action</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase">Test Name</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Sample Type</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Barcode</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase">Items Used</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Status</th>
+                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -566,12 +566,12 @@ export const SampleCollectionInterface: React.FC = () => {
                         key={sample.id || sample.barcodePreview}
                         className={!initialized ? 'opacity-60 bg-slate-50' : 'hover:bg-slate-50'}
                       >
-                        <td className="p-4 font-medium text-slate-800">{sample.test?.name}</td>
-                        <td className="p-4 text-slate-600">{sample.sampleType}</td>
-                        <td className="p-4 font-mono text-sm text-slate-600">
+                        <td className="p-3.5 font-medium text-slate-800 break-words">{sample.test?.name}</td>
+                        <td className="p-3.5 text-slate-600 whitespace-nowrap">{sample.sampleType}</td>
+                        <td className="p-3.5 font-mono text-sm text-slate-600 whitespace-nowrap">
                           {sample.barcode || sample.barcodePreview}
                         </td>
-                        <td className="p-4">
+                        <td className="p-3.5">
                           {groupedList.length > 0 ? (
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-1.5">
@@ -618,8 +618,8 @@ export const SampleCollectionInterface: React.FC = () => {
                             <span className="text-xs text-slate-400">-</span>
                           )}
                         </td>
-                        <td className="p-4">{getStatusBadge(sample.status)}</td>
-                        <td className="p-4 text-right">
+                        <td className="p-3.5 whitespace-nowrap">{getStatusBadge(sample.status)}</td>
+                        <td className="p-3.5 text-right whitespace-nowrap">
                           {initialized && (sample.status === 'PENDING' || sample.status === 'RECOLLECTION_REQUIRED') && (
                             <button
                               onClick={() => openCollectModal(sample)}

@@ -18,7 +18,7 @@ export const SampleCollectionDashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-[1000px]">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -29,7 +29,7 @@ export const SampleCollectionDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-200">
           <div className="relative w-full max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -43,19 +43,19 @@ export const SampleCollectionDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
+        <div className="w-full max-w-[1000px] max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
+          <table className="w-full max-w-[1000px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Invoice / Bill No</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Patient</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tests Count</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Action</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Date</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Invoice / Bill No</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Patient</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Tests Count</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr><td colSpan={6} className="p-4 text-center text-slate-500">Searching...</td></tr>
               ) : billings?.length === 0 ? (
@@ -69,22 +69,26 @@ export const SampleCollectionDashboard: React.FC = () => {
                 billings?.map((billing: any) => {
                   const testsCount = billing.items?.filter((i: any) => i.test).length || 0;
                   return (
-                    <tr key={billing.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="p-4 text-slate-600">{new Date(billing.createdAt).toLocaleDateString()}</td>
-                      <td className="p-4 font-mono font-medium text-slate-800">{billing.billNumber}</td>
-                      <td className="p-4">
-                        <div className="font-semibold text-slate-800">{billing.patient?.name}</div>
-                        <div className="text-xs text-slate-500">ID: {billing.patient?.patientId}</div>
+                    <tr key={billing.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">
+                        {new Date(billing.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="p-4 text-slate-600">{testsCount} Tests</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      <td className="px-4 py-3.5 font-mono text-sm font-medium text-slate-800 whitespace-nowrap">
+                        {billing.billNumber}
+                      </td>
+                      <td className="px-4 py-3.5 min-w-[160px]">
+                        <div className="font-semibold text-slate-800 break-words">{billing.patient?.name}</div>
+                        <div className="text-xs text-slate-500 font-mono">ID: {billing.patient?.patientId}</div>
+                      </td>
+                      <td className="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">{testsCount} Tests</td>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className={`inline-block px-2.5 py-1 rounded text-xs font-bold ${
                           billing.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                         }`}>
                           {billing.paymentStatus}
                         </span>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => {
                             if (testsCount === 0) {
@@ -93,7 +97,7 @@ export const SampleCollectionDashboard: React.FC = () => {
                             }
                             navigate(`/sample-collection/${billing.id}`);
                           }}
-                          className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors"
+                          className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium text-sm transition-colors cursor-pointer"
                         >
                           Collect
                           <ArrowRight size={16} />

@@ -40,6 +40,18 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
 
   const authorizerRole = billing.authorizedBy?.role?.replace(/_/g, ' ') || billing.createdBy?.role?.replace(/_/g, ' ') || 'Billing Desk';
 
+  const formattedInvoiceDate = billing.createdAt
+    ? new Date(billing.createdAt).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
+
   return (
     <div
       id="invoice-print"
@@ -103,40 +115,38 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Invoice Title & Meta Bar */}
-        <div className="flex justify-between items-center bg-slate-100/90 border border-slate-200 px-2 py-1 rounded">
-          <div className="flex items-center gap-1.5">
-            <FileText size={12} className="text-emerald-700" />
-            <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-900">
-              PATIENT INVOICE
-            </h2>
-            <span className="text-[8px] text-slate-400">|</span>
-            <span className="text-[8px] text-slate-600">
-              Bill No: <strong className="font-mono text-slate-900">{billing.billNumber || billing.id?.substring(0, 8)}</strong>
-            </span>
-            {billing.musakChallanNumber && (
-              <>
-                <span className="text-[8px] text-slate-400">|</span>
-                <span className="text-[8px] text-slate-600">
-                  Challan: <strong className="font-mono text-slate-900">{billing.musakChallanNumber}</strong>
-                </span>
-              </>
-            )}
+        <div className="bg-slate-100/90 border border-slate-200 px-2.5 py-1.5 rounded space-y-1">
+          <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+              <FileText size={12} className="text-emerald-700 shrink-0" />
+              <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 shrink-0">
+                PATIENT INVOICE
+              </h2>
+              <span className="text-[8px] text-slate-400">|</span>
+              <span className="text-[8px] text-slate-600 whitespace-nowrap">
+                Bill No: <strong className="font-mono text-slate-900">{billing.billNumber || billing.id?.substring(0, 8)}</strong>
+              </span>
+              {billing.musakChallanNumber && (
+                <>
+                  <span className="text-[8px] text-slate-400">|</span>
+                  <span className="text-[8px] text-slate-600 whitespace-nowrap">
+                    Challan: <strong className="font-mono text-slate-900">{billing.musakChallanNumber}</strong>
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Compact Barcode (Left) & Single-Line Invoice Date (Right) */}
+          <div className="flex items-center justify-start gap-3 pt-1 border-t border-slate-200/80">
             {billing.patient?.patientId && (
-              <div className="scale-90 origin-right">
+              <div className="shrink-0 flex items-center">
                 <Barcode value={billing.patient.patientId} />
               </div>
             )}
-            <div className="text-right text-[8px]">
-              <span className="text-slate-500 block">Invoice Date</span>
-              <span className="font-mono font-bold text-slate-900">
-                {billing.createdAt ? new Date(billing.createdAt).toLocaleString('en-US', {
-                  dateStyle: 'medium',
-                  timeStyle: 'short'
-                }) : new Date().toLocaleDateString()}
-              </span>
+            <div className="flex-1 flex items-center gap-1.5 text-[8.5px] whitespace-nowrap leading-none min-w-0">
+              <span className="text-slate-600 font-semibold">Invoice Date:</span>
+              <span className="font-mono font-bold text-slate-900">{formattedInvoiceDate}</span>
             </div>
           </div>
         </div>
@@ -399,10 +409,11 @@ function Barcode({ value }: { value: string }) {
       try {
         JsBarcode(barcodeRef.current, value, {
           format: 'CODE128',
-          width: 1.1,
-          height: 18,
+          width: 0.85,
+          height: 12,
           displayValue: true,
-          fontSize: 8,
+          fontSize: 6.5,
+          textMargin: 1,
           margin: 0,
           background: 'transparent',
           lineColor: '#0f172a',
@@ -414,8 +425,8 @@ function Barcode({ value }: { value: string }) {
   }, [value]);
 
   return (
-    <div className="flex flex-col items-end">
-      <svg ref={barcodeRef}></svg>
+    <div className="flex items-center justify-start shrink-0">
+      <svg ref={barcodeRef} className="block max-h-[22px] w-auto"></svg>
     </div>
   );
 }

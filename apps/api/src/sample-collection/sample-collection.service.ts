@@ -76,7 +76,10 @@ export class SampleCollectionService {
             return {
                 initialized: true,
                 billing,
-                samples: existingSamples
+                samples: existingSamples.map((s) => ({
+                    ...s,
+                    sampleType: s.notes && s.notes.trim() ? s.notes.trim() : 'General',
+                }))
             };
         }
 
@@ -87,7 +90,7 @@ export class SampleCollectionService {
             samples: billing.items.filter(item => item.test).map((item, index) => ({
                 test: item.test,
                 billingItem: item,
-                sampleType: item.test?.sampleType || 'General',
+                sampleType: 'General',
                 status: SampleStatus.PENDING,
                 barcodePreview: `${billing.patient.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`
             }))
@@ -141,7 +144,7 @@ export class SampleCollectionService {
                     testId: item.test!.id,
                     barcode: barcode,
                     status: SampleStatus.PENDING,
-                    sampleType: item.test!.sampleType || 'General'
+                    sampleType: 'General'
                 });
             });
 
@@ -226,8 +229,10 @@ export class SampleCollectionService {
                 }
                 // If updating notes on an already collected sample
                 if (notes !== undefined) {
+                    const trimmedNotes = typeof notes === 'string' ? notes.trim() : '';
                     await queryRunner.manager.update(SampleCollection, sample.id, {
-                        notes
+                        notes: (trimmedNotes || null) as any,
+                        sampleType: trimmedNotes ? trimmedNotes.slice(0, 100) : 'General',
                     });
                 }
                 await queryRunner.commitTransaction();
@@ -257,12 +262,19 @@ export class SampleCollectionService {
                 }
             }
 
+            const finalNotes =
+                notes !== undefined
+                    ? (typeof notes === 'string' ? notes.trim() : '')
+                    : (sample.notes ? sample.notes.trim() : '');
+            const finalSampleType = finalNotes ? finalNotes.slice(0, 100) : 'General';
+
             // Update sample fields directly via update() to prevent TypeORM relation overwrite
             await queryRunner.manager.update(SampleCollection, sample.id, {
                 status,
                 collectedAt: status === SampleStatus.COLLECTED ? new Date() : sample.collectedAt,
                 collectedById: status === SampleStatus.COLLECTED ? userId : sample.collectedById,
-                notes: notes !== undefined ? notes : sample.notes
+                notes: (finalNotes || null) as any,
+                sampleType: finalSampleType,
             });
 
             await queryRunner.commitTransaction();
@@ -277,7 +289,7 @@ export class SampleCollectionService {
     }
 
     private async getSampleWithRelations(sampleId: string) {
-        return this.db.repoSampleCollection().findOne({
+        const sample = await this.db.repoSampleCollection().findOne({
             where: { id: sampleId },
             relations: {
                 test: true,
@@ -288,6 +300,11 @@ export class SampleCollectionService {
                 }
             }
         });
+        if (!sample) return null;
+        return {
+            ...sample,
+            sampleType: sample.notes && sample.notes.trim() ? sample.notes.trim() : 'General',
+        };
     }
 
     // Find sample by barcode

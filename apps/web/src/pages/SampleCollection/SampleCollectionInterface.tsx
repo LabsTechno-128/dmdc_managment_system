@@ -369,7 +369,7 @@ export const SampleCollectionInterface: React.FC = () => {
     statusMutation.mutate({
       sampleId: selectedSampleForCollection.id,
       status: 'COLLECTED',
-      notes: collectionNotes.trim() || undefined,
+      notes: collectionNotes.trim(),
       items: usedItems
         .filter(u => u.itemId && u.quantity > 0)
         .map(u => ({ itemId: u.itemId, quantity: Number(u.quantity) }))
@@ -486,11 +486,10 @@ export const SampleCollectionInterface: React.FC = () => {
                 Equipment &amp; Supplies Used
               </h3>
               <span
-                className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                  totalCollectionItemsCount > 0
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}
+                className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${totalCollectionItemsCount > 0
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
               >
                 {totalCollectionItemsCount} item{totalCollectionItemsCount === 1 ? '' : 's'} total
               </span>
@@ -526,17 +525,17 @@ export const SampleCollectionInterface: React.FC = () => {
         </div>
 
         <div className="lg:col-span-2 min-w-0">
-          <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="w-full max-w-[1400px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
               <h3 className="font-bold text-slate-800 text-sm sm:text-base">Test List & Samples</h3>
             </div>
-            <div className="w-full max-w-[1000px] max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
-              <table className="w-full max-w-[1000px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
+            <div className="w-full max-w-[1400px] max-[999px]:overflow-x-auto min-[1400px]:overflow-x-hidden">
+              <table className="w-full max-w-[1400px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
                     <th className="p-3.5 text-xs font-bold text-slate-500 uppercase">Test Name</th>
                     <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Sample Type</th>
-                    <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Barcode</th>
+                    {/* <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Barcode</th> */}
                     <th className="p-3.5 text-xs font-bold text-slate-500 uppercase">Items Used</th>
                     <th className="p-3.5 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Status</th>
                     <th className="p-3.5 text-xs font-bold text-slate-500 uppercase text-right whitespace-nowrap">Action</th>
@@ -567,10 +566,12 @@ export const SampleCollectionInterface: React.FC = () => {
                         className={!initialized ? 'opacity-60 bg-slate-50' : 'hover:bg-slate-50'}
                       >
                         <td className="p-3.5 font-medium text-slate-800 break-words">{sample.test?.name}</td>
-                        <td className="p-3.5 text-slate-600 whitespace-nowrap">{sample.sampleType}</td>
-                        <td className="p-3.5 font-mono text-sm text-slate-600 whitespace-nowrap">
-                          {sample.barcode || sample.barcodePreview}
+                        <td className="p-3.5 text-slate-600 break-words">
+                          {sample.notes?.trim() ? sample.notes.trim() : 'General'}
                         </td>
+                        {/* <td className="p-3.5 font-mono text-sm text-slate-600 whitespace-nowrap">
+                          sdafsdaf  {sample.barcode || sample.barcodePreview} sdfgdfgdf
+                        </td> */}
                         <td className="p-3.5">
                           {groupedList.length > 0 ? (
                             <div className="space-y-1.5">
@@ -684,7 +685,7 @@ export const SampleCollectionInterface: React.FC = () => {
                     : 'Collect Sample'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5 truncate">
-                  Test: <span className="font-semibold text-slate-700">{selectedSampleForCollection.test?.name}</span> ({selectedSampleForCollection.sampleType}) &bull; Barcode: <span className="font-mono text-slate-700">{selectedSampleForCollection.barcode}</span>
+                  Test: <span className="font-semibold text-slate-700">{selectedSampleForCollection.test?.name}</span> ({selectedSampleForCollection.notes?.trim() ? selectedSampleForCollection.notes.trim() : 'General'}) &bull; Barcode: <span className="font-mono text-slate-700">{selectedSampleForCollection.barcode}</span>
                 </p>
               </div>
               <button
@@ -788,11 +789,10 @@ export const SampleCollectionInterface: React.FC = () => {
                                     parseInt(e.target.value, 10) || 0
                                   )
                                 }
-                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 ${
-                                  isOverStock || isInvalidQty
-                                    ? 'border-red-400 focus:ring-red-500'
-                                    : 'border-slate-200 focus:ring-blue-500'
-                                }`}
+                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 ${isOverStock || isInvalidQty
+                                  ? 'border-red-400 focus:ring-red-500'
+                                  : 'border-slate-200 focus:ring-blue-500'
+                                  }`}
                               />
                             </div>
 

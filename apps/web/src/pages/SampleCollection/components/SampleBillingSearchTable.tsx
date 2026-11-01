@@ -18,7 +18,7 @@ export const SampleBillingSearchTable: React.FC<SampleBillingSearchTableProps> =
   onSelectBilling
 }) => {
   return (
-    <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="w-full   bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="p-4 border-b border-slate-200">
         <div className="relative w-full max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -32,8 +32,8 @@ export const SampleBillingSearchTable: React.FC<SampleBillingSearchTableProps> =
         </div>
       </div>
 
-      <div className="w-full max-w-[1000px] max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
-        <table className="w-full max-w-[1000px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
+      <div className="w-full    overflow-x-auto  overflow-x-hidden">
+        <table className="w-full    min-w-[640px] text-left border-collapse table-auto">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
@@ -94,11 +94,10 @@ export const SampleBillingSearchTable: React.FC<SampleBillingSearchTableProps> =
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <span
-                        className={`inline-block px-2.5 py-1 rounded text-xs font-bold ${
-                          billing.paymentStatus === 'Paid'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-orange-100 text-orange-700'
-                        }`}
+                        className={`inline-block px-2.5 py-1 rounded text-xs font-bold ${billing.paymentStatus === 'Paid'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                          }`}
                       >
                         {billing.paymentStatus}
                       </span>

@@ -306,7 +306,7 @@ export const SamplePrintLabels: React.FC<SamplePrintLabelsProps> = ({
                 <div key={sample.id} className="barcode-label">
                   <div className="w-full h-full flex items-center justify-center p-1">
                     <div className="w-full max-w-[260px] rounded-2xl border border-slate-300 bg-white px-3.5 py-2.5 flex items-center justify-between gap-3 text-left font-sans text-black">
-                      <div className="min-w-0 flex-1 space-y-0.5 text-[8px] font-bold leading-snug text-black">
+                      <div className="min-w-0 flex-1 space-y-0.5 text-[6px] font-bold leading-snug text-black">
                         <div>PTN Name : {patientName}</div>
                         <div>
                           Age: {patientAge}&nbsp;&nbsp;Sex: {patientSex}

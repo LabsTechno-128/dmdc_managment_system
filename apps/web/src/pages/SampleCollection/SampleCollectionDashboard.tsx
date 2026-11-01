@@ -18,7 +18,7 @@ export const SampleCollectionDashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 w-full max-w-[1000px]">
+    <div className="space-y-6 w-full  ">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">

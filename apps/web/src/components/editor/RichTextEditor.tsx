@@ -91,11 +91,29 @@ const HIGHLIGHT_COLORS = [
   { label: 'Purple', color: '#e9d5ff' },
 ];
 
+const FONT_FAMILIES = [
+  { label: 'Default (Inter)', value: 'Inter, system-ui, sans-serif' },
+  { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
+  { label: 'Calibri', value: 'Calibri, Candara, Segoe UI, sans-serif' },
+  { label: 'Times New Roman', value: "'Times New Roman', Times, serif" },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Garamond', value: 'Garamond, Baskerville, serif' },
+  { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+  { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+  { label: 'Trebuchet MS', value: "'Trebuchet MS', Helvetica, sans-serif" },
+  { label: 'Courier New', value: "'Courier New', Courier, monospace" },
+  { label: 'Consolas', value: 'Consolas, Monaco, monospace' },
+  { label: 'Kalpurush / Bengali', value: "'Noto Sans Bengali', Kalpurush, sans-serif" },
+];
+
 const FONT_SIZES = [
-  { label: 'Small', size: '2', px: '12px' },
-  { label: 'Normal', size: '3', px: '14px' },
-  { label: 'Large', size: '4', px: '16px' },
-  { label: 'Extra Large', size: '5', px: '18px' },
+  { label: '10px (XS)', size: '1', px: '10px' },
+  { label: '12px (Small)', size: '2', px: '12px' },
+  { label: '14px (Normal)', size: '3', px: '14px' },
+  { label: '16px (Medium)', size: '4', px: '16px' },
+  { label: '18px (Large)', size: '5', px: '18px' },
+  { label: '24px (XL)', size: '6', px: '24px' },
+  { label: '32px (XXL)', size: '7', px: '32px' },
 ];
 
 const LINE_SPACINGS = [
@@ -111,6 +129,8 @@ interface ActiveFormats {
   underline: boolean;
   strike: boolean;
   blockTag: string;
+  fontFamily: string;
+  fontSize: string;
   align: 'left' | 'center' | 'right' | 'justify';
   unorderedList: boolean;
   orderedList: boolean;
@@ -143,6 +163,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [historyIndex, setHistoryIndex] = useState<number>(0);
   const [isEmpty, setIsEmpty] = useState<boolean>(() => isRichTextEmpty(initialHtml));
   const [lineSpacing, setLineSpacing] = useState<string>('1.5');
+  const [defaultFontFamily, setDefaultFontFamily] = useState<string>(FONT_FAMILIES[0].value);
 
   const [activeFormats, setActiveFormats] = useState<ActiveFormats>({
     bold: false,
@@ -150,6 +171,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     underline: false,
     strike: false,
     blockTag: 'p',
+    fontFamily: FONT_FAMILIES[0].value,
+    fontSize: '3',
     align: 'left',
     unorderedList: false,
     orderedList: false,
@@ -307,6 +330,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     let underline = false;
     let strike = false;
     let blockTag = 'p';
+    let detectedFontFamily = '';
+    let detectedFontSize = '';
     let unorderedList = false;
     let orderedList = false;
     let align: ActiveFormats['align'] = 'left';
@@ -330,6 +355,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         if (['h1', 'h2', 'h3', 'blockquote', 'pre', 'p'].includes(tag) && blockTag === 'p') {
           blockTag = tag;
         }
+        if (!detectedFontFamily) {
+          const faceAttr = el.getAttribute('face') || el.style.fontFamily;
+          if (faceAttr) {
+            const matched = FONT_FAMILIES.find((ff) =>
+              ff.value.toLowerCase().includes(faceAttr.replace(/['"]/g, '').split(',')[0].trim().toLowerCase())
+            );
+            if (matched) detectedFontFamily = matched.value;
+          }
+        }
+        if (!detectedFontSize && tag === 'font') {
+          const sizeAttr = el.getAttribute('size');
+          if (sizeAttr) detectedFontSize = sizeAttr;
+        }
         if (tag === 'ul') unorderedList = true;
         if (tag === 'ol') orderedList = true;
         if (el.style.textAlign && ['left', 'center', 'right', 'justify'].includes(el.style.textAlign)) {
@@ -339,17 +377,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       node = node.parentNode;
     }
 
-    setActiveFormats({
+    setActiveFormats((prev) => ({
       bold,
       italic,
       underline,
       strike,
       blockTag,
+      fontFamily: detectedFontFamily || prev.fontFamily || defaultFontFamily,
+      fontSize: detectedFontSize || prev.fontSize || '3',
       align,
       unorderedList,
       orderedList,
-    });
-  }, [isAiPanelOpen, isInteractive]);
+    }));
+  }, [isAiPanelOpen, isInteractive, defaultFontFamily]);
 
   const execEditorCommand = (command: string, commandValue?: string) => {
     if (!isInteractive || !editorRef.current) return;
@@ -362,6 +402,72 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
     emitChange(true);
     updateToolbarAndSelectionState();
+  };
+
+  const handleFontFamilyChange = (fontValue: string) => {
+    if (!isInteractive || !editorRef.current) return;
+    setDefaultFontFamily(fontValue);
+    setActiveFormats((prev) => ({ ...prev, fontFamily: fontValue }));
+    const restored = restoreSelection();
+    editorRef.current.focus();
+
+    const sel = window.getSelection();
+    const hasHighlight =
+      restored && sel && sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed;
+
+    if (hasHighlight) {
+      try {
+        document.execCommand('fontName', false, fontValue);
+      } catch {
+        // Fallback if needed
+      }
+    } else if (isRichTextEmpty(editorRef.current.innerHTML)) {
+      editorRef.current.innerHTML = `<p style="font-family: ${fontValue};"><br></p>`;
+      const p = editorRef.current.querySelector('p');
+      if (p && sel) {
+        const range = document.createRange();
+        range.setStart(p, 0);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        savedRangeRef.current = range.cloneRange();
+      }
+    } else {
+      // Apply to current block or whole editor when no specific word is highlighted
+      let appliedToBlock = false;
+      if (sel && sel.rangeCount > 0) {
+        let node: Node | null = sel.getRangeAt(0).startContainer;
+        while (node && node !== editorRef.current) {
+          if (
+            node.nodeType === Node.ELEMENT_NODE &&
+            ['P', 'H1', 'H2', 'H3', 'LI', 'BLOCKQUOTE', 'DIV', 'TD', 'TH'].includes(
+              (node as HTMLElement).tagName
+            )
+          ) {
+            (node as HTMLElement).style.fontFamily = fontValue;
+            appliedToBlock = true;
+            break;
+          }
+          node = node.parentNode;
+        }
+      }
+      if (!appliedToBlock) {
+        try {
+          document.execCommand('fontName', false, fontValue);
+        } catch {
+          // Ignore
+        }
+      }
+    }
+
+    emitChange(true);
+    updateToolbarAndSelectionState();
+  };
+
+  const handleFontSizeChange = (sizeValue: string) => {
+    if (!isInteractive || !editorRef.current) return;
+    setActiveFormats((prev) => ({ ...prev, fontSize: sizeValue }));
+    execEditorCommand('fontSize', sizeValue);
   };
 
   const insertHtmlAtCursor = (htmlSnippet: string) => {
@@ -836,14 +942,33 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Heading3 size={14} />
         </button>
 
+        {/* Font Family Selector */}
+        <select
+          aria-label="Font Family"
+          title="Font Family"
+          disabled={!isInteractive}
+          value={activeFormats.fontFamily}
+          onMouseDown={() => saveSelection()}
+          onChange={(e) => handleFontFamilyChange(e.target.value)}
+          style={{ fontFamily: activeFormats.fontFamily }}
+          className="mx-0.5 px-1.5 py-1 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[138px] cursor-pointer"
+        >
+          {FONT_FAMILIES.map((ff) => (
+            <option key={ff.label} value={ff.value} style={{ fontFamily: ff.value }}>
+              {ff.label}
+            </option>
+          ))}
+        </select>
+
         {/* Font Size Selector */}
         <select
           aria-label="Font Size"
           title="Font Size"
           disabled={!isInteractive}
-          defaultValue="3"
-          onChange={(e) => execEditorCommand('fontSize', e.target.value)}
-          className="mx-0.5 px-1.5 py-1 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          value={activeFormats.fontSize}
+          onMouseDown={() => saveSelection()}
+          onChange={(e) => handleFontSizeChange(e.target.value)}
+          className="mx-0.5 px-1.5 py-1 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
         >
           {FONT_SIZES.map((fs) => (
             <option key={fs.size} value={fs.size}>
@@ -1691,6 +1816,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight,
             maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight,
             lineHeight: lineSpacing,
+            fontFamily: defaultFontFamily,
           }}
           className="w-full overflow-y-auto px-3.5 py-3 text-sm text-slate-800 focus:outline-none prose prose-sm max-w-none [&_h1]:text-xl [&_h1]:font-bold [&_h1]:my-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:my-1.5 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-slate-600 [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:font-mono [&_pre]:text-xs [&_hr]:my-3 [&_hr]:border-slate-200"
         />

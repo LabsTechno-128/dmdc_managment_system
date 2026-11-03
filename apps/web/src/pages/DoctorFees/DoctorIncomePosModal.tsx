@@ -53,11 +53,11 @@ export const DoctorIncomePosModal: React.FC<DoctorIncomePosModalProps> = ({
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 print:p-0 print:overflow-visible">
                     {filteredIncomes && filteredIncomes.length > 0 ? (
-                        <div ref={printRef} className="pos-receipt text-black font-mono text-sm leading-tight bg-white p-4 mx-auto w-full max-w-[80mm] min-h-[100mm]">
+                        <div ref={printRef} className="pos-receipt text-black font-sans text-sm leading-tight bg-white p-4 mx-auto w-full max-w-[80mm] min-h-[100mm]">
                             <style type="text/css" media="print">
                                 {`
                                     @page { size: auto; margin: 0; }
-                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', system-ui, sans-serif; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: 'lnum' 1, 'tnum' 1; }
                                 `}
                             </style>
                             {filteredIncomes.map((doc: any, index: number) => {

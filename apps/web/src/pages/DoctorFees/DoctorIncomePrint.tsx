@@ -9,11 +9,11 @@ export const DoctorIncomePrint = React.forwardRef<HTMLDivElement, DoctorIncomePr
     if (!doctor) return <div ref={ref} />;
 
     return (
-        <div id="doctor-income-print" ref={ref} className="bg-white text-black font-mono text-[13px] leading-tight mx-auto max-w-[80mm] min-h-[100mm]">
+        <div id="doctor-income-print" ref={ref} className="bg-white text-black font-sans text-[13px] leading-tight mx-auto max-w-[80mm] min-h-[100mm]">
             <style type="text/css" media="print">
                 {`
                     @page { size: 80mm auto; margin: 0; }
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', system-ui, sans-serif; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: 'lnum' 1, 'tnum' 1; }
                 `}
             </style>
 

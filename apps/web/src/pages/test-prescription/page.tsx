@@ -215,7 +215,7 @@
 // function FormRow({ label, children, className = "" }) {
 //     return (
 //         <div className={`flex items-center gap-2 font-sans ${className}`}>
-//             <span className="font-serif text-slate-900">{label} :</span>
+//             <span className="font-sans font-medium text-slate-900">{label} :</span>
 //             {children}
 //         </div>
 //     );
@@ -331,7 +331,7 @@ function MedicalForm() {
         setMedicines((prev) => prev.filter((_, i) => i !== index));
 
     return (
-        <div className="w-full bg-white font-serif flex flex-col flex-1">
+        <div className="w-full bg-white font-sans flex flex-col flex-1">
             {/* Header */}
             <div className="bg-green-600 text-white px-6 py-4 flex items-center gap-4">
                 {/* Logo */}
@@ -482,7 +482,7 @@ function MedicalForm() {
                                 className="grid grid-cols-[1fr_140px_120px_1fr_32px] gap-3 items-start"
                             >
                                 <div className="flex gap-2">
-                                    <span className="text-slate-500 font-serif shrink-0">
+                                    <span className="text-slate-500 font-sans shrink-0">
                                         {i + 1}.
                                     </span>
                                     <input
@@ -531,7 +531,7 @@ function MedicalForm() {
 
             {/* Advice */}
             <div className="px-6 pb-6 font-sans">
-                <h3 className="font-serif font-semibold text-lg text-slate-900 border-b border-slate-300 pb-1 mb-2">
+                <h3 className="font-sans font-semibold text-lg text-slate-900 border-b border-slate-300 pb-1 mb-2">
                     Advice
                 </h3>
                 <textarea
@@ -572,7 +572,7 @@ function MedicalForm() {
 function FormRow({ label, children, className = "" }: { label: string, children?: React.ReactNode, className?: string }) {
     return (
         <div className={`flex items-center gap-2 font-sans ${className}`}>
-            <span className="font-serif text-slate-900">{label} :</span>
+            <span className="font-sans font-medium text-slate-900">{label} :</span>
             {children}
         </div>
     );

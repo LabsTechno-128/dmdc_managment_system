@@ -16,6 +16,12 @@ export class LabResultController {
         return this.labResultService.getTestsByBillingId(billingId);
     }
 
+    @Post('billing/:billingId/ensure-samples')
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
+    async ensureSamples(@Param('billingId') billingId: string) {
+        return this.labResultService.ensureSamplesForBilling(billingId);
+    }
+
     @Get('barcode/:barcode')
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async getByBarcode(@Param('barcode') barcode: string) {

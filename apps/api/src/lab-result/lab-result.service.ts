@@ -46,6 +46,7 @@ export class LabResultService implements OnModuleInit {
             const sample = samples.find(s => s.billingItemId === item.id) || samples.find(s => s.testId === item.testId);
             const result = sample ? results.find(r => r.sampleId === sample.id) : null;
             return {
+                billingItemId: item.id,
                 test: item.test,
                 sample: sample || null,
                 result: result || null
@@ -56,6 +57,57 @@ export class LabResultService implements OnModuleInit {
             billing,
             tests: testsWithStatus
         };
+    }
+
+    /**
+     * Ensures every lab-test item of a billing has a sample record so results can be
+     * entered directly (e.g. tests that don't require sample collection).
+     * Missing samples are created as PENDING using the standard barcode scheme.
+     */
+    async ensureSamplesForBilling(billingId: string) {
+        const billing = await this.databaseService.repoBilling().findOne({
+            where: { id: billingId },
+            relations: { items: { test: true }, patient: true }
+        });
+
+        if (!billing) {
+            throw new NotFoundException('Billing not found');
+        }
+
+        const sampleRepo = this.databaseService.repoSampleCollection();
+        const existing = await sampleRepo.find({ where: { billingId: billing.id } });
+        const validItems = billing.items.filter(item => item.test);
+
+        const toCreate: SampleCollection[] = [];
+        for (let index = 0; index < validItems.length; index++) {
+            const item = validItems[index];
+            const hasSample = existing.some(s => s.billingItemId === item.id)
+                || existing.some(s => !s.billingItemId && s.testId === item.testId);
+            if (hasSample) continue;
+
+            const baseBarcode = `${billing.patient?.patientId || 'P'}-${billing.billNumber || 'INV'}-S${String(index + 1).padStart(2, '0')}`;
+            let barcode = baseBarcode;
+            let suffix = 1;
+            while (await sampleRepo.exists({ where: { barcode }, withDeleted: true })) {
+                barcode = `${baseBarcode}-${suffix++}`;
+            }
+
+            toCreate.push(sampleRepo.create({
+                billingId: billing.id,
+                billingItemId: item.id,
+                patientId: billing.patientId,
+                testId: item.test!.id,
+                barcode,
+                status: SampleStatus.PENDING,
+                sampleType: 'General'
+            }));
+        }
+
+        if (toCreate.length > 0) {
+            await sampleRepo.save(toCreate);
+        }
+
+        return this.getTestsByBillingId(billing.id);
     }
 
     async getByBarcode(barcode: string) {
@@ -89,8 +141,9 @@ export class LabResultService implements OnModuleInit {
 
         if (!sample) throw new NotFoundException('Sample not found');
 
-        if (sample.status !== SampleStatus.COLLECTED) {
-            throw new BadRequestException('Cannot enter result for an uncollected sample');
+        // Sample collection is not mandatory: some tests don't need a collected sample.
+        if (sample.status === SampleStatus.REJECTED) {
+            throw new BadRequestException('Cannot enter result for a rejected sample');
         }
 
         let labResult = await this.databaseService.repoLabResult().findOne({

@@ -85,7 +85,7 @@ function MedicalForm({ data }: { data: Appointment }) {
 
 
     return (
-        <div className="w-full font-serif flex flex-col  flex-1">
+        <div className="w-full font-sans flex flex-col flex-1">
             {/* Header */}
             <div className="flex justify-between bg-green-600 text-white px-3 py-1 flex items-center gap-3">
                 {/* Logo */}

@@ -6,10 +6,68 @@
   --color-secondary: #8b5cf6;
   --color-secondary-dark: #7c3aed;
 
-  --font-sans: 'Inter', system-ui, sans-serif;
+  /* ------------------------------------------------------------------
+   * Typography system
+   * Inter (self-hosted, variable) is the single UI typeface. Its digits are
+   * lining and it supports tabular figures, so every number shares the same
+   * baseline, height and width.
+   * Noto Sans Bengali covers Bangla text and the Taka sign; it is only
+   * downloaded when such characters are rendered (unicode-range subsets).
+   * ------------------------------------------------------------------ */
+  --font-sans: 'Inter', 'Noto Sans Bengali', 'Nirmala UI', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* IDs, barcodes and invoice numbers used a monospace font whose digits sat at
+   * a different height than surrounding text. They now share the UI typeface;
+   * tabular figures keep them column-aligned. */
+  --font-mono: var(--font-sans);
+  /* Serif accents (prescription / ODP print). Lining-figure serif faces first;
+   * Georgia is last because its default numerals are old-style. */
+  --font-serif: Cambria, 'Times New Roman', 'Noto Sans Bengali', 'Nirmala UI', Georgia, ui-serif, serif;
+  /* Real monospace, only for code snippets in the rich text editor. */
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 @layer base {
+
+  /* Global numeric rendering: lining digits (uniform height and baseline) and
+   * tabular digits (uniform width) everywhere: tables, stats, prices, dates,
+   * counters, inputs. Tailwind's `proportional-nums` etc. can still opt out. */
+  html {
+    font-family: var(--font-sans);
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'lnum' 1, 'tnum' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Form controls don't inherit font settings by default in every browser. */
+  input,
+  select,
+  textarea,
+  button,
+  optgroup {
+    font-family: inherit;
+    font-variant-numeric: inherit;
+    font-feature-settings: inherit;
+  }
+
+  /* Genuine code snippets keep their monospace face. */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-code);
+    font-variant-numeric: normal;
+    font-feature-settings: normal;
+  }
+
+  table,
+  th,
+  td {
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'lnum' 1, 'tnum' 1;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }
@@ -37,6 +95,13 @@
   @page {
     size: A4;
     margin: 5mm;
+  }
+
+  html,
+  body {
+    font-family: var(--font-sans) !important;
+    font-variant-numeric: lining-nums tabular-nums !important;
+    font-feature-settings: 'lnum' 1, 'tnum' 1 !important;
   }
 
   body * {

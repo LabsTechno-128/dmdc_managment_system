@@ -101,7 +101,7 @@ function MedicalForm({ data }: { data: Appointment }) {
                         </span>
                     </div>
                     <div>
-                        <h1 className="text-sm font-black font-serif text-emerald-800 tracking-tight leading-none">
+                        <h1 className="text-sm font-black font-sans text-emerald-800 tracking-tight leading-none">
                             Dr. Muazzem Medical Diagnostic Center
                         </h1>
                         <p className="text-[10px] text-slate-500 mt-0.5">

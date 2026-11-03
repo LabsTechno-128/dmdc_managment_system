@@ -14,7 +14,7 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
     const [loading, setLoading] = useState(false);
     const [billingData, setBillingData] = useState<any>(null);
     const [tests, setTests] = useState<any[]>([]);
-    
+
     // For Result Form Modal
     const [selectedTest, setSelectedTest] = useState<{ sampleId: string, testId: number, testName: string, initialData: any } | null>(null);
 
@@ -40,13 +40,45 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
         }
     };
 
-    const handleEnterResult = (testStatus: any) => {
+    const [preparingIndex, setPreparingIndex] = useState<number | null>(null);
+
+    const openResultForm = (testStatus: any) => {
         setSelectedTest({
             sampleId: testStatus.sample.id,
             testId: testStatus.test.id,
             testName: testStatus.test.name,
             initialData: testStatus.result || {}
         });
+    };
+
+    const handleEnterResult = async (testStatus: any, index: number) => {
+        if (testStatus.sample?.id) {
+            openResultForm(testStatus);
+            return;
+        }
+
+        // Test has no sample record (e.g. test doesn't need sample collection):
+        // create the sample records on the fly, then open the result form.
+        if (!billingData?.id) return;
+        setPreparingIndex(index);
+        try {
+            const res = await api.post(`/lab-result/billing/${billingData.id}/ensure-samples`);
+            const updatedTests: any[] = res.data.tests || [];
+            setBillingData(res.data.billing);
+            setTests(updatedTests);
+
+            const updated = updatedTests.find(t => testStatus.billingItemId && t.billingItemId === testStatus.billingItemId)
+                || updatedTests[index];
+            if (updated?.sample?.id) {
+                openResultForm(updated);
+            } else {
+                toast.error('Unable to prepare this test for result entry');
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || error.message || 'Failed to prepare result entry');
+        } finally {
+            setPreparingIndex(null);
+        }
     };
 
     const handleFormSuccess = () => {
@@ -109,11 +141,10 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
                                                         {!sample ? (
                                                             <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">NOT INITIATED</span>
                                                         ) : (
-                                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                                                sample.status === 'COLLECTED' ? 'bg-blue-50 text-blue-700' :
+                                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${sample.status === 'COLLECTED' ? 'bg-blue-50 text-blue-700' :
                                                                 sample.status === 'PENDING' ? 'bg-amber-50 text-amber-700' :
-                                                                'bg-red-50 text-red-700'
-                                                            }`}>
+                                                                    'bg-red-50 text-red-700'
+                                                                }`}>
                                                                 {sample.status}
                                                             </span>
                                                         )}
@@ -122,27 +153,24 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
                                                         {!result ? (
                                                             <span className="text-slate-400 text-sm">-</span>
                                                         ) : (
-                                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                                                result.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' :
+                                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${result.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' :
                                                                 result.status === 'VERIFIED' ? 'bg-green-50 text-green-700' :
-                                                                'bg-amber-50 text-amber-700'
-                                                            }`}>
+                                                                    'bg-amber-50 text-amber-700'
+                                                                }`}>
                                                                 {result.status}
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="p-4 text-right">
                                                         <button
-                                                            disabled={!isCollected}
-                                                            onClick={() => handleEnterResult(t)}
-                                                            className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                                isCollected
-                                                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                            }`}
+                                                            disabled={preparingIndex !== null}
+                                                            onClick={() => handleEnterResult(t, index)}
+                                                            title={isCollected ? undefined : 'Sample not collected – result can still be entered'}
+                                                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-wait"
                                                         >
                                                             <FileText size={14} />
-                                                            <span>{result?.status === 'COMPLETED' ? 'View/Edit Result' : 'Enter Result'}</span>
+
+                                                            <span>{preparingIndex === index ? 'Opening...' : 'Enter Result'}</span>
                                                         </button>
                                                     </td>
                                                 </tr>

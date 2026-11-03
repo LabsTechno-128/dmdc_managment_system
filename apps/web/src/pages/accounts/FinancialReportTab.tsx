@@ -43,6 +43,8 @@ ChartJS.register(
   Filler
 );
 
+ChartJS.defaults.font.family = "'Inter', 'Noto Sans Bengali', system-ui, sans-serif";
+
 const formatMoney = (amount: number) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };

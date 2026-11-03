@@ -137,7 +137,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
       <style type="text/css" media="print">
         {`
           @page { size: A5; margin: 3mm; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: ui-sans-serif, system-ui, sans-serif; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: 'lnum' 1, 'tnum' 1; }
           * { box-sizing: border-box; }
         `}
       </style>

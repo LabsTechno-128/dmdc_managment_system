@@ -62,27 +62,27 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
 
   const referredByDisplay = billing.referredByDoctor
     ? (() => {
-        const docName = `Dr. ${billing.referredByDoctor.firstName || ''} ${billing.referredByDoctor.lastName || ''}`.trim();
-        const docSpec = (billing.referredByDoctor.specialization || '').trim();
-        if (billing.referredBy && billing.referredBy.trim()) {
-          const refText = billing.referredBy.trim();
-          return docSpec && !refText.toLowerCase().includes(docSpec.toLowerCase())
-            ? `${refText} (${docSpec})`
-            : refText;
-        }
-        return docSpec ? `${docName} (${docSpec})` : docName;
-      })()
+      const docName = `Dr. ${billing.referredByDoctor.firstName || ''} ${billing.referredByDoctor.lastName || ''}`.trim();
+      const docSpec = (billing.referredByDoctor.specialization || '').trim();
+      if (billing.referredBy && billing.referredBy.trim()) {
+        const refText = billing.referredBy.trim();
+        return docSpec && !refText.toLowerCase().includes(docSpec.toLowerCase())
+          ? `${refText} (${docSpec})`
+          : refText;
+      }
+      return docSpec ? `${docName} (${docSpec})` : docName;
+    })()
     : billing.referredBy ||
-      (billing.doctor
-        ? (() => {
-            const docName =
-              `Dr. ${billing.doctor.firstName || ''} ${billing.doctor.lastName || ''}`.trim() ||
-              billing.doctor.name ||
-              '';
-            const docSpec = (billing.doctor.specialization || '').trim();
-            return docSpec && docName ? `${docName} (${docSpec})` : docName;
-          })()
-        : '');
+    (billing.doctor
+      ? (() => {
+        const docName =
+          `Dr. ${billing.doctor.firstName || ''} ${billing.doctor.lastName || ''}`.trim() ||
+          billing.doctor.name ||
+          '';
+        const docSpec = (billing.doctor.specialization || '').trim();
+        return docSpec && docName ? `${docName} (${docSpec})` : docName;
+      })()
+      : '');
 
   const subtotal = Number(billing.subtotal || 0);
   const discountAmount = Number(billing.discountAmount || 0);
@@ -101,11 +101,11 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
 
   const authorizerName = billing.authorizedBy
     ? `${billing.authorizedBy.firstName || ''} ${billing.authorizedBy.lastName || ''}`.trim() ||
-      billing.authorizedBy.name ||
-      billing.authorizedBy.email
+    billing.authorizedBy.name ||
+    billing.authorizedBy.email
     : billing.createdBy
       ? `${billing.createdBy.firstName || ''} ${billing.createdBy.lastName || ''}`.trim() ||
-        billing.createdBy.name
+      billing.createdBy.name
       : 'Authorized Staff';
 
   const authorizerRole =
@@ -185,7 +185,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           <div className="flex-1 bg-[#efefef] rounded-xl overflow-hidden">
             <div className="py-1 px-3 text-center">
               <h2 className="text-[13.5px] font-bold text-black leading-tight">
-                Patient Invoice
+                Patient Invoice  (office copye)
               </h2>
             </div>
             <div className="border-t border-[#3b5978]" />
@@ -280,13 +280,12 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             <div className="flex items-center gap-1.5 pt-0.5">
               <span className="text-slate-600 font-medium">Payment Status:</span>
               <span
-                className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-                  billing.paymentStatus === 'Paid'
+                className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${billing.paymentStatus === 'Paid'
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                     : billing.paymentStatus === 'Partial'
                       ? 'bg-blue-100 text-blue-800 border border-blue-300'
                       : 'bg-amber-100 text-amber-800 border border-amber-300'
-                }`}
+                  }`}
               >
                 {billing.paymentStatus || 'UNPAID'}
               </span>
@@ -364,9 +363,8 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
                   Outstanding Due:
                 </span>
                 <span
-                  className={`font-mono text-[9px] ${
-                    dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'
-                  }`}
+                  className={`font-mono text-[9px] ${dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'
+                    }`}
                 >
                   {dueAmount.toFixed(0)} BDT
                 </span>

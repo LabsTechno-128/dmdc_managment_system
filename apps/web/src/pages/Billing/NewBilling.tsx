@@ -494,12 +494,12 @@ export const NewBilling: React.FC = () => {
       referredByDoctorId: existingBilling.referredByDoctorId || null,
       selectedDoctor: existingBilling.referredByDoctor
         ? {
-            id: String(existingBilling.referredByDoctor.id),
-            firstName: existingBilling.referredByDoctor.firstName || '',
-            lastName: existingBilling.referredByDoctor.lastName || '',
-            name: formatDoctorName(existingBilling.referredByDoctor),
-            specialization: existingBilling.referredByDoctor.specialization || '',
-          }
+          id: String(existingBilling.referredByDoctor.id),
+          firstName: existingBilling.referredByDoctor.firstName || '',
+          lastName: existingBilling.referredByDoctor.lastName || '',
+          name: formatDoctorName(existingBilling.referredByDoctor),
+          specialization: existingBilling.referredByDoctor.specialization || '',
+        }
         : null,
     };
     referralStateRef.current = initialReferralState;
@@ -507,10 +507,10 @@ export const NewBilling: React.FC = () => {
 
     const mappedItems = Array.isArray(existingBilling.items)
       ? existingBilling.items.map((item: any) => ({
-          testId: String(item.testId || item.test?.id || item.id || '1'),
-          name: item.test?.name || item.name || item.description || 'Diagnostic Test',
-          price: Math.round(Number(item.price || item.test?.billRate || 0)),
-        }))
+        testId: String(item.testId || item.test?.id || item.id || '1'),
+        name: item.test?.name || item.name || item.description || 'Diagnostic Test',
+        price: Math.round(Number(item.price || item.test?.billRate || 0)),
+      }))
       : [];
 
     billingForm.reset({
@@ -1307,7 +1307,7 @@ export const NewBilling: React.FC = () => {
                   <label htmlFor="test-availability-note" className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                     <Clock size={16} className="text-primary" />
                     <span>Test Availability Note</span>
-                    <span className="text-slate-400 font-normal">(Optional)</span>
+                    {/* <span className="text-slate-400 font-normal">(Optional)</span> */}
                   </label>
                   <span className="text-xs text-slate-400 font-mono">
                     {(billingForm.watch('testAvailabilityNote') || '').length}/2000
@@ -1317,6 +1317,7 @@ export const NewBilling: React.FC = () => {
                   id="test-availability-note"
                   rows={3}
                   maxLength={2000}
+                  required={true}
                   placeholder="Enter when the test will be available or when the report is expected..."
                   {...billingForm.register('testAvailabilityNote')}
                   onKeyDown={(e) => {
@@ -1328,11 +1329,10 @@ export const NewBilling: React.FC = () => {
                       focusNextField(target, billingWorkspaceRef.current);
                     }
                   }}
-                  className={`w-full px-4 py-3 text-sm border rounded-xl focus:ring-2 focus:outline-none transition-all bg-slate-50/60 focus:bg-white resize-y ${
-                    billingForm.formState.errors.testAvailabilityNote
+                  className={`w-full px-4 py-3 text-sm border rounded-xl focus:ring-2 focus:outline-none transition-all bg-slate-50/60 focus:bg-white resize-y ${billingForm.formState.errors.testAvailabilityNote
                       ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                       : 'border-slate-300 focus:border-primary'
-                  }`}
+                    }`}
                 />
                 {billingForm.formState.errors.testAvailabilityNote ? (
                   <p className="text-red-500 text-xs mt-1">
@@ -1421,8 +1421,8 @@ export const NewBilling: React.FC = () => {
                     {...billingForm.register('vatRate', { valueAsNumber: true })}
                     onKeyDown={(e) => handleBillingFieldEnter(e, 'vatRate')}
                     className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono ${billingForm.formState.errors.vatRate
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                        : 'border-slate-300 focus:border-primary'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-slate-300 focus:border-primary'
                       }`}
                     placeholder="0"
                   />
@@ -1433,8 +1433,8 @@ export const NewBilling: React.FC = () => {
                         type="button"
                         onClick={() => billingForm.setValue('vatRate', rate, { shouldValidate: true })}
                         className={`px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${watchVatRate === rate
-                            ? 'bg-primary text-white border-primary font-bold'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-primary text-white border-primary font-bold'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                           }`}
                       >
                         {rate}%
@@ -1494,8 +1494,8 @@ export const NewBilling: React.FC = () => {
                   {...billingForm.register('paidAmount', { valueAsNumber: true })}
                   onKeyDown={(e) => handleBillingFieldEnter(e, 'paidAmount')}
                   className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none text-right font-mono font-semibold ${billingForm.formState.errors.paidAmount
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-slate-300 focus:border-primary'
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                    : 'border-slate-300 focus:border-primary'
                     }`}
                 />
                 {billingForm.formState.errors.paidAmount && (

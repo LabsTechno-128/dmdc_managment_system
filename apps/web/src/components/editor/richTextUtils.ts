@@ -240,6 +240,14 @@ export function docJsonToHtml(doc: EditorDocJson | EditorDocNode | null | undefi
         return `<blockquote>${childrenHtml}</blockquote>`;
       case 'codeBlock':
         return `<pre><code>${childrenHtml}</code></pre>`;
+      case 'table':
+        return `<table class="w-full border-collapse border border-slate-300 my-2 text-xs">${childrenHtml}</table>`;
+      case 'tableRow':
+        return `<tr>${childrenHtml}</tr>`;
+      case 'tableHeader':
+        return `<th class="border border-slate-300 px-2.5 py-1.5 text-left font-semibold bg-slate-100">${childrenHtml}</th>`;
+      case 'tableCell':
+        return `<td class="border border-slate-300 px-2.5 py-1.5">${childrenHtml}</td>`;
       case 'horizontalRule':
         return '<hr />';
       case 'hardBreak':
@@ -328,7 +336,7 @@ export function htmlToDocJson(html: string | null | undefined): EditorDocJson {
     return { type: 'doc', content: [{ type: 'paragraph', content: [] }] };
   }
 
-  const blockRegex = /<(h[1-3]|p|blockquote|pre|ul|ol|hr)\b[^>]*>([\s\S]*?)<\/\1>|<(hr)\s*\/?>/gi;
+  const blockRegex = /<(h[1-3]|p|blockquote|pre|ul|ol|table|hr)\b[^>]*>([\s\S]*?)<\/\1>|<(hr)\s*\/?>/gi;
   const content: EditorDocNode[] = [];
   let matched = false;
   let match: RegExpExecArray | null;
@@ -400,6 +408,38 @@ export function htmlToDocJson(html: string | null | undefined): EditorDocJson {
       content.push({
         type: isTaskList ? 'taskList' : tag === 'ol' ? 'orderedList' : 'bulletList',
         content: items,
+      });
+    } else if (tag === 'table') {
+      const rowRegex = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+      const rows: EditorDocNode[] = [];
+      let rowMatch: RegExpExecArray | null;
+      while ((rowMatch = rowRegex.exec(inner)) !== null) {
+        const cellRegex = /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+        const cells: EditorDocNode[] = [];
+        let cellMatch: RegExpExecArray | null;
+        while ((cellMatch = cellRegex.exec(rowMatch[1] || '')) !== null) {
+          const isTh = (cellMatch[1] || '').toLowerCase() === 'th';
+          const cellText = extractPlainText(cellMatch[2] || '');
+          cells.push({
+            type: isTh ? 'tableHeader' : 'tableCell',
+            content: [
+              {
+                type: 'paragraph',
+                content: cellText ? [{ type: 'text', text: cellText }] : [],
+              },
+            ],
+          });
+        }
+        if (cells.length > 0) {
+          rows.push({
+            type: 'tableRow',
+            content: cells,
+          });
+        }
+      }
+      content.push({
+        type: 'table',
+        content: rows,
       });
     } else {
       const text = extractPlainText(inner);

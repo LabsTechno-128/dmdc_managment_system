@@ -117,7 +117,7 @@ function MedicalForm({ data }: { data: Appointment }) {
             </div>
 
             {/* 1.2 inch gap when printed on pre-printed prescription pad */}
-            <div className="opd-print-gap hidden print:block shrink-0" style={{ height: '1.2in' }}></div>
+            <div className="opd-print-gap hidden print:block shrink-0" style={{ height: '1in' }}></div>
 
             {/* Patient / Doctor */}
             <div className="grid grid-cols-2 divide-x divide-slate-400 border-b border-slate-400 text-sm">

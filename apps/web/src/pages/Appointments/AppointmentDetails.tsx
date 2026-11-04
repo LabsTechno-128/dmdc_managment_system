@@ -8,7 +8,7 @@ import {
     Clock,
     User,
     Stethoscope,
-    DollarSign,
+    Banknote,
     FileText,
     StickyNote,
     CheckCircle,
@@ -216,11 +216,11 @@ export const AppointmentDetails: React.FC = () => {
                         </div>
                         <div>
                             <label className="flex items-center space-x-2 text-sm font-medium text-slate-500 mb-1">
-                                <DollarSign size={16} />
+                                <Banknote size={16} />
                                 <span>Consultation Fee</span>
                             </label>
                             <div className="text-base font-semibold text-slate-800 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                                {Number(appointment.consultationFee).toLocaleString()} BDT
+                                ৳{Number(appointment.consultationFee).toLocaleString()}
                             </div>
                         </div>
                     </div>

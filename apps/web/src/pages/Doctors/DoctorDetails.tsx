@@ -9,7 +9,8 @@ import {
     User,
     Calendar,
     Clock,
-    DollarSign,
+    Banknote,
+    Coins,
     Users,
     FileText,
 } from 'lucide-react';
@@ -240,11 +241,11 @@ export const DoctorDetails: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl flex items-center gap-4">
                                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                                    <DollarSign size={24} />
+                                    <Banknote size={24} />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-emerald-800">Total Income</p>
-                                    <h3 className="text-2xl font-bold text-emerald-900">{Number(stats?.totalIncome || 0).toLocaleString()} BDT</h3>
+                                    <h3 className="text-2xl font-bold text-emerald-900">৳{Number(stats?.totalIncome || 0).toLocaleString()}</h3>
                                 </div>
                             </div>
 
@@ -260,11 +261,11 @@ export const DoctorDetails: React.FC = () => {
 
                             <div className="bg-amber-50 border border-amber-100 p-6 rounded-2xl flex items-center gap-4">
                                 <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                                    <DollarSign size={24} />
+                                    <Coins size={24} />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-amber-800">Total Discount</p>
-                                    <h3 className="text-2xl font-bold text-amber-900">{Number(stats?.totalDiscount || 0).toLocaleString()} BDT</h3>
+                                    <h3 className="text-2xl font-bold text-amber-900">৳{Number(stats?.totalDiscount || 0).toLocaleString()}</h3>
                                 </div>
                             </div>
                         </div>

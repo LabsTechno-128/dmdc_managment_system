@@ -6,7 +6,7 @@ import { Plus, X } from 'lucide-react';
 import { DeleteModal } from '../../components/DeleteModal';
 
 const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return `৳${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export const ExpenseTab: React.FC = () => {

@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Calendar, Users, CheckCircle, CreditCard, TrendingUp, Stethoscope, Clock, Activity, FileDigit, BadgeDollarSign, UserCog } from 'lucide-react';
+import { Calendar, Users, CheckCircle, CreditCard, TrendingUp, Stethoscope, Clock, Activity, FileDigit, Banknote, UserCog } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { DashboardSkeleton } from '../components/skeleton/DashboardSkeleton';
@@ -119,7 +119,7 @@ export const Dashboard: FC = () => {
                         </div>
                         <div className="relative z-10">
                             <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
-                                {Number(displayStats.collection).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
+                                ৳{Number(displayStats.collection).toLocaleString()}
                             </div>
                             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Today's Collection</div>
                         </div>
@@ -134,7 +134,7 @@ export const Dashboard: FC = () => {
                         </div>
                         <div className="relative z-10">
                             <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
-                                {Number(displayStats.thisMonthIncome).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
+                                ৳{Number(displayStats.thisMonthIncome).toLocaleString()}
                             </div>
                             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">This Month Income</div>
                         </div>
@@ -144,12 +144,12 @@ export const Dashboard: FC = () => {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-slate-100 rounded-bl-full -z-0 opacity-50"></div>
                         <div className="flex justify-between items-start mb-4 relative z-10">
                             <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-                                <BadgeDollarSign size={20} />
+                                <Banknote size={20} />
                             </div>
                         </div>
                         <div className="relative z-10">
                             <div className="text-xl sm:text-2xl font-bold text-slate-800 break-words">
-                                {Number(displayStats.lastMonthIncome).toLocaleString()} <span className="text-xs sm:text-sm font-semibold text-slate-500">BDT</span>
+                                ৳{Number(displayStats.lastMonthIncome).toLocaleString()}
                             </div>
                             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Last Month Income</div>
                         </div>

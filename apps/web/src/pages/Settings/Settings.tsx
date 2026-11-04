@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, MapPin, Phone, Mail, Globe, DollarSign, Receipt, FileText, Percent, Save } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail, Globe, Coins, Receipt, FileText, Percent, Save } from 'lucide-react';
 import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../store/authStore';
@@ -168,7 +168,7 @@ export const Settings: React.FC = () => {
 
                 <div>
                   <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
-                    <DollarSign size={16} className="text-slate-400" />
+                    <Coins size={16} className="text-slate-400" />
                     <span>Base Currency</span>
                   </label>
                   <input

@@ -20,6 +20,52 @@ const fetchDoctors = async (params: DoctorQueryParams) => {
   };
 };
 
+const renderDegree = (degree?: string | null) => {
+  if (!degree) return <span className="text-slate-400 font-normal">N/A</span>;
+
+  if (degree.length <= 40) {
+    return <span>{degree}</span>;
+  }
+
+  const lines: string[] = [];
+  let remaining = degree.trim();
+
+  while (remaining.length > 40) {
+    let splitIdx = -1;
+    const commaIdx = remaining.lastIndexOf(',', 40);
+    if (commaIdx >= 15) {
+      splitIdx = commaIdx + 1;
+    } else {
+      const spaceIdx = remaining.lastIndexOf(' ', 40);
+      if (spaceIdx >= 15) {
+        splitIdx = spaceIdx;
+      } else {
+        const nextSpace = remaining.indexOf(' ', 40);
+        if (nextSpace !== -1 && nextSpace <= 55) {
+          splitIdx = nextSpace;
+        } else {
+          splitIdx = 40;
+        }
+      }
+    }
+
+    lines.push(remaining.substring(0, splitIdx).trim());
+    remaining = remaining.substring(splitIdx).trim();
+  }
+
+  if (remaining.length > 0) {
+    lines.push(remaining);
+  }
+
+  return (
+    <div className="flex flex-col whitespace-normal leading-snug">
+      {lines.map((line, idx) => (
+        <span key={idx}>{line}</span>
+      ))}
+    </div>
+  );
+};
+
 export const DoctorsList: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -28,7 +74,7 @@ export const DoctorsList: React.FC = () => {
     limit: 10,
     search: '',
   });
-  
+
   const [searchInput, setSearchInput] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -159,8 +205,8 @@ export const DoctorsList: React.FC = () => {
                         <td className="p-4 text-sm text-slate-600">
                           {doctor.specialization}
                         </td>
-                        <td className="p-4 text-sm font-medium text-slate-700">
-                          {doctor.degree || <span className="text-slate-400 font-normal">N/A</span>}
+                        <td className="p-4 text-sm font-medium text-slate-700 whitespace-normal min-w-[200px] max-w-[320px]">
+                          {renderDegree(doctor.degree)}
                         </td>
                         <td className="p-4 text-sm text-slate-600">
                           {doctor.availability || 'N/A'}
@@ -200,37 +246,37 @@ export const DoctorsList: React.FC = () => {
             {/* Pagination */}
             <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-slate-500">
-                  Showing <span className="font-bold text-slate-700">{from}</span>–{' '}
-                  <span className="font-bold text-slate-700">{to}</span> of{' '}
-                  <span className="font-bold text-slate-700">{total}</span>
+                Showing <span className="font-bold text-slate-700">{from}</span>–{' '}
+                <span className="font-bold text-slate-700">{to}</span> of{' '}
+                <span className="font-bold text-slate-700">{total}</span>
               </p>
               <div className="flex items-center gap-1">
-                  <button disabled={page <= 1}
-                      onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
-                      className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                      <ChevronLeft size={15} />
-                  </button>
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                      const p = i + 1; // Basic pagination logic
-                      return (
-                          <button key={p}
-                              onClick={() => setParams(prev => ({ ...prev, page: p }))}
-                              className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
-                                  ? 'bg-primary text-white shadow-primary/20'
-                                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                                  }`}
-                          >
-                              {p}
-                          </button>
-                      );
-                  })}
-                  <button disabled={page >= totalPages}
-                      onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
-                      className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                      <ChevronRight size={15} />
-                  </button>
+                <button disabled={page <= 1}
+                  onClick={() => setParams(prev => ({ ...prev, page: Math.max(1, (prev.page || 1) - 1) }))}
+                  className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  const p = i + 1; // Basic pagination logic
+                  return (
+                    <button key={p}
+                      onClick={() => setParams(prev => ({ ...prev, page: p }))}
+                      className={`cursor-pointer min-w-[36px] rounded-xl px-3 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 ${p === page
+                        ? 'bg-primary text-white shadow-primary/20'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+                <button disabled={page >= totalPages}
+                  onClick={() => setParams(prev => ({ ...prev, page: Math.min(totalPages, (prev.page || 1) + 1) }))}
+                  className="cursor-pointer rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronRight size={15} />
+                </button>
               </div>
             </div>
           </>

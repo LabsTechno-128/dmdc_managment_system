@@ -46,7 +46,7 @@ ChartJS.register(
 ChartJS.defaults.font.family = "'Inter', 'Noto Sans Bengali', system-ui, sans-serif";
 
 const formatMoney = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  return `৳${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export const FinancialReportTab: React.FC = () => {

@@ -4,7 +4,7 @@ import { api } from '../../lib/api';
 import { format } from 'date-fns';
 
 const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return `৳${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export const IncomeTab: React.FC = () => {

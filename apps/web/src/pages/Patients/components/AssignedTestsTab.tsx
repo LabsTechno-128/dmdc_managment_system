@@ -72,7 +72,7 @@ export const AssignedTestsTab: React.FC<AssignedTestsTabProps> = ({
                 </div>
             </div>
             <div className="flex-1 overflow-x-auto">
-                <table className="w-full text-left text-sm whitespace-nowrap min-w-[550px]">
+                <table className="w-full text-left text-sm whitespace-nowrap min-w-0 max-[999px]:min-w-[450px]">
                     <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                         <tr>
                             <th className="px-6 py-4 font-bold">Test Name</th>

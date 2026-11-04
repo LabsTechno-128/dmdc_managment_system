@@ -328,7 +328,7 @@ export const ReportPreview: React.FC = () => {
                                     <td className="p-0 border-0">
                                         {/* Results Table */}
                                         <div className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs print:shadow-none print:border-slate-300 print:rounded-none [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
-                                            <table className="report-inner-table w-full text-left border-collapse min-w-[1000px] print:min-w-0">
+                                            <table className="report-inner-table w-full text-left border-collapse min-w-0 max-[999px]:min-w-[650px] print:min-w-0">
                                                 <thead className="bg-slate-100/90 text-slate-800 border-b-2 border-slate-300 print:bg-slate-100">
                                                     <tr>
                                                         <th className="py-3 px-4 font-bold uppercase text-xs tracking-wider w-[35%] print:w-[35%]">Parameter</th>

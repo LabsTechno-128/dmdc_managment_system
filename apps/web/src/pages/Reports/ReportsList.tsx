@@ -51,7 +51,7 @@ export const ReportsList: React.FC = () => {
           <div className="p-8 text-center text-red-500">Error loading reports</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[700px] whitespace-nowrap">
+            <table className="w-full text-left border-collapse min-w-0 max-[999px]:min-w-[550px] whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                   <th className="p-4">Report ID</th>

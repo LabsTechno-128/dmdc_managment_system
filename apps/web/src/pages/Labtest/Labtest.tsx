@@ -321,7 +321,7 @@ function LabTest() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="min-w-[720px] w-full text-left text-xs">
+                        <table className="w-full min-w-0 max-[999px]:min-w-[450px] text-left text-xs">
                             <thead className="bg-blue-50 text-[11px] uppercase tracking-wide text-slate-600">
                                 <tr>
                                     <th className="w-16 px-5 py-3 font-bold">SL</th>

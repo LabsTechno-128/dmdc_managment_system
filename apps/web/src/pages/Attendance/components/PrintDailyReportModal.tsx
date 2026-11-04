@@ -118,7 +118,7 @@ export const PrintDailyReportModal: React.FC<PrintDailyReportModalProps> = ({ is
 
             <div className="border-t-2 border-slate-100 pt-6">
               <h3 className="text-lg font-bold text-slate-900 mb-4 uppercase tracking-wide">Employee Attendance Details</h3>
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse min-w-0 max-[999px]:min-w-[600px]">
                 <thead>
                   <tr className="border-b-2 border-slate-300 bg-slate-50">
                     <th className="py-3 px-3 font-bold text-slate-600 uppercase">Employee ID</th>

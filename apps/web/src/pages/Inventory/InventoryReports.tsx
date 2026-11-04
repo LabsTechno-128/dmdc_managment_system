@@ -46,7 +46,7 @@ export const InventoryReports: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left border-collapse border border-slate-300 whitespace-nowrap">
+            <table className="w-full min-w-0 max-[999px]:min-w-[500px] text-left border-collapse border border-slate-300 whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-100">
                   <th className="p-3 border border-slate-300 font-bold text-slate-700 text-xs sm:text-sm">Category</th>

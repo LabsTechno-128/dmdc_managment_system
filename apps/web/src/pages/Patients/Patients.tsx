@@ -100,7 +100,7 @@ const Patients: React.FC = () => {
             <div className="p-8 text-center text-red-500">Error loading patients</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-[700px]">
+              <table className="w-full text-left text-xs min-w-0 max-[999px]:min-w-[550px]">
                 <thead className="bg-blue-50 text-[11px] uppercase tracking-wide text-slate-600">
                   <tr>
                     <th className="px-5 py-3 font-bold whitespace-nowrap">Patient ID & Name</th>

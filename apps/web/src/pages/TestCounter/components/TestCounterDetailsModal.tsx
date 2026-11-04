@@ -112,7 +112,7 @@ export const TestCounterDetailsModal: React.FC<TestCounterDetailsModalProps> = (
                         </div>
                     ) : (
                         <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                            <table className="w-full min-w-[650px] text-left border-collapse whitespace-nowrap">
+                            <table className="w-full min-w-0 max-[999px]:min-w-[500px] text-left border-collapse whitespace-nowrap">
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                     <tr>
                                         <th className="p-4 font-semibold text-slate-600 text-sm">Test Name</th>

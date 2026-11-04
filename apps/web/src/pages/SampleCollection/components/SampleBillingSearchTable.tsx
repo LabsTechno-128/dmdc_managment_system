@@ -33,7 +33,7 @@ export const SampleBillingSearchTable: React.FC<SampleBillingSearchTableProps> =
       </div>
 
       <div className="w-full    overflow-x-auto  overflow-x-hidden">
-        <table className="w-full    min-w-[640px] text-left border-collapse table-auto">
+        <table className="w-full min-w-0 max-[999px]:min-w-[550px] text-left border-collapse table-auto">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="px-4 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">

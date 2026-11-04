@@ -160,7 +160,7 @@ export const InventoryItems: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[650px] whitespace-nowrap">
+          <table className="w-full text-left border-collapse min-w-0 max-[999px]:min-w-[550px] whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Name</th>

@@ -62,8 +62,8 @@ export const SampleTestsTable: React.FC<SampleTestsTableProps> = ({
         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
           <h3 className="font-bold text-slate-800 text-sm sm:text-base">Test List &amp; Samples</h3>
         </div>
-        <div className="w-full max-w-[1400px] max-[999px]:overflow-x-auto min-[1400px]:overflow-x-hidden">
-          <table className="w-full max-w-[1400px] max-[999px]:min-w-[640px] text-left border-collapse table-auto">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left border-collapse table-auto min-w-0 max-[999px]:min-w-[600px]">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="p-3.5 text-xs font-bold text-slate-500 uppercase">Test Name</th>

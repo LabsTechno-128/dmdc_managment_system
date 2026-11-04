@@ -270,7 +270,7 @@ export const DoctorDetails: React.FC = () => {
                         </div>
 
                         {/* <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left border-collapse min-w-0 max-[999px]:min-w-[500px]">
                                 <thead>
                                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                                         <th className="p-4">Patient Name</th>
@@ -340,7 +340,7 @@ export const DoctorDetails: React.FC = () => {
                     </div>
                 ) : (
                     <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse min-w-0 max-[999px]:min-w-[500px]">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                                     <th className="p-4">Date</th>

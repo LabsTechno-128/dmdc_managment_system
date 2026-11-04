@@ -10,7 +10,7 @@ export const DoctorsTab: React.FC<DoctorsTabProps> = ({ doctors }) => {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             {doctors.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-left text-sm min-w-0 whitespace-nowrap">
                         <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
                                 <th className="px-6 py-4 font-bold">Doctor</th>

@@ -156,7 +156,7 @@ export const DoctorFeesList: React.FC = () => {
             {/* Main Table */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm min-w-[750px] whitespace-nowrap">
+                    <table className="w-full text-left text-sm min-w-0 max-[999px]:min-w-[600px] whitespace-nowrap">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
                             <tr>
                                 <th className="px-6 py-4">Doctor Name</th>
@@ -274,7 +274,7 @@ export const DoctorFeesList: React.FC = () => {
                             </div>
 
                             <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                                <table className="w-full text-left text-sm min-w-[480px] whitespace-nowrap">
+                                <table className="w-full text-left text-sm min-w-0 max-[999px]:min-w-[450px] whitespace-nowrap">
                                 <thead className="bg-slate-100 text-slate-600 font-bold">
                                     <tr>
                                         <th className="px-4 py-3 rounded-tl-lg">#</th>

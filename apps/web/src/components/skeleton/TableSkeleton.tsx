@@ -3,7 +3,7 @@ import React from 'react';
 export const TableSkeleton: React.FC = () => {
     return (
         <div className="overflow-x-auto w-full animate-pulse">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-0 text-left border-collapse">
                 <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
                         <th className="px-5 py-4"><div className="h-3 bg-slate-200 rounded w-24"></div></th>

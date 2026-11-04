@@ -181,3 +181,76 @@
   }
 
 } */
+
+/* ==========================================================================
+ * Project-Wide Table UI Standardization & Responsive Optimization
+ * ========================================================================== */
+
+/* Table Base Layout */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) {
+  width: 100% !important;
+  border-collapse: collapse;
+}
+
+/* Ensure tables fit within container width without horizontal scrolling at >= 1000px */
+@media (min-width: 1000px) {
+  table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* 1. Table Headers (th): Compact, visually balanced, professional typography */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) th {
+  font-size: 9.5px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.025em;
+  padding: 6px 8px !important;
+  vertical-align: middle;
+}
+
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) th * {
+  font-size: 9.5px !important;
+  line-height: 1.25 !important;
+}
+
+/* 2. Table Cells (td): Exactly 9px font size across all cells and nested text */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+  padding: 5px 8px !important;
+  vertical-align: middle;
+}
+
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td * {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+/* Maintain proper button, badge, and input sizing inside cells */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td button {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td input,
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td select {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+/* Badges / Pill tags inside table cells */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td span[class*="rounded"],
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td div[class*="rounded"] {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+/* SVG icons inside tables retain layout proportions without being squished */
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) td svg,
+table:not(.print-layout-table):not(#invoice-print table):not(#doctor-income-print table):not([contenteditable="true"] table) th svg {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}

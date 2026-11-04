@@ -154,7 +154,7 @@ const LabTechnicianDashboard: React.FC = () => {
                     </div>
 
                     <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
-                        <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
+                        <table className="w-full min-w-0 max-[999px]:min-w-[500px] text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr className="bg-slate-50 border-b">
                                     <th className="p-4 font-medium text-slate-600 text-sm">Test Name</th>

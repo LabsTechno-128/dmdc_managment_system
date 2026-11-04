@@ -83,7 +83,7 @@ export const StockUsage: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
+          <table className="w-full min-w-0 max-[999px]:min-w-[550px] text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>

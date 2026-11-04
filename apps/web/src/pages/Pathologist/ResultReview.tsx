@@ -102,7 +102,7 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                     <h2 className="text-base sm:text-lg font-semibold text-slate-800">Test Parameters</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[550px] text-left border-collapse whitespace-nowrap">
+                    <table className="w-full min-w-0 max-[999px]:min-w-[450px] text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-100 border-b">
                                 <th className="p-4 font-medium text-slate-600 text-sm">Parameter</th>

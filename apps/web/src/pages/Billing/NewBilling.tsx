@@ -1258,7 +1258,7 @@ export const NewBilling: React.FC = () => {
 
               {billingItems.length > 0 ? (
                 <div className="border border-slate-200 rounded-xl overflow-x-auto">
-                  <table className="w-full text-left min-w-[500px] whitespace-nowrap">
+                  <table className="w-full text-left min-w-0 max-[999px]:min-w-[420px] whitespace-nowrap">
                     <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
                       <tr>
                         <th className="px-4 py-3 w-12 text-center">SL</th>

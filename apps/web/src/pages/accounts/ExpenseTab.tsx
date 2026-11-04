@@ -189,7 +189,7 @@ export const ExpenseTab: React.FC = () => {
                     <div className="flex h-32 items-center justify-center text-sm font-semibold text-slate-500">Loading Expenses...</div>
                 ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200">
-                        <table className="w-full text-left text-sm text-slate-600 min-w-[650px] whitespace-nowrap">
+                        <table className="w-full text-left text-sm text-slate-600 min-w-0 max-[999px]:min-w-[500px] whitespace-nowrap">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
                                     <th className="border-b border-slate-200 px-4 py-3 font-bold">Date</th>

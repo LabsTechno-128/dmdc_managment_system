@@ -424,7 +424,7 @@ export const FinancialReportTab: React.FC = () => {
                         {/* Content for TAB 1: PERIODIC BREAKDOWN */}
                         {activeTab === 'BREAKDOWN' && (
                             <div className="overflow-x-auto rounded-xl border border-slate-200">
-                                <table className="w-full text-left text-sm text-slate-600 min-w-[650px] whitespace-nowrap">
+                                <table className="w-full text-left text-sm text-slate-600 min-w-0 max-[999px]:min-w-[500px] whitespace-nowrap">
                                     <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                         <tr>
                                             <th className="border-b border-slate-200 px-4 py-3 font-bold">Period / Date</th>
@@ -511,7 +511,7 @@ export const FinancialReportTab: React.FC = () => {
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-xl border border-slate-200">
-                                        <table className="w-full text-left text-sm text-slate-600 min-w-[700px] whitespace-nowrap">
+                                        <table className="w-full text-left text-sm text-slate-600 min-w-0 max-[999px]:min-w-[550px] whitespace-nowrap">
                                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                                 <tr>
                                                     <th className="border-b border-slate-200 px-4 py-3 font-bold">Date</th>

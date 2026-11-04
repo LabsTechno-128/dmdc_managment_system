@@ -156,7 +156,7 @@ export const DoctorsTab: React.FC<DoctorsTabProps> = ({
       {/* Doctors Table / Card List */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-0 max-[999px]:min-w-[600px]">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-3.5 px-4 w-12 text-center">Order</th>

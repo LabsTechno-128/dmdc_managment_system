@@ -96,7 +96,7 @@ export const EmployeeAttendanceModal: React.FC<EmployeeAttendanceModalProps> = (
         <div className="overflow-y-auto flex-1 p-4 sm:p-6">
           <div className="bg-white border border-slate-150 rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm whitespace-nowrap min-w-[550px]">
+              <table className="w-full text-left text-sm whitespace-nowrap min-w-0 max-[999px]:min-w-[450px]">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   <th className="px-5 py-3.5 font-semibold text-slate-600">Date</th>

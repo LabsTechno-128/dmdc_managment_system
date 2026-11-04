@@ -57,7 +57,7 @@ export const PathologistDashboard: React.FC = () => {
             )}
 
             <div className="bg-white overflow-x-auto shadow-xs">
-                <table className="w-full min-w-[700px] text-left border-collapse border border-slate-700 whitespace-nowrap">
+                <table className="w-full min-w-0 max-[999px]:min-w-[500px] text-left border-collapse border border-slate-700 whitespace-nowrap">
                     <thead>
                         <tr className="bg-white">
                             <th className="border border-slate-700 px-4 py-3 font-bold text-slate-900 text-sm w-16">

@@ -28,3 +28,4 @@ export * from './entities/LabResult';
 export * from './entities/LandingContent';
 export * from './entities/HospitalSetting';
 export * from './migrations/1730400000000-AddTestAvailabilityNoteToBillings';
+export * from './migrations/1730700000000-AddWebaddressToHospitalSettings';

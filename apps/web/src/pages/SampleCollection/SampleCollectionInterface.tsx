@@ -249,7 +249,7 @@ export const SampleCollectionInterface: React.FC = () => {
       return;
     }
     if (isCollectionNotesEmpty) {
-      toast.error('Collection notes are required');
+      toast.error('Sample Type are required');
       return;
     }
 

@@ -55,6 +55,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
             // Create the custom sequence for patient IDs since TypeORM synchronize won't automatically create it
             await this.dataSource.query(`CREATE SEQUENCE IF NOT EXISTS patient_id_seq;`);
 
+            // Ensure webaddress column exists in hospital_settings
+            try {
+                await this.dataSource.query(`ALTER TABLE hospital_settings ADD COLUMN IF NOT EXISTS webaddress character varying(200) DEFAULT '';`);
+            } catch {
+                // Ignore if table not yet created
+            }
+
             return;
         }
 

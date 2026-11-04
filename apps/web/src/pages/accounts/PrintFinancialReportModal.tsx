@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../../lib/api';
 import { useReactToPrint } from 'react-to-print';
 import {
     Printer,
@@ -81,13 +83,28 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
     const componentRef = useRef<HTMLDivElement>(null);
     const currentUser = useAuthStore((state) => state.user);
 
+    const { data: settings } = useQuery({
+        queryKey: ['settings'],
+        queryFn: async () => {
+            const { data } = await api.get('/settings');
+            return data?.data || data;
+        },
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const clinicName = settings?.centerName || 'Dr. Muazzem Medical Diagnostic Center';
+    const clinicAddress = settings?.address || '82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka.';
+    const clinicPhone = settings?.phone || '01234567890, 01234567899';
+    const clinicEmail = settings?.email || 'dmdc.contact@gmail.com';
+    const clinicWeb = settings?.webaddress || settings?.webAddress || '';
+
     const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
     const [includeBreakdown, setIncludeBreakdown] = useState<boolean>(true);
     const [includeTransactions, setIncludeTransactions] = useState<boolean>(true);
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `DMDC_Financial_Report_${period}_${startDate}_${endDate}`,
+        documentTitle: `${clinicName.replace(/[^a-zA-Z0-9]/g, '_')}_Financial_Report_${period}_${startDate}_${endDate}`,
     });
 
     if (!isOpen || !reportData) return null;
@@ -154,8 +171,8 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                 type="button"
                                 onClick={() => setOrientation('portrait')}
                                 className={`px-2.5 py-1.5 rounded-md transition-colors ${orientation === 'portrait'
-                                        ? 'bg-blue-600 text-white font-bold'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-blue-600 text-white font-bold'
+                                    : 'text-slate-600 hover:text-slate-900'
                                     }`}
                             >
                                 Portrait
@@ -164,8 +181,8 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                 type="button"
                                 onClick={() => setOrientation('landscape')}
                                 className={`px-2.5 py-1.5 rounded-md transition-colors ${orientation === 'landscape'
-                                        ? 'bg-blue-600 text-white font-bold'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-blue-600 text-white font-bold'
+                                    : 'text-slate-600 hover:text-slate-900'
                                     }`}
                             >
                                 Landscape
@@ -241,6 +258,21 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     .no-print {
                                         display: none !important;
                                     }
+                                    .print-layout-table {
+                                        width: 100% !important;
+                                        border-collapse: collapse !important;
+                                    }
+                                    .print-layout-table > thead {
+                                        display: table-header-group !important;
+                                    }
+                                    .print-layout-table > tbody {
+                                        display: table-row-group !important;
+                                    }
+                                    .print-layout-table > thead > tr > td,
+                                    .print-layout-table > tbody > tr > td {
+                                        padding: 0 !important;
+                                        border: none !important;
+                                    }
                                     table {
                                         page-break-inside: auto;
                                         width: 100% !important;
@@ -263,7 +295,11 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                             `}
                         </style>
 
-                        {/* ===================== HOSPITAL OFFICIAL HEADER ===================== */}
+                        <table className="print-layout-table w-full border-collapse">
+                            <thead className="table-header-group">
+                                <tr>
+                                    <td className="p-0 border-0">
+                                        {/* ===================== HOSPITAL OFFICIAL HEADER ===================== */}
                         <div className="border-b-2 border-slate-800 pb-5 mb-6">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-4">
@@ -281,14 +317,15 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     </div>
                                     <div>
                                         <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                                            Dr. Muazzem Medical Diagnostic Center
+                                            {clinicName}
                                         </h1>
                                         <p className="text-xs text-slate-600 font-medium mt-0.5">
-                                            82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka.
+                                            {clinicAddress}
                                         </p>
                                         <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 mt-1">
-                                            <span>Phone: 01234567890, 01234567899</span>
-                                            <span>E-mail: dmdc.contact@gmail.com</span>
+                                            {clinicPhone && <span>Phone: {clinicPhone}</span>}
+                                            {clinicEmail && <span>E-mail: {clinicEmail}</span>}
+                                            {clinicWeb && <span>Web: {clinicWeb}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -304,7 +341,13 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                             </div>
                         </div>
 
-                        {/* ===================== REPORT TITLE & METADATA ===================== */}
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody className="table-row-group">
+                                <tr>
+                                    <td className="p-0 border-0">
+                                        {/* ===================== REPORT TITLE & METADATA ===================== */}
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div>
@@ -606,10 +649,14 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     This document is an authentic computerized report generated by DMDC Hospital Management System.
                                 </p>
                                 <p className="mt-0.5">
-                                    Confidential &bull; Dr. Muazzem Medical Diagnostic Center &bull; All Rights Reserved
+                                    Confidential &bull; {clinicName} &bull; All Rights Reserved
                                 </p>
                             </div>
                         </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
                     </div>
                 </div>
             </div>

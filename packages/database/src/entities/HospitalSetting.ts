@@ -17,6 +17,9 @@ export class HospitalSetting {
     @Column({ length: 100, default: 'dmdc.contact@gmail.com' })
     email!: string;
 
+    @Column({ length: 200, nullable: true, default: '' })
+    webaddress?: string;
+
     @Column({ length: 10, default: 'BDT' })
     currency!: string;
 

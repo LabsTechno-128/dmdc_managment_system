@@ -29,6 +29,7 @@ import { LabResult } from './entities/LabResult'
 import { LandingContent } from './entities/LandingContent'
 import { HospitalSetting } from './entities/HospitalSetting'
 import { AddTestAvailabilityNoteToBillings1730400000000 } from './migrations/1730400000000-AddTestAvailabilityNoteToBillings'
+import { AddWebaddressToHospitalSettings1730700000000 } from './migrations/1730700000000-AddWebaddressToHospitalSettings'
 
 export const createDataSource = (databaseUrl: string) => new DataSource({
     type: 'postgres',
@@ -64,5 +65,5 @@ export const createDataSource = (databaseUrl: string) => new DataSource({
     ],
     synchronize: true,
     logging: false,
-    migrations: [AddTestAvailabilityNoteToBillings1730400000000],
+    migrations: [AddTestAvailabilityNoteToBillings1730400000000, AddWebaddressToHospitalSettings1730700000000],
 })

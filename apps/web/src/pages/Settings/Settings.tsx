@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, MapPin, Phone, Mail, DollarSign, Receipt, FileText, Percent, Save } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail, Globe, DollarSign, Receipt, FileText, Percent, Save } from 'lucide-react';
 import { FormSkeleton } from '../../components/skeleton/FormSkeleton';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../store/authStore';
@@ -26,6 +26,7 @@ export const Settings: React.FC = () => {
     address: '',
     phone: '',
     email: '',
+    webaddress: '',
     currency: 'BDT',
     bin: '',
     musakForm: '',
@@ -39,6 +40,7 @@ export const Settings: React.FC = () => {
         address: settings.address || '',
         phone: settings.phone || '',
         email: settings.email || '',
+        webaddress: settings.webaddress || settings.webAddress || '',
         currency: settings.currency || 'BDT',
         bin: settings.bin || '001234567-0101',
         musakForm: settings.musakForm || 'Mushak-6.3 (মূসক-৬.৩)',
@@ -145,6 +147,21 @@ export const Settings: React.FC = () => {
                     disabled={!isAdmin}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-slate-600 mb-2">
+                    <Globe size={16} className="text-slate-400" />
+                    <span>Web Address</span>
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isAdmin}
+                    value={formData.webaddress}
+                    onChange={(e) => setFormData({ ...formData, webaddress: e.target.value })}
+                    placeholder="e.g. https://dmdc.com.bd"
                     className="w-full text-sm sm:text-base text-slate-800 bg-slate-50 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-primary focus:outline-none transition-colors disabled:opacity-80"
                   />
                 </div>

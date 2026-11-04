@@ -241,7 +241,7 @@ export class LabResultService implements OnModuleInit {
     async getPendingReview() {
         return this.databaseService.repoLabResult().find({
             where: { status: LabResultStatus.COMPLETED },
-            relations: { sample: true, patient: true, test: true, performedBy: true, parameterResults: { testParameter: true } },
+            relations: { sample: true, patient: true, test: true, performedBy: true, billing: true, parameterResults: { testParameter: true } },
             order: { updatedAt: 'DESC' }
         });
     }

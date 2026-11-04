@@ -269,6 +269,8 @@ interface SamplePrintLabelsProps {
   samples: any[];
   billing: any;
   singleSampleToPrint: any | null;
+  allCollectionItems?: Array<{ id: string; name: string; unit?: string; quantity: number }>;
+  totalCollectionItemsCount?: number;
 }
 
 export const SamplePrintLabels: React.FC<SamplePrintLabelsProps> = ({
@@ -277,15 +279,55 @@ export const SamplePrintLabels: React.FC<SamplePrintLabelsProps> = ({
   initialized,
   samples,
   billing,
-  singleSampleToPrint
+  singleSampleToPrint,
+  allCollectionItems
 }) => {
+  // Build barcode labels: 1 barcode per item used
+  const itemsToPrint = React.useMemo(() => {
+    if (!initialized) return [];
+
+    const items: Array<{ id: string; name?: string }> = [];
+
+    // Prioritize allCollectionItems if provided, expanding by item.quantity
+    if (allCollectionItems && allCollectionItems.length > 0) {
+      for (const item of allCollectionItems) {
+        const qty = Math.max(0, Number(item.quantity) || 0);
+        for (let q = 0; q < qty; q++) {
+          items.push({ id: `${item.id}-${q}`, name: item.name });
+        }
+      }
+    } else if (samples && Array.isArray(samples)) {
+      // Alternatively expand from samples.inventoryItems
+      for (const sample of samples) {
+        if (sample.inventoryItems && Array.isArray(sample.inventoryItems)) {
+          for (const si of sample.inventoryItems) {
+            const qty = Math.max(0, Number(si.quantity) || 0);
+            for (let q = 0; q < qty; q++) {
+              items.push({ id: `${sample.id}-${si.id || si.itemId}-${q}`, name: si.item?.name });
+            }
+          }
+        }
+      }
+    }
+
+    // If items are used (e.g. 6 items used), print exactly those 6 barcodes
+    if (items.length > 0) {
+      return items;
+    }
+
+    // Fallback if no equipment/items have been logged yet: 1 barcode per sample test
+    return (samples || []).map((sample: any, idx: number) => ({
+      id: sample.id || `sample-${idx}`
+    }));
+  }, [initialized, allCollectionItems, samples]);
+
   return (
     <>
       {/* Hidden Print Area - All Barcodes */}
       <div className="hidden">
         <div ref={printRef} id="print-barcode">
           {initialized &&
-            samples.map((sample: any) => {
+            itemsToPrint.map((sampleItem: any, idx: number) => {
               const patientName =
                 billing.patient?.name ||
                 `${billing.patient?.firstName || ''} ${billing.patient?.lastName || ''}`.trim() ||
@@ -303,7 +345,7 @@ export const SamplePrintLabels: React.FC<SamplePrintLabelsProps> = ({
               const billNo = billing.billNumber || '-';
 
               return (
-                <div key={sample.id} className="barcode-label">
+                <div key={sampleItem.id || idx} className="barcode-label">
                   <div className="w-full h-full flex items-center justify-center p-1">
                     <div className="w-full max-w-[260px] rounded-2xl border border-slate-300 bg-white px-3.5 py-2.5 flex items-center justify-between gap-3 text-left font-sans text-black">
                       <div className="min-w-0 flex-1 space-y-0.5 text-[6px] font-bold leading-snug text-black">

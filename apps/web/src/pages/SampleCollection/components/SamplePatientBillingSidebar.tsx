@@ -103,7 +103,7 @@ export const SamplePatientBillingSidebar: React.FC<SamplePatientBillingSidebarPr
               className="w-full flex justify-center items-center gap-2 py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-colors text-sm"
             >
               <Printer size={18} />
-              Print All Barcodes
+              Print All Barcodes{totalCollectionItemsCount > 0 ? ` (${totalCollectionItemsCount})` : ''}
             </button>
           </div>
         )}

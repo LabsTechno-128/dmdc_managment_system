@@ -333,6 +333,8 @@ export const SampleCollectionInterface: React.FC = () => {
         singlePrintRef={singlePrintRef}
         initialized={initialized}
         samples={samples}
+        allCollectionItems={allCollectionItems}
+        totalCollectionItemsCount={totalCollectionItemsCount}
         billing={billing}
         singleSampleToPrint={singleSampleToPrint}
       />

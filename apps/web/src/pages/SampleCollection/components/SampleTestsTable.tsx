@@ -174,13 +174,13 @@ export const SampleTestsTable: React.FC<SampleTestsTableProps> = ({
                         )}
                       {initialized && sample.status === 'COLLECTED' && (
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
+                          {/* <button
                             onClick={() => onPrintSingleSample(sample)}
                             title="Print Label"
                             className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors cursor-pointer border border-slate-200 flex items-center gap-1 text-xs"
                           >
                             <Printer size={14} />
-                          </button>
+                          </button> */}
                           {groupedList.length === 0 && (
                             <button
                               onClick={() => onOpenCollectModal(sample)}

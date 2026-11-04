@@ -117,11 +117,10 @@ export const SamplePatientBillingSidebar: React.FC<SamplePatientBillingSidebarPr
             Equipment &amp; Supplies Used
           </h3>
           <span
-            className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-              totalCollectionItemsCount > 0
-                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                : 'bg-slate-100 text-slate-600 border-slate-200'
-            }`}
+            className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${totalCollectionItemsCount > 0
+              ? 'bg-blue-50 text-blue-700 border-blue-200'
+              : 'bg-slate-100 text-slate-600 border-slate-200'
+              }`}
           >
             {totalCollectionItemsCount} item{totalCollectionItemsCount === 1 ? '' : 's'} total
           </span>

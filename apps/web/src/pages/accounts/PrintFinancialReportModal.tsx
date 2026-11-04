@@ -235,7 +235,7 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                     <div
                         ref={componentRef}
                         className={`bg-white shadow-md mx-auto text-slate-800 ${orientation === 'portrait' ? 'max-w-[210mm]' : 'max-w-[297mm]'
-                            } min-w-[600px] sm:min-w-0 p-6 sm:p-8 md:p-10 font-sans print:shadow-none print:m-0 print:p-0 print:max-w-none print:w-full print:min-w-0`}
+                            } min-w-[600px] sm:min-w-0 p-6 sm:p-8 md:p-10 font-sans print:shadow-none print:m-0 print:p-0 print:max-w-none print:w-full print:min-w-0 print:min-h-0 print:h-auto`}
                         style={{
                             minHeight: orientation === 'portrait' ? '297mm' : '210mm',
                         }}
@@ -246,7 +246,7 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                             {`
                                 @page {
                                     size: A4 ${orientation};
-                                    margin: 12mm 15mm 15mm 15mm;
+                                    margin: 10mm 12mm 12mm 12mm;
                                 }
                                 body {
                                     -webkit-print-color-adjust: exact !important;
@@ -258,9 +258,18 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     .no-print {
                                         display: none !important;
                                     }
+                                    html, body, #financial-report-print {
+                                        min-height: 0 !important;
+                                        height: auto !important;
+                                        padding: 0 !important;
+                                        margin: 0 !important;
+                                        box-shadow: none !important;
+                                    }
                                     .print-layout-table {
                                         width: 100% !important;
                                         border-collapse: collapse !important;
+                                        page-break-inside: auto !important;
+                                        break-inside: auto !important;
                                     }
                                     .print-layout-table > thead {
                                         display: table-header-group !important;
@@ -268,28 +277,28 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     .print-layout-table > tbody {
                                         display: table-row-group !important;
                                     }
+                                    .print-layout-table > tbody > tr {
+                                        page-break-inside: auto !important;
+                                        break-inside: auto !important;
+                                    }
                                     .print-layout-table > thead > tr > td,
                                     .print-layout-table > tbody > tr > td {
                                         padding: 0 !important;
                                         border: none !important;
                                     }
-                                    table {
-                                        page-break-inside: auto;
+                                    .report-inner-table {
                                         width: 100% !important;
+                                        border-collapse: collapse !important;
+                                        page-break-inside: auto !important;
+                                        break-inside: auto !important;
                                     }
-                                    tr {
-                                        page-break-inside: avoid;
-                                        break-inside: avoid;
-                                    }
-                                    thead {
-                                        display: table-header-group;
-                                    }
-                                    tfoot {
-                                        display: table-footer-group;
+                                    .report-inner-table tr {
+                                        page-break-inside: avoid !important;
+                                        break-inside: avoid !important;
                                     }
                                     .print-avoid-break {
-                                        page-break-inside: avoid;
-                                        break-inside: avoid;
+                                        page-break-inside: avoid !important;
+                                        break-inside: avoid !important;
                                     }
                                 }
                             `}
@@ -300,7 +309,7 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                 <tr>
                                     <td className="p-0 border-0">
                                         {/* ===================== HOSPITAL OFFICIAL HEADER ===================== */}
-                        <div className="border-b-2 border-slate-800 pb-5 mb-6">
+                        <div className="border-b-2 border-slate-800 pb-3 sm:pb-4 mb-3 sm:mb-4">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-slate-200 bg-white flex items-center justify-center p-1">
@@ -348,48 +357,52 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                 <tr>
                                     <td className="p-0 border-0">
                                         {/* ===================== REPORT TITLE & METADATA ===================== */}
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div>
-                                    <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 block">
-                                        Accounting & Finance
-                                    </span>
-                                    <h2 className="text-lg md:text-xl font-black text-slate-900 mt-0.5">
-                                        {getPeriodLabel()}
-                                    </h2>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-6 text-xs">
-                                    <div className="flex items-center gap-2">
-                                        <Calendar size={14} className="text-slate-400" />
-                                        <div>
-                                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Reporting Window</span>
-                                            <span className="font-bold text-slate-800">
-                                                {formattedStartDate} &rarr; {formattedEndDate}
-                                            </span>
+                                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 mb-4">
+                                            <div className="flex flex-wrap items-center justify-between gap-4">
+                                                <div>
+                                                    <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 block">
+                                                        Accounting & Finance
+                                                    </span>
+                                                    <h2 className="text-lg md:text-xl font-black text-slate-900 mt-0.5">
+                                                        {getPeriodLabel()}
+                                                    </h2>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-6 text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar size={14} className="text-slate-400" />
+                                                        <div>
+                                                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Reporting Window</span>
+                                                            <span className="font-bold text-slate-800">
+                                                                {formattedStartDate} &rarr; {formattedEndDate}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <UserIcon size={14} className="text-slate-400" />
+                                                        <div>
+                                                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Generated By</span>
+                                                            <span className="font-bold text-slate-800">{currentUserName}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Grouping Mode</span>
+                                                        <span className="font-bold text-slate-800 uppercase">{groupBy}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </td>
+                                </tr>
 
-                                    <div className="flex items-center gap-2">
-                                        <UserIcon size={14} className="text-slate-400" />
-                                        <div>
-                                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Generated By</span>
-                                            <span className="font-bold text-slate-800">{currentUserName}</span>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Grouping Mode</span>
-                                        <span className="font-bold text-slate-800 uppercase">{groupBy}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ===================== SECTION A: FINANCIAL SUMMARY ===================== */}
-                        <div className="mb-6 print-avoid-break">
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">
-                                1. Executive Financial Summary
-                            </h3>
+                                {/* ===================== SECTION A: FINANCIAL SUMMARY ===================== */}
+                                <tr>
+                                    <td className="p-0 border-0">
+                                        <div className="mb-4">
+                                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2.5">
+                                                1. Executive Financial Summary
+                                            </h3>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div className="border border-slate-200 rounded-xl p-4 bg-white">
@@ -456,10 +469,14 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                 * Summary figures are reconciled directly from completed billing vouchers and recorded expense vouchers. Opening and closing balance adjustments are not maintained in the current ledger configuration.
                             </p>
                         </div>
+                    </td>
+                </tr>
 
-                        {/* ===================== SECTION B: PERIODIC BREAKDOWN ===================== */}
-                        {includeBreakdown && (
-                            <div className="mb-6 print-avoid-break">
+                {/* ===================== SECTION B: PERIODIC BREAKDOWN ===================== */}
+                {includeBreakdown && (
+                    <tr>
+                        <td className="p-0 border-0">
+                            <div className="mb-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
                                         2. Periodic Financial Breakdown ({groupBy} Summary)
@@ -475,7 +492,7 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     </div>
                                 ) : (
                                     <div className="overflow-hidden border border-slate-200 rounded-xl">
-                                        <table className="w-full text-left text-xs border-collapse">
+                                        <table className="report-inner-table w-full text-left text-xs border-collapse">
                                             <thead>
                                                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
                                                     <th className="py-2.5 px-3">Period / Date</th>
@@ -536,11 +553,15 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </td>
+                    </tr>
+                )}
 
-                        {/* ===================== SECTION C: DETAILED TRANSACTIONS ===================== */}
-                        {includeTransactions && (
-                            <div className="mb-6">
+                {/* ===================== SECTION C: DETAILED TRANSACTIONS ===================== */}
+                {includeTransactions && (
+                    <tr>
+                        <td className="p-0 border-0">
+                            <div className="mb-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
                                         3. Itemized Transaction Ledger
@@ -556,7 +577,7 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     </div>
                                 ) : (
                                     <div className="overflow-hidden border border-slate-200 rounded-xl">
-                                        <table className="w-full text-left text-xs border-collapse">
+                                        <table className="report-inner-table w-full text-left text-xs border-collapse">
                                             <thead>
                                                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
                                                     <th className="py-2.5 px-2 text-center w-8">#</th>
@@ -618,10 +639,14 @@ export const PrintFinancialReportModal: React.FC<PrintFinancialReportModalProps>
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </td>
+                    </tr>
+                )}
 
-                        {/* ===================== SECTION D: SIGNATURE BLOCK ===================== */}
-                        <div className="mt-14 pt-8 border-t border-slate-200 print-avoid-break">
+                {/* ===================== SECTION D: SIGNATURE BLOCK ===================== */}
+                <tr>
+                    <td className="p-0 border-0">
+                        <div className="mt-8 pt-4 border-t border-slate-200 print-avoid-break">
                             <div className="grid grid-cols-3 gap-6 text-center text-xs">
                                 <div>
                                     <div className="border-t border-slate-300 pt-2 font-bold text-slate-800">

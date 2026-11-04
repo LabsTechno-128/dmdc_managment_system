@@ -209,7 +209,7 @@ export const Sidebar: FC<SidebarProps> = ({ onClose }) => {
                                 >
                                     <div className="flex items-center space-x-3">
                                         <Icon className={`h-[18px] w-[18px] transition-colors ${childActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                                        <span className={`text-sm ${childActive ? 'font-bold text-slate-800' : 'font-semibold'}`}>{item.label}</span>
+                                        <span className={`text-[12px] ${childActive ? 'font-bold text-slate-800' : 'font-semibold'}`}>{item.label}</span>
                                     </div>
                                     {isOpen ? (
                                         <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -237,7 +237,7 @@ export const Sidebar: FC<SidebarProps> = ({ onClose }) => {
                                                     {({ isActive }) => (
                                                         <>
                                                             <ChildIcon className={`h-4 w-4 transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                                                            <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>{child.label}</span>
+                                                            <span className={`text-[12px] ${isActive ? 'font-bold' : 'font-medium'}`}>{child.label}</span>
                                                         </>
                                                     )}
                                                 </NavLink>
@@ -264,7 +264,7 @@ export const Sidebar: FC<SidebarProps> = ({ onClose }) => {
                             {({ isActive }) => (
                                 <>
                                     <Icon className={`h-[18px] w-[18px] transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                                    <span className={`text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
+                                    <span className={`text-[12px] ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>
                                 </>
                             )}
                         </NavLink>
@@ -275,7 +275,7 @@ export const Sidebar: FC<SidebarProps> = ({ onClose }) => {
             {/* Bottom Actions */}
             <div className="border-t border-slate-100 p-4 w-full">
                 <button onClick={() => handleLogout()}
-                    className="group flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-95 border border-transparent hover:border-red-100"
+                    className="group flex w-full items-center justify-center space-x-2 rounded-xl bg-slate-50 px-4 py-3 text-[12px] font-bold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600 active:scale-95 border border-transparent hover:border-red-100"
                 >
                     <LogOut size={16} className="text-slate-400 group-hover:text-red-500 transition-colors" />
                     <span>Log Out</span>

@@ -75,7 +75,7 @@ const ITEMS: NavItem[] = [
             { label: 'Sample Collection', path: '/sample-collection', icon: FlaskConical, role: [UserRole.SUPER_ADMIN, UserRole.SAMPLE_COLLECTION] },
             { label: 'Lab Technician Workspace', path: '/lab-technician', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN] },
             { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
-            { label: 'Pathologist Dashboard', path: '/pathologist', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR] },
+            { label: 'Pathologist Dashboard', path: '/pathologist', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN] },
         ]
     },
     {

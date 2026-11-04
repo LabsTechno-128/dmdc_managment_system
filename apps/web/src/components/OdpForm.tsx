@@ -78,8 +78,8 @@ function MedicalForm({ data }: { data: Appointment }) {
                         }
                         .opd-print-gap {
                             display: block !important;
-                            height: 1.2in !important;
-                            min-height: 1.2in !important;
+                            height: 1in !important;
+                            min-height: 1in !important;
                         }
                     }
                 `}
@@ -128,26 +128,26 @@ function MedicalForm({ data }: { data: Appointment }) {
 
                     <div className="flex flex-col gap-y-1 text-slate-800">
                         {/* Name Row */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 text-[10px]">
                             <span className="font-bold w-12 shrink-0">Name:</span>
                             <input
                                 type="text"
                                 value={data?.patient?.name}
                                 defaultValue={data?.patient?.name}
-                                className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none px-1 py-0 font-sans w-full text-sm"
+                                className="bg-transparent border-b border-slate-300 focus:border-green-600 outline-none px-1 py-0 font-sans w-full text-[10px]"
                             />
                         </div>
 
                         {/* Info Row (Age, Sex, Wt, B/P) */}
-                        <div className="flex items-center gap-x-4 gap-y-1 text-sm">
-                            <span><span className="text-slate-500 text-xs font-bold">Age:</span> {data?.patient?.age || "-"}</span>
-                            <span><span className="text-slate-500 text-xs font-bold">Sex:</span> {data?.patient?.gender || "-"}</span>
-                            <span><span className="text-slate-500 text-xs font-bold">Wt:</span> {data?.patient?.weight || "-"}</span>
-                            <span><span className="text-slate-500 text-xs font-bold">B/P:</span> {data?.patient?.bloodPresure || "-"}</span>
+                        <div className="flex items-center gap-x-4 gap-y-1 text-[10px]">
+                            <span><span className="text-slate-500 text-[10px] font-bold">Age:</span> {data?.patient?.age || "-"}</span>
+                            <span><span className="text-slate-500 text-[10px] font-bold">Sex:</span> {data?.patient?.gender || "-"}</span>
+                            <span><span className="text-slate-500 text-[10px] font-bold">Wt:</span> {data?.patient?.weight || "-"}</span>
+                            <span><span className="text-slate-500 text-[10px] font-bold">B/P:</span> {data?.patient?.bloodPresure || "-"}</span>
                         </div>
 
                         {/* Phone & Date Row */}
-                        <div className="flex items-center gap-2 w-full">
+                        <div className="flex items-center gap-2 w-full text-[10px]">
                             <span className="font-semibold w-12 shrink-0">Phone:</span>
                             <span className="px-1">{data?.patient?.phone || "-"}</span>
 
@@ -165,7 +165,7 @@ function MedicalForm({ data }: { data: Appointment }) {
 
                         {/* Barcode */}
                         {data?.patient?.patientId && (
-                            <div className="pt-2 pb-1">
+                            <div className="pt-2 pb-1 text-[10px]">
                                 <Barcode value={data?.patient?.patientId} />
                             </div>
                         )}
@@ -178,22 +178,22 @@ function MedicalForm({ data }: { data: Appointment }) {
                     </h2>
 
                     <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-slate-800 items-start">
-                        <span className="font-semibold mt-0.5">Name:</span>
-                        <div className="leading-tight px-1">
-                            <div className="font-bold text-[14px]">
+                        <span className="font-semibold  text-[10px]  leading-tight">Name:</span>
+                        <div className="leading-tight px-1  ">
+                            <div className="font-bold text-[10px]">
                                 {(data?.doctor?.firstName || "") + " " + (data?.doctor?.lastName || "")}
                             </div>
-                            <div className="text-[12px] text-slate-600 mt-0.5">
+                            <div className="text-[10px] text-slate-600  ">
                                 {data?.doctor?.specialization || "none"}
                             </div>
-                            <div className="text-[12px] text-slate-600 mt-0.5">
-                                BCS Health
+                            <div className="text-[10px] text-slate-600 ">
+                                {data?.doctor?.degree}
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-1 text-slate-800 text-[13px]">
-                        Call for Serial: <span className="font-bold text-sm ml-1">01234567890</span>
+                    <div className="mt-auto pt-1 text-slate-800 text-[10px]">
+                        Call for Serial: <span className="font-bold text-[10px] ml-1">01234567890</span>
                     </div>
                 </div>
             </div>

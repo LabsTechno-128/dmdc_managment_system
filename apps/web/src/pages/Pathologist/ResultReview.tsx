@@ -14,7 +14,7 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
     const handleVerify = async () => {
         setProcessing(true);
         try {
-            await api.post(`/lab-result/${result.sampleId}/verify`);
+            await api.post(`/lab-result/${result.sampleId}/verify`, { remarks: remarks || undefined });
             // Automatically finalize report after verify (business logic option)
             // But let's keep it separate or do it in the same action to save clicks
             await api.post(`/reports/finalize/${result.id}`);

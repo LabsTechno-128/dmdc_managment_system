@@ -76,8 +76,12 @@ export class LabResultController {
 
     @Post(':sampleId/verify')
     @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR)
-    async verifyResult(@Param('sampleId') sampleId: string, @Req() req: any) {
-        return this.labResultService.verifyResult(sampleId, req.user.id);
+    async verifyResult(
+        @Param('sampleId') sampleId: string,
+        @Body() body: { remarks?: string },
+        @Req() req: any
+    ) {
+        return this.labResultService.verifyResult(sampleId, req.user.id, body?.remarks);
     }
 
     @Post(':sampleId/reject')

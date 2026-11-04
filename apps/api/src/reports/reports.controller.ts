@@ -12,9 +12,17 @@ export class ReportsController {
     constructor(private readonly reportsService: ReportsService) { }
 
     @Get()
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST)
-    findAll(@Query('page') page: string, @Query('limit') limit: string) {
-        return this.reportsService.findAll(page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR)
+    findAll(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string
+    ) {
+        return this.reportsService.findAll(
+            page ? parseInt(page, 10) : 1,
+            limit ? parseInt(limit, 10) : 10,
+            search
+        );
     }
 
     @Get(':id')

@@ -130,13 +130,13 @@ describe('Outside Patient Form Auto-Navigation & Referred By Autocomplete Logic'
 
     it('populates doctor name and stores doctor ID when an existing doctor is selected', () => {
       const selected = handleReferralDoctorSelect(sampleDoctor);
-      expect(selected.referredBy).toBe('Dr. Abdur Rahman');
+      expect(selected.referredBy).toBe('Dr. Abdur Rahman (Cardiology)');
       expect(selected.referredByDoctorId).toBe(sampleDoctor.id);
       expect(selected.selectedDoctor?.id).toBe(sampleDoctor.id);
 
       const payload = buildReferralSubmissionPayload(selected);
       expect(payload).toEqual({
-        referredBy: 'Dr. Abdur Rahman',
+        referredBy: 'Dr. Abdur Rahman (Cardiology)',
         referredByDoctorId: sampleDoctor.id,
       });
     });

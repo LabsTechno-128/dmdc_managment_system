@@ -246,7 +246,7 @@ export class LabResultService implements OnModuleInit {
         });
     }
 
-    async verifyResult(sampleId: string, verifiedById: string) {
+    async verifyResult(sampleId: string, verifiedById: string, remarks?: string) {
         const result = await this.databaseService.repoLabResult().findOne({
             where: { sampleId }
         });
@@ -259,6 +259,9 @@ export class LabResultService implements OnModuleInit {
         result.status = LabResultStatus.VERIFIED;
         result.verifiedById = verifiedById;
         result.verifiedAt = new Date();
+        if (remarks && remarks.trim()) {
+            result.remarks = sanitizeRichTextHtml(remarks);
+        }
 
         await this.databaseService.repoLabResult().save(result);
 

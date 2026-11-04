@@ -19,10 +19,14 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
         <style type="text/css" media="print">
           {`
             @page {
-              size: A5;
-              margin: 3mm;
+              size: A5 portrait;
+              margin: 3mm 4mm 3mm 3mm;
             }
+            html,
             body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
               font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
@@ -31,6 +35,31 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
             }
             * {
               box-sizing: border-box;
+            }
+            #invoice-print {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              max-width: 100% !important;
+            }
+            .invoice-sheet {
+              width: 141mm !important;
+              max-width: 141mm !important;
+              min-height: 202mm !important;
+              padding-top: 2.5mm !important;
+              padding-bottom: 2.5mm !important;
+              padding-left: 3mm !important;
+              padding-right: 4.5mm !important;
+              box-sizing: border-box !important;
+            }
+            .invoice-payment-summary {
+              width: 59mm !important;
+              max-width: 59mm !important;
+            }
+            #invoice-print table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              table-layout: auto !important;
             }
             .invoice-page-break {
               page-break-after: always !important;
@@ -90,14 +119,6 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
     billing.clinic?.email ||
     billing.hospitalSetting?.email ||
     'dmdc.contact@gmail.com';
-  const binNumber =
-    billing.clinic?.bin ||
-    billing.hospitalSetting?.bin ||
-    '001234567-0101';
-  const musakForm =
-    billing.clinic?.musakForm ||
-    billing.hospitalSetting?.musakForm ||
-    'MUSHAK-6.3 (মূসক-৬.৩)';
 
   const patientName =
     billing.patient?.name ||
@@ -146,13 +167,6 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
 
   const subtotal = Number(billing.subtotal || 0);
   const discountAmount = Number(billing.discountAmount || 0);
-  const taxableAmount = Number(
-    billing.taxableAmount !== undefined && billing.taxableAmount !== null
-      ? billing.taxableAmount
-      : Math.max(0, subtotal - discountAmount)
-  );
-  const vatRate = Number(billing.vatRate || 0);
-  const vatAmount = Number(billing.vatAmount || 0);
   const additionalCharges = Number(billing.additionalCharges || 0);
   const totalAmount = Number(billing.totalAmount || 0);
   const paidAmount = Number(billing.paidAmount || 0);
@@ -191,7 +205,7 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
   // const copyLabel = copyType === 'OFFICE' ? 'Office Copy' : 'Patient Copy';
 
   return (
-    <div className="bg-white text-slate-800 font-sans mx-auto w-[148mm] min-h-[210mm] p-3 flex flex-col justify-between box-border text-[8px] leading-tight">
+    <div className="invoice-sheet bg-white text-slate-800 font-sans mx-auto w-[148mm] min-h-[210mm] p-3 flex flex-col justify-between box-border text-[8px] leading-tight print:w-[141mm] print:max-w-[141mm] print:pr-[4.5mm]">
       <div className="space-y-2.5">
         {/* Header Banner */}
         <div className="flex justify-between items-center border-b border-[#3b5978] pb-2 gap-2">
@@ -217,7 +231,7 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
           </div>
 
           {/* MUSAK & BIN Official Tax Box */}
-          <div className="shrink-0 text-right bg-slate-50 border border-slate-300 rounded px-2.5 py-1 space-y-0.5">
+          {/* <div className="shrink-0 text-right bg-slate-50 border border-slate-300 rounded px-2.5 py-1 space-y-0.5">
             <div className="text-[8.5px] font-bold text-slate-900 tracking-wide uppercase">
               {musakForm}
             </div>
@@ -227,7 +241,7 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
             <div className="text-[7.5px] text-slate-500">
               NBR Tax Invoice / কর চালানপত্র
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Patient Invoice Pill Box (Left) & Scannable QR Code (Right) */}
@@ -343,7 +357,7 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
           </div>
 
           {/* Totals Table */}
-          <div className="w-[62mm] border border-slate-300 rounded bg-white overflow-hidden shrink-0">
+          <div className="invoice-payment-summary w-[62mm] border border-slate-300 rounded bg-white overflow-hidden shrink-0 print:w-[59mm]">
             <div className="bg-slate-100 px-2.5 py-1 border-b border-slate-300 font-bold text-[9px] text-slate-800 uppercase tracking-wide">
               Payment Summary
             </div>
@@ -368,19 +382,19 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
                 </div>
               )}
 
-              <div className="flex justify-between bg-slate-50 px-1.5 py-0.5 rounded text-slate-700 border border-slate-200">
+              {/* <div className="flex justify-between bg-slate-50 px-1.5 py-0.5 rounded text-slate-700 border border-slate-200">
                 <span className="text-[9px] font-semibold">Taxable Amount:</span>
                 <span className="font-mono text-[8px] font-bold">
                   {taxableAmount.toFixed(0)} BDT
                 </span>
-              </div>
+              </div> */}
 
-              <div className="flex justify-between text-slate-600">
+              {/* <div className="flex justify-between text-slate-600">
                 <span className="text-[9px]">VAT ({vatRate}%):</span>
                 <span className="font-mono text-[8px] font-semibold">
                   {vatAmount > 0 ? `+ ${vatAmount.toFixed(0)}` : '0.00'} BDT
                 </span>
-              </div>
+              </div> */}
 
               {additionalCharges > 0 && (
                 <div className="flex justify-between text-slate-600">

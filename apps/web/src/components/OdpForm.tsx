@@ -1,11 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import JsBarcode from "jsbarcode";
-// import { useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import type { Appointment } from "../types/appointment";
-// import { useAppointment } from "../../hooks/useAppointments";
-// import type { Appointment } from "../../types/appointment";
 
 export function AppointmentOdpForm({
     appointment,
@@ -15,10 +11,6 @@ export function AppointmentOdpForm({
         appointment: Appointment;
         isLoading: boolean;
     }) {
-    // const { id } = useParams<{ id: string }>();
-
-    // const { data: appointment, isLoading } = useAppointment(id ?? '');
-    // console.log(appointment, "------")
     const printRef = useRef(null);
 
     const handlePrint = useReactToPrint({
@@ -40,15 +32,12 @@ export function AppointmentOdpForm({
         );
     }
 
-
     return (
         <>
-
-
             <div
                 id="prescription-print"
                 ref={printRef}
-                className="w-full min-h-[90mm] bg-white  mx-auto text-black flex flex-col"
+                className="w-full min-h-[90mm] bg-white mx-auto text-black flex flex-col"
             >
                 <MedicalForm data={appointment} />
             </div>
@@ -57,15 +46,13 @@ export function AppointmentOdpForm({
                 e.stopPropagation();
                 handlePrint();
             }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium  text-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-sans font-medium text-lg cursor-pointer"
             >
                 Print OPD
             </button>
-
         </>
     );
 }
-
 
 function MedicalForm({ data }: { data: Appointment }) {
     const [patient, setPatient] = useState({
@@ -78,16 +65,28 @@ function MedicalForm({ data }: { data: Appointment }) {
         date: new Date().toISOString().slice(0, 10),
     });
 
-
-
     const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
         setPatient((p) => ({ ...p, [field]: e.target.value }));
 
-
     return (
         <div className="w-full font-sans flex flex-col flex-1">
-            {/* Header */}
-            <div className="flex justify-between bg-green-600 text-white px-3 py-1 flex items-center gap-3">
+            <style>
+                {`
+                    @media print {
+                        .opd-screen-header {
+                            display: none !important;
+                        }
+                        .opd-print-gap {
+                            display: block !important;
+                            height: 1.2in !important;
+                            min-height: 1.2in !important;
+                        }
+                    }
+                `}
+            </style>
+
+            {/* Header (shown on website, removed when printed) */}
+            <div className="opd-screen-header print:hidden flex justify-between bg-green-600 text-white px-3 py-1 items-center gap-3">
                 {/* Logo */}
                 <div className="shrink-0 w-12 h-12 rounded-full bg-white flex flex-col items-center justify-center border-2 border-white shadow-sm">
                     <svg viewBox="0 0 24 24" className="w-5 h-5 text-red-600" fill="currentColor">
@@ -116,6 +115,9 @@ function MedicalForm({ data }: { data: Appointment }) {
                     </div>
                 </div>
             </div>
+
+            {/* 1.2 inch gap when printed on pre-printed prescription pad */}
+            <div className="opd-print-gap hidden print:block shrink-0" style={{ height: '1.2in' }}></div>
 
             {/* Patient / Doctor */}
             <div className="grid grid-cols-2 divide-x divide-slate-400 border-b border-slate-400 text-sm">
@@ -168,8 +170,6 @@ function MedicalForm({ data }: { data: Appointment }) {
                             </div>
                         )}
                     </div>
-
-
                 </div>
 
                 <div className="px-3 py-1 flex flex-col">
@@ -190,7 +190,6 @@ function MedicalForm({ data }: { data: Appointment }) {
                                 BCS Health
                             </div>
                         </div>
-
                     </div>
 
                     <div className="mt-auto pt-1 text-slate-800 text-[13px]">
@@ -201,7 +200,6 @@ function MedicalForm({ data }: { data: Appointment }) {
         </div>
     );
 }
-
 
 function Barcode({ value }: { value: string }) {
     const barcodeRef = useRef<SVGSVGElement>(null);

@@ -5,8 +5,7 @@ import {
   AlertTriangle,
   XCircle,
   Package,
-  Plus,
-  Printer
+  Plus
 } from 'lucide-react';
 
 interface SampleTestsTableProps {
@@ -14,7 +13,7 @@ interface SampleTestsTableProps {
   initialized: boolean;
   isUpdatingStatus: boolean;
   onOpenCollectModal: (sample: any) => void;
-  onPrintSingleSample: (sample: any) => void;
+  onPrintSingleSample?: (sample: any) => void;
   onRequestRecollect: (sampleId: string) => void;
 }
 
@@ -54,7 +53,7 @@ export const SampleTestsTable: React.FC<SampleTestsTableProps> = ({
   initialized,
   isUpdatingStatus,
   onOpenCollectModal,
-  onPrintSingleSample,
+  onPrintSingleSample: _onPrintSingleSample,
   onRequestRecollect
 }) => {
   return (

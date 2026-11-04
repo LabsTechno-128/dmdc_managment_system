@@ -25,7 +25,7 @@ import { useReactToPrint } from 'react-to-print';
 import { api } from '../../lib/api';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../store/authStore';
-import { InvoicePrint } from './InvoicePrint';
+import { InvoicePrint, type InvoiceCopyType } from './InvoicePrint';
 
 interface InvoiceDetailsModalProps {
   invoiceId: string | null;
@@ -51,10 +51,32 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   const [settleReason, setSettleReason] = useState('');
   const [isEditingAvailabilityNote, setIsEditingAvailabilityNote] = useState(false);
   const [availabilityNoteInput, setAvailabilityNoteInput] = useState('');
+  const [printCopyType, setPrintCopyType] = useState<InvoiceCopyType>('BOTH');
+  const [isPrintMenuOpen, setIsPrintMenuOpen] = useState(false);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
   });
+
+  const triggerPrintCopy = (copyType: InvoiceCopyType = 'BOTH') => {
+    setPrintCopyType(copyType);
+    setIsPrintMenuOpen(false);
+    setTimeout(() => {
+      handlePrint();
+    }, 150);
+  };
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setIsPrintMenuOpen(false);
+    };
+    if (isPrintMenuOpen) {
+      window.addEventListener('click', handleGlobalClick);
+    }
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, [isPrintMenuOpen]);
 
   // Close on Escape key press
   useEffect(() => {
@@ -216,7 +238,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
     >
       {/* Hidden print template */}
       <div className="hidden">
-        {invoice && <InvoicePrint ref={printRef} billing={invoice} />}
+        {invoice && <InvoicePrint ref={printRef} billing={invoice} copyType={printCopyType} />}
       </div>
 
       <div
@@ -1023,14 +1045,62 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             {invoice && (
-              <button
-                type="button"
-                onClick={() => handlePrint()}
-                className="flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer w-full sm:w-auto"
-              >
-                <Printer size={16} />
-                <span>Print Invoice</span>
-              </button>
+              <div className="relative inline-flex items-center">
+                <button
+                  type="button"
+                  onClick={() => triggerPrintCopy('BOTH')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-l-xl transition-colors cursor-pointer"
+                  title="Print Both Invoices (Patient & Office Copy)"
+                >
+                  <Printer size={16} />
+                  <span>Print Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPrintMenuOpen(!isPrintMenuOpen);
+                  }}
+                  className="px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 bg-white hover:bg-slate-100 border-y border-r border-slate-300 rounded-r-xl transition-colors cursor-pointer text-[10px]"
+                  title="Choose Invoice Copy Type"
+                >
+                  ▼
+                </button>
+                {isPrintMenuOpen && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 bottom-full mb-1 w-52 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 animate-in fade-in text-left text-xs space-y-0.5"
+                  >
+                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+                      Print Invoice Copies
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => triggerPrintCopy('BOTH')}
+                      className="w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="font-semibold text-slate-900">Both Copies</span>
+                      <span className="text-[10px] text-slate-400">2 Pages</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => triggerPrintCopy('PATIENT')}
+                      className="w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>Patient Copy Only</span>
+                      <span className="text-[10px] text-blue-600 font-medium">Patient</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => triggerPrintCopy('OFFICE')}
+                      className="w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                    >
+                      <span>Office Copy Only</span>
+                      <span className="text-[10px] text-purple-600 font-medium">Office</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
             <button

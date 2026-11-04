@@ -3,17 +3,77 @@ import { ShieldCheck } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 import { SampleQrMatrixSvg } from '../SampleCollection/components/SampleBarcodeComponents';
 
-interface InvoicePrintProps {
+export type InvoiceCopyType = 'BOTH' | 'PATIENT' | 'OFFICE';
+
+export interface InvoicePrintProps {
   billing: any;
+  copyType?: InvoiceCopyType;
 }
 
-export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(({ billing }, ref) => {
-  if (!billing) return null;
+export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
+  ({ billing, copyType = 'BOTH' }, ref) => {
+    if (!billing) return null;
 
+    return (
+      <div id="invoice-print" ref={ref} className="bg-white text-slate-800">
+        <style type="text/css" media="print">
+          {`
+            @page {
+              size: A5;
+              margin: 3mm;
+            }
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+              font-variant-numeric: lining-nums tabular-nums;
+              font-feature-settings: 'lnum' 1, 'tnum' 1;
+            }
+            * {
+              box-sizing: border-box;
+            }
+            .invoice-page-break {
+              page-break-after: always !important;
+              break-after: page !important;
+            }
+          `}
+        </style>
+
+        {copyType === 'PATIENT' && (
+          <SingleInvoiceSheet billing={billing} copyType="PATIENT" />
+        )}
+
+        {copyType === 'OFFICE' && (
+          <SingleInvoiceSheet billing={billing} copyType="OFFICE" />
+        )}
+
+        {copyType === 'BOTH' && (
+          <div className="space-y-6 print:space-y-0">
+            <div className="invoice-page-break">
+              <SingleInvoiceSheet billing={billing} copyType="PATIENT" />
+            </div>
+            <div>
+              <SingleInvoiceSheet billing={billing} copyType="OFFICE" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+InvoicePrint.displayName = 'InvoicePrint';
+
+interface SingleInvoiceSheetProps {
+  billing: any;
+  copyType: 'PATIENT' | 'OFFICE';
+}
+
+const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyType }) => {
   const clinicName =
     billing.clinic?.name ||
     billing.hospitalSetting?.centerName ||
-    'Dr. Muazzam Medical Diagnostic Center';
+    'Dr. Muazzem Medical Diagnostic Center';
   const clinicAddress =
     billing.clinic?.address ||
     billing.hospitalSetting?.address ||
@@ -127,21 +187,11 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
   const formattedInvoiceTime = rawTimeStr.replace(':', ' : ');
 
   const billNumberText = billing.billNumber || billing.id?.substring(0, 8) || '-';
+  const copyLabel = copyType === 'OFFICE' ? 'Office Copy' : 'Patient Copy';
+  // const copyLabel = copyType === 'OFFICE' ? 'Office Copy' : 'Patient Copy';
 
   return (
-    <div
-      id="invoice-print"
-      ref={ref}
-      className="bg-white text-slate-800 font-sans mx-auto w-[148mm] min-h-[210mm] p-3 flex flex-col justify-between box-border text-[8px] leading-tight"
-    >
-      <style type="text/css" media="print">
-        {`
-          @page { size: A5; margin: 3mm; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: 'lnum' 1, 'tnum' 1; }
-          * { box-sizing: border-box; }
-        `}
-      </style>
-
+    <div className="bg-white text-slate-800 font-sans mx-auto w-[148mm] min-h-[210mm] p-3 flex flex-col justify-between box-border text-[8px] leading-tight">
       <div className="space-y-2.5">
         {/* Header Banner */}
         <div className="flex justify-between items-center border-b border-[#3b5978] pb-2 gap-2">
@@ -185,7 +235,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           <div className="flex-1 bg-[#efefef] rounded-xl overflow-hidden">
             <div className="py-1 px-3 text-center">
               <h2 className="text-[13.5px] font-bold text-black leading-tight">
-                Patient Invoice  (office copye)
+                Patient Invoice ({copyLabel})
               </h2>
             </div>
             <div className="border-t border-[#3b5978]" />
@@ -281,10 +331,10 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
               <span className="text-slate-600 font-medium">Payment Status:</span>
               <span
                 className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${billing.paymentStatus === 'Paid'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : billing.paymentStatus === 'Partial'
-                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  : billing.paymentStatus === 'Partial'
+                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                    : 'bg-amber-100 text-amber-800 border border-amber-300'
                   }`}
               >
                 {billing.paymentStatus || 'UNPAID'}
@@ -377,7 +427,10 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
       {/* Staff Signature & Authorization Section */}
       <div className="border-t border-slate-300 pt-2 mt-2 flex justify-between items-end">
         <div className="text-[8px] text-slate-400">
-          <p>Software Generated Invoice • Dr. Muazzem Medical Diagnostic Center</p>
+          <p>
+            Software Generated Invoice • Dr. Muazzem Medical Diagnostic Center •{' '}
+            <span className="font-semibold text-slate-600">{copyLabel}</span>
+          </p>
         </div>
 
         <div className="text-right">
@@ -407,45 +460,55 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
       )}
     </div>
   );
-});
-
-InvoicePrint.displayName = 'InvoicePrint';
+};
 
 const TableOfTestList = ({
   billing,
-  count = 10,
-  start = 0,
+  count,
+  start,
 }: {
   billing: any;
-  count?: number;
-  start?: number;
+  count: number;
+  start: number;
 }) => {
-  const items = billing.items?.slice(start, start + count) || [];
+  const items = billing.items || [];
+  const visibleItems = items.slice(start, start + count);
 
   return (
-    <div className="w-full border border-slate-300 rounded overflow-hidden">
-      <table className="w-full text-left border-collapse">
+    <div className="border border-slate-300 rounded overflow-hidden">
+      <table className="w-full text-left border-collapse text-[8px]">
         <thead>
-          <tr className="bg-slate-800 text-white text-[9px] uppercase tracking-wider font-semibold">
-            <th className="py-1.5 px-1.5 w-8 text-center border-r border-slate-700">SL</th>
-            <th className="py-1.5 px-2 border-r border-slate-700">Test / Service Description</th>
-            <th className="py-1.5 px-1.5 text-center w-12 border-r border-slate-700">Qty</th>
-            <th className="py-1.5 px-2 text-right w-20 border-r border-slate-700">Rate (BDT)</th>
-            <th className="py-1.5 px-2 text-right w-24">Amount (BDT)</th>
+          <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold uppercase tracking-wider text-[7.5px]">
+            <th className="py-1 px-1.5 text-center w-8 border-r border-slate-300">
+              #
+            </th>
+            <th className="py-1 px-2 border-r border-slate-300">
+              Description / বিবরণ
+            </th>
+            <th className="py-1 px-1.5 text-center w-12 border-r border-slate-300">
+              Qty
+            </th>
+            <th className="py-1 px-2 text-right w-16 border-r border-slate-300">
+              Rate
+            </th>
+            <th className="py-1 px-2 text-right w-20">Amount</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 text-[8px]">
-          {items.length === 0 ? (
+        <tbody className="divide-y divide-slate-200">
+          {visibleItems.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-2 text-center text-slate-400">
-                No billable items on this invoice.
+              <td
+                colSpan={5}
+                className="py-3 text-center text-slate-400 italic"
+              >
+                No billable items
               </td>
             </tr>
           ) : (
-            items.map((item: any, index: number) => {
-              const price = Number(item.price || 0);
+            visibleItems.map((item: any, index: number) => {
               const qty = Number(item.quantity || 1);
-              const rowTotal = price * qty;
+              const price = Number(item.price || 0);
+              const rowTotal = Number(item.total || qty * price);
 
               return (
                 <tr key={item.id || index} className="hover:bg-slate-50/50">

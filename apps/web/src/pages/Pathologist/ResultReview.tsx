@@ -46,8 +46,8 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
         <div className="-m-3 sm:-m-4 md:-m-6 p-3 sm:p-4 md:p-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800 text-sm font-medium">
-                        &larr; Back to List
+                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800 text-sm font-medium cursor-pointer">
+                        &larr; Back to Test List
                     </button>
                     <h1 className="text-lg sm:text-2xl font-bold text-slate-800 truncate">Review Result: {result.test?.name}</h1>
                 </div>
@@ -80,12 +80,13 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                 </div>
 
                 <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 border-b pb-2">Sample Info</h2>
+                    <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 border-b pb-2">Billing &amp; Sample Info</h2>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-slate-500">Barcode</span>
-                            <span className="font-mono text-xs sm:text-sm font-medium text-slate-800">{result.sample?.barcode}</span>
-
+                            <span className="text-slate-500">Bill Number</span>
+                            <span className="font-mono text-xs sm:text-sm font-medium text-slate-800">
+                                {result.billing?.billNumber || result.billingId || '-'}
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">Collected At</span>

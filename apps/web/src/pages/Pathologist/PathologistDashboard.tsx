@@ -268,89 +268,91 @@ export const PathologistDashboard: React.FC = () => {
             {/* Preview Modal: Shows All Tests For The Selected Patient */}
             {previewGroup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-2 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) setPreviewGroup(null);
                     }}
                 >
-                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden my-8 animate-in zoom-in-95 duration-150">
-                        {/* Modal Header */}
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                                    <User size={20} />
+                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+                        {/* Modal Header (Pinned) */}
+                        <div className="shrink-0 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/90">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">
+                                    <User size={18} className="sm:w-5 sm:h-5" />
                                 </div>
-                                <div>
-                                    <h2 className="text-base font-bold text-slate-900 leading-snug">
+                                <div className="min-w-0">
+                                    <h2 className="text-sm sm:text-base font-bold text-slate-900 leading-snug truncate">
                                         {previewGroup.patientName}
                                     </h2>
-                                    <p className="text-xs text-slate-500 font-mono mt-0.5">
+                                    <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-0.5 truncate">
                                         PTN ID: {previewGroup.patientId} · Bill ID: {previewGroup.billNumber}
                                     </p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setPreviewGroup(null)}
-                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0 ml-2"
                                 aria-label="Close Preview"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
-                        {/* Patient Summary Strip */}
-                        <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-600">
-                            <div>
-                                <span className="text-slate-400 mr-1.5">Age / Gender:</span>
-                                <span className="font-semibold text-slate-800">
-                                    {previewGroup.patient?.age ? `${previewGroup.patient.age} Yrs` : '-'}
-                                    {previewGroup.patient?.gender ? ` / ${previewGroup.patient.gender}` : ''}
-                                </span>
-                            </div>
-                            {previewGroup.patient?.phone && (
+                        {/* Patient Summary Strip (Pinned) */}
+                        <div className="shrink-0 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-50/40 border-b border-blue-100/60 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs text-slate-600">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                                 <div>
-                                    <span className="text-slate-400 mr-1.5">Phone:</span>
-                                    <span className="font-semibold text-slate-800">{previewGroup.patient.phone}</span>
+                                    <span className="text-slate-400 mr-1.5">Age / Gender:</span>
+                                    <span className="font-semibold text-slate-800">
+                                        {previewGroup.patient?.age ? `${previewGroup.patient.age} Yrs` : '-'}
+                                        {previewGroup.patient?.gender ? ` / ${previewGroup.patient.gender}` : ''}
+                                    </span>
                                 </div>
-                            )}
+                                {previewGroup.patient?.phone && (
+                                    <div>
+                                        <span className="text-slate-400 mr-1.5">Phone:</span>
+                                        <span className="font-semibold text-slate-800">{previewGroup.patient.phone}</span>
+                                    </div>
+                                )}
+                            </div>
                             <div>
-                                <span className="text-slate-400 mr-1.5">Total Tests:</span>
-                                <span className="font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                                    {previewGroup.results.length} Tests
+                                <span className="font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full text-xs">
+                                    {previewGroup.results.length} {previewGroup.results.length === 1 ? 'Test' : 'Tests'}
                                 </span>
                             </div>
                         </div>
 
-                        {/* All Tests Table For This Patient */}
-                        <div className="p-6">
-                            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                                <table className="w-full text-left border-collapse whitespace-nowrap">
+                        {/* All Tests Table For This Patient (Scrollable vertically if multiple tests) */}
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-50 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                            <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs bg-white">
+                                <table className="w-full text-left border-collapse whitespace-nowrap min-w-0 max-[999px]:min-w-[550px]">
                                     <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider">
-                                            <th className="py-3 px-4 w-12 text-center">SL</th>
-                                            <th className="py-3 px-4">Test Name</th>
-                                            <th className="py-3 px-4">Sample Barcode</th>
-                                            <th className="py-3 px-4">Performed By</th>
-                                            <th className="py-3 px-4 text-center">Status</th>
-                                            <th className="py-3 px-4 text-right">Action</th>
+                                            <th className="py-3 px-3.5 w-12 text-center">SL</th>
+                                            <th className="py-3 px-3.5">Test Name</th>
+                                            <th className="py-3 px-3.5">Bill ID</th>
+                                            <th className="py-3 px-3.5">Performed By</th>
+                                            <th className="py-3 px-3.5 text-center">Status</th>
+                                            <th className="py-3 px-3.5 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                                         {previewGroup.results.map((res: any, idx: number) => {
                                             const sl = String(idx + 1).padStart(2, '0');
+                                            const billNo = res.billing?.billNumber || res.billingId || previewGroup.billNumber || '-';
                                             const techName = res.performedBy
                                                 ? `${res.performedBy.firstName || ''} ${res.performedBy.lastName || ''}`.trim()
                                                 : '-';
                                             return (
                                                 <tr key={res.id} className="hover:bg-slate-50/70 transition-colors">
-                                                    <td className="py-3 px-4 text-center font-mono text-slate-500">
+                                                    <td className="py-3 px-3.5 text-center font-mono text-slate-500">
                                                         {sl}
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="py-3 px-3.5">
                                                         <div className="flex items-center gap-2">
                                                             <FlaskConical size={14} className="text-blue-600 shrink-0" />
                                                             <div>
-                                                                <div className="font-semibold text-slate-900">
+                                                                <div className="font-semibold text-slate-900 leading-snug">
                                                                     {res.test?.name || 'Unknown Test'}
                                                                 </div>
                                                                 {res.test?.category && (
@@ -361,19 +363,19 @@ export const PathologistDashboard: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-4 font-mono text-xs text-slate-600">
-                                                        {res.sample?.barcode || '-'}
+                                                    <td className="py-3 px-3.5 font-mono text-xs text-slate-700 font-medium">
+                                                        {billNo}
                                                     </td>
-                                                    <td className="py-3 px-4 text-xs text-slate-700">
+                                                    <td className="py-3 px-3.5 text-xs text-slate-700">
                                                         {techName}
                                                     </td>
-                                                    <td className="py-3 px-4 text-center">
+                                                    <td className="py-3 px-3.5 text-center">
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                                             <Clock size={11} />
                                                             <span>{res.status || 'Pending'}</span>
                                                         </span>
                                                     </td>
-                                                    <td className="py-3 px-4 text-right">
+                                                    <td className="py-3 px-3.5 text-right">
                                                         <button
                                                             onClick={() => {
                                                                 setPreviewGroup(null);
@@ -393,8 +395,11 @@ export const PathologistDashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Modal Footer */}
-                        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-end">
+                        {/* Modal Footer (Pinned) */}
+                        <div className="shrink-0 px-4 sm:px-6 py-3 sm:py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-xs text-slate-500 font-medium">
+                                {previewGroup.results.length} {previewGroup.results.length === 1 ? 'test record' : 'test records'}
+                            </span>
                             <button
                                 onClick={() => setPreviewGroup(null)}
                                 className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"

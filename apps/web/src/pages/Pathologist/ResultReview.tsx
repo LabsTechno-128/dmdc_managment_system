@@ -68,8 +68,9 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                             <span className="font-medium text-slate-800">{result.patient?.name}</span>
                         </div>
                         <div className="flex justify-between">
+
                             <span className="text-slate-500">Patient ID</span>
-                            <span className="font-medium text-slate-800">{result.patient?.id}</span>
+                            <span className="font-medium text-slate-800">{result.patient?.patientId}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">Age / Gender</span>
@@ -84,6 +85,7 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                         <div className="flex justify-between">
                             <span className="text-slate-500">Barcode</span>
                             <span className="font-mono text-xs sm:text-sm font-medium text-slate-800">{result.sample?.barcode}</span>
+
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">Collected At</span>
@@ -114,7 +116,7 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                         <tbody>
                             {templateFields.map((field: any, idx: number) => {
                                 const val = resultData[field.name];
-                                
+
                                 // Basic logic to check if out of range for numbers
                                 let isAbnormal = false;
                                 if (field.type === 'number' && val !== undefined && val !== '') {
@@ -176,14 +178,14 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button 
+                    <button
                         onClick={handleVerify}
                         disabled={processing}
                         className="flex-1 bg-green-600 text-white font-semibold py-2.5 sm:py-3 rounded-md hover:bg-green-700 disabled:opacity-50 text-sm text-center"
                     >
                         {processing ? 'Processing...' : 'Verify & Finalize Report'}
                     </button>
-                    <button 
+                    <button
                         onClick={handleReject}
                         disabled={processing}
                         className="flex-1 bg-red-600 text-white font-semibold py-2.5 sm:py-3 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm text-center"

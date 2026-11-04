@@ -54,6 +54,15 @@ export const ReportPreview: React.FC = () => {
         contentRef: invoicePrintRef,
     });
 
+    const { data: settings } = useQuery({
+        queryKey: ['settings'],
+        queryFn: async () => {
+            const { data } = await api.get('/settings');
+            return data?.data || data;
+        },
+        staleTime: 1000 * 60 * 5,
+    });
+
     if (loading) return <div className="p-8 text-center text-slate-500">Loading report...</div>;
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
     if (!report) return <div className="p-8 text-center text-slate-500">Report not found</div>;
@@ -72,15 +81,6 @@ export const ReportPreview: React.FC = () => {
     const labResult = report.labResult || {};
     const test = labResult.test || {};
     const sample = labResult.sample || {};
-
-    const { data: settings } = useQuery({
-        queryKey: ['settings'],
-        queryFn: async () => {
-            const { data } = await api.get('/settings');
-            return data?.data || data;
-        },
-        staleTime: 1000 * 60 * 5,
-    });
 
     const clinicName = settings?.centerName || 'Dr. Muazzem Medical Diagnostic Center';
     const clinicAddress = settings?.address || '82/83, 2nd Floor, Assalam Tower, Zoo Road, Mirpur - 1, Dhaka.';

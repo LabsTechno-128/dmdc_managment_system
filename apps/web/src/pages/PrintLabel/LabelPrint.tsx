@@ -182,3 +182,4 @@ export const LabelPrint = React.forwardRef<HTMLDivElement, LabelPrintProps>(
 );
 
 LabelPrint.displayName = 'LabelPrint';
+

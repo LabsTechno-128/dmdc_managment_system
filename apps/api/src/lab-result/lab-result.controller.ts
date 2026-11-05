@@ -69,13 +69,13 @@ export class LabResultController {
     }
 
     @Get('pending-review')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN)
     async getPendingReview() {
         return this.labResultService.getPendingReview();
     }
 
     @Post(':sampleId/verify')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN)
     async verifyResult(
         @Param('sampleId') sampleId: string,
         @Body() body: { remarks?: string },
@@ -85,7 +85,7 @@ export class LabResultController {
     }
 
     @Post(':sampleId/reject')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN)
     async rejectResult(
         @Param('sampleId') sampleId: string,
         @Body() body: { remarks: string },

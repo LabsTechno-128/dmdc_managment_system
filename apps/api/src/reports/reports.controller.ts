@@ -12,7 +12,7 @@ export class ReportsController {
     constructor(private readonly reportsService: ReportsService) { }
 
     @Get()
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN)
     findAll(
         @Query('page') page?: string,
         @Query('limit') limit?: string,
@@ -26,7 +26,7 @@ export class ReportsController {
     }
 
     @Get(':id')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN)
     findOne(@Param('id') id: string) {
         return this.reportsService.findOne(id);
     }
@@ -44,19 +44,19 @@ export class ReportsController {
     }
 
     @Post('finalize/:labResultId')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN)
     finalizeReport(@Param('labResultId') labResultId: string) {
         return this.reportsService.finalizeReport(labResultId);
     }
 
     @Post(':id/publish')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN)
     publishReport(@Param('id') id: string) {
         return this.reportsService.publishReport(id);
     }
 
     @Get(':id/print')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN)
     getPrintData(@Param('id') id: string) {
         return this.reportsService.getPrintData(id);
     }

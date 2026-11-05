@@ -11,6 +11,7 @@ import {
     ArrowRight,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
 import { ResultReview } from './ResultReview';
 
 interface PatientGroup {
@@ -26,6 +27,7 @@ interface PatientGroup {
 }
 
 export const PathologistDashboard: React.FC = () => {
+    const { user } = useAuthStore();
     const [pendingResults, setPendingResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -132,7 +134,9 @@ export const PathologistDashboard: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                        Pathologist Review Workspace
+                        {user?.role === 'lab_technician'
+                            ? 'Lab Review & Verification Workspace'
+                            : 'Pathologist & Lab Review Workspace'}
                     </h1>
                     <p className="text-slate-500 mt-1 text-xs sm:text-sm">
                         Review, verify, and finalize completed laboratory test results

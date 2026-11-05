@@ -178,12 +178,13 @@ function App() {
             </Route>
 
             {/* Pathologist Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'lab_technician']} />}>
               <Route path="/pathologist" element={<PathologistDashboard />} />
             </Route>
 
             {/* Report Preview Route (Shared by Receptionist & Pathologist) */}
-            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'receptionist']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'receptionist', 'lab_technician']} />}>
+              <Route path="/reports" element={<ReportsList />} />
               <Route path="/reports/:id/preview" element={<ReportPreview />} />
             </Route>
 

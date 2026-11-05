@@ -20,7 +20,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
           {`
             @page {
               size: A5 portrait;
-              margin: 3mm 4mm 3mm 3mm;
+              margin: 5mm;
             }
             html,
             body {
@@ -32,6 +32,7 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
               font-family: 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
               font-variant-numeric: lining-nums tabular-nums;
               font-feature-settings: 'lnum' 1, 'tnum' 1;
+              background: white !important;
             }
             * {
               box-sizing: border-box;
@@ -41,20 +42,22 @@ export const InvoicePrint = React.forwardRef<HTMLDivElement, InvoicePrintProps>(
               padding: 0 !important;
               width: 100% !important;
               max-width: 100% !important;
+              background: white !important;
             }
             .invoice-sheet {
-              width: 141mm !important;
-              max-width: 141mm !important;
-              min-height: 202mm !important;
-              padding-top: 2.5mm !important;
-              padding-bottom: 2.5mm !important;
-              padding-left: 3mm !important;
-              padding-right: 4.5mm !important;
+              width: 100% !important;
+              max-width: 138mm !important;
+              min-height: 192mm !important;
+              max-height: 198mm !important;
+              padding: 2mm 3mm !important;
+              margin: 0 auto !important;
               box-sizing: border-box !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
             .invoice-payment-summary {
-              width: 59mm !important;
-              max-width: 59mm !important;
+              width: 58mm !important;
+              max-width: 58mm !important;
             }
             #invoice-print table {
               width: 100% !important;
@@ -205,7 +208,7 @@ const SingleInvoiceSheet: React.FC<SingleInvoiceSheetProps> = ({ billing, copyTy
   // const copyLabel = copyType === 'OFFICE' ? 'Office Copy' : 'Patient Copy';
 
   return (
-    <div className="invoice-sheet bg-white text-slate-800 font-sans mx-auto w-[148mm] min-h-[210mm] p-3 flex flex-col justify-between box-border text-[8px] leading-tight print:w-[141mm] print:max-w-[141mm] print:pr-[4.5mm]">
+    <div className="invoice-sheet bg-white text-slate-800 font-sans mx-auto w-full max-w-[148mm] min-h-[195mm] p-3.5 flex flex-col justify-between box-border text-[8.5px] leading-tight print:w-[138mm] print:max-w-[138mm] print:min-h-[192mm] print:max-h-[198mm] print:p-[2mm_3mm]">
       <div className="space-y-2.5">
         {/* Header Banner */}
         <div className="flex justify-between items-center border-b border-[#3b5978] pb-2 gap-2">

@@ -286,11 +286,10 @@ export const ReportPreview: React.FC = () => {
                     <span>Back to Reports List</span>
                 </button>
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${
-                        report.status === 'PUBLISHED'
+                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${report.status === 'PUBLISHED'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                        }`}>
                         {report.status}
                     </span>
                     {report.status !== 'PUBLISHED' && viewMode === 'REPORT' && (
@@ -304,11 +303,10 @@ export const ReportPreview: React.FC = () => {
                     )}
                     <button
                         onClick={() => setViewMode('REPORT')}
-                        className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                            viewMode === 'REPORT'
+                        className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${viewMode === 'REPORT'
                                 ? 'bg-blue-600 text-white shadow-xs'
                                 : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                        }`}
+                            }`}
                     >
                         View Report ({testsList.length} {testsList.length === 1 ? 'Test' : 'Tests'})
                     </button>
@@ -328,11 +326,10 @@ export const ReportPreview: React.FC = () => {
                         <>
                             <button
                                 onClick={() => setViewMode('INVOICE')}
-                                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                                    viewMode === 'INVOICE'
+                                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${viewMode === 'INVOICE'
                                         ? 'bg-blue-600 text-white shadow-xs'
                                         : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                                }`}
+                                    }`}
                             >
                                 View Invoice
                             </button>
@@ -348,9 +345,19 @@ export const ReportPreview: React.FC = () => {
                 </div>
             </div>
 
-            {/* Hidden invoice for printing */}
-            <div className="hidden">
-                <InvoicePrint ref={invoicePrintRef} billing={billing} />
+            {/* Offscreen mounted invoice for printing (avoid display: none to prevent blank print dialogs) */}
+            <div
+                style={{
+                    position: 'fixed',
+                    left: '-99999px',
+                    top: '-99999px',
+                    width: '148mm',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1,
+                }}
+            >
+                {billing && <InvoicePrint ref={invoicePrintRef} billing={billing} />}
             </div>
 
             {viewMode === 'REPORT' ? (
@@ -427,7 +434,7 @@ export const ReportPreview: React.FC = () => {
 
                     {testsList.map((t: any, testIdx: number) => {
                         const params = t.parameterResults || [];
-                        const testRemarks = t.remarks || '';
+                        const testRemarks = t.remarks || (testIdx === 0 ? remarks : '') || '';
                         const isLastPage = testIdx === totalPages - 1;
                         // When printing a single test, only that page is printed and it is the last printed page
                         const isSkippedInPrint = singlePrintIdx !== null && singlePrintIdx !== testIdx;
@@ -477,11 +484,10 @@ export const ReportPreview: React.FC = () => {
                                                         <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                                                             {t.testName}
                                                         </h2>
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                                            t.isVerified
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${t.isVerified
                                                                 ? 'bg-emerald-100 text-emerald-800'
                                                                 : 'bg-amber-100 text-amber-800'
-                                                        }`}>
+                                                            }`}>
                                                             {t.isVerified ? 'Verified' : 'Pending Review'}
                                                         </span>
                                                     </div>
@@ -508,16 +514,16 @@ export const ReportPreview: React.FC = () => {
                                                                     params.map((pr: any, pIdx: number) => (
                                                                         <tr key={pIdx} className="hover:bg-slate-50/70 even:bg-slate-50/30 transition-colors">
                                                                             <td className="py-2.5 px-4 font-semibold text-slate-800">
-                                                                                {pr.snapshotParameterName || pr.name || '-'}
+                                                                                {pr.snapshotParameterName || pr.testParameter?.name || pr.name || '-'}
                                                                             </td>
                                                                             <td className="py-2.5 px-4 font-bold text-slate-900 tabular-nums">
                                                                                 {pr.resultValue || '-'}
                                                                             </td>
                                                                             <td className="py-2.5 px-4 text-slate-600">
-                                                                                {pr.snapshotUnit || pr.unit || '-'}
+                                                                                {pr.snapshotUnit || pr.testParameter?.unit || pr.unit || '-'}
                                                                             </td>
                                                                             <td className="py-2.5 px-4 text-slate-600 whitespace-pre-line leading-relaxed tabular-nums">
-                                                                                {pr.snapshotReferenceValue || pr.referenceRange || '-'}
+                                                                                {pr.snapshotReferenceValue || pr.testParameter?.referenceValue || pr.referenceRange || '-'}
                                                                             </td>
                                                                         </tr>
                                                                     ))
@@ -526,12 +532,14 @@ export const ReportPreview: React.FC = () => {
                                                         </table>
                                                     </div>
 
-                                                    {/* Individual test notes if applicable */}
-                                                    {testRemarks && !isRichTextEmpty(testRemarks) && totalPages > 1 && (
-                                                        <div className="mb-4 p-3 bg-slate-50/80 rounded-lg border border-slate-200 print:border-slate-300 print:bg-transparent text-xs sm:text-sm">
-                                                            <span className="font-bold text-slate-800">Test Notes: </span>
+                                                    {/* Remarks / Report Section */}
+                                                    {testRemarks && !isRichTextEmpty(testRemarks) && (
+                                                        <div className="mb-4 p-4 bg-slate-50/80 rounded-xl border border-slate-200 print:border-slate-300 print:bg-transparent text-xs sm:text-sm print-avoid-break">
+                                                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200/80 pb-1.5 flex items-center justify-between">
+                                                                <span>Remarks / Report:</span>
+                                                            </div>
                                                             <div
-                                                                className="text-slate-700 inline [&_p]:inline"
+                                                                className="text-slate-800 leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
                                                                 dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(testRemarks) }}
                                                             />
                                                         </div>
@@ -539,68 +547,65 @@ export const ReportPreview: React.FC = () => {
                                                 </td>
                                             </tr>
 
-                                            {/* ===================== PATHOLOGIST REVIEW (last page) ===================== */}
-                                            {isLastPage && (
-                                                <tr>
-                                                    <td className="p-0 border-0">
-                                                        <div className="mt-6 mb-6 p-4 rounded-xl border print:border-slate-300 print:bg-transparent print-avoid-break bg-slate-50/70 border-slate-200">
-                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-2 border-b border-slate-200/80 gap-2">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                                                                        Pathologist Review &amp; Clinical Approval
-                                                                    </span>
-                                                                    <span
-                                                                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${
-                                                                            pathologistReview.isReviewed
-                                                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                                                                : 'bg-amber-50 text-amber-700 border-amber-300'
+                                            {/* ===================== PATHOLOGIST REVIEW (every page) ===================== */}
+                                            <tr>
+                                                <td className="p-0 border-0">
+                                                    <div className="mt-6 mb-6 p-4 rounded-xl border print:border-slate-300 print:bg-transparent print-avoid-break bg-slate-50/70 border-slate-200">
+                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-2 border-b border-slate-200/80 gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                                                    Pathologist Review &amp; Clinical Approval
+                                                                </span>
+                                                                <span
+                                                                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${(t.isVerified || pathologistReview.isReviewed)
+                                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                                                            : 'bg-amber-50 text-amber-700 border-amber-300'
                                                                         }`}
-                                                                    >
-                                                                        {pathologistReview.reviewStatus || (pathologistReview.isReviewed ? 'Verified / Approved' : 'Pending Review')}
-                                                                    </span>
-                                                                </div>
-                                                                {pathologistReview.reviewedAt && (
-                                                                    <span className="text-xs text-slate-500 font-medium">
-                                                                        Reviewed On: {formatDate(pathologistReview.reviewedAt)}
-                                                                    </span>
-                                                                )}
+                                                                >
+                                                                    {(t.isVerified || pathologistReview.isReviewed) ? 'Verified / Approved' : (pathologistReview.reviewStatus || 'Pending Review')}
+                                                                </span>
                                                             </div>
-
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm mb-2">
-                                                                <div>
-                                                                    <span className="text-slate-500 font-medium">Reviewed By: </span>
-                                                                    <span className="font-bold text-slate-800">
-                                                                        {pathologistReview.pathologistName || (pathologistReview.isReviewed ? 'Consultant Pathologist' : 'Pending Review')}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-slate-500 font-medium">Review Status: </span>
-                                                                    <span className={`font-semibold ${pathologistReview.isReviewed ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                                                        {pathologistReview.reviewStatus}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-
-                                                            {pathologistReview.remarks && !isRichTextEmpty(pathologistReview.remarks) ? (
-                                                                <div className="mt-3 pt-2 border-t border-slate-200">
-                                                                    <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                                                        Reviewer Comments &amp; Clinical Interpretation:
-                                                                    </div>
-                                                                    <div
-                                                                        className="text-slate-700 text-xs sm:text-sm leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                                                                        dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(pathologistReview.remarks) }}
-                                                                    />
-                                                                </div>
-                                                            ) : !pathologistReview.isReviewed ? (
-                                                                <p className="text-xs text-amber-700 italic mt-1 flex items-center gap-1.5">
-                                                                    <Clock size={12} />
-                                                                    <span>* This report is currently pending review and verification by a consultant pathologist.</span>
-                                                                </p>
-                                                            ) : null}
+                                                            {(verifiedAt || pathologistReview.reviewedAt) && (
+                                                                <span className="text-xs text-slate-500 font-medium">
+                                                                    Reviewed On: {formatDate(verifiedAt || pathologistReview.reviewedAt)}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            )}
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm mb-2">
+                                                            <div>
+                                                                <span className="text-slate-500 font-medium">Reviewed By: </span>
+                                                                <span className="font-bold text-slate-800">
+                                                                    {pathologistName}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-slate-500 font-medium">Review Status: </span>
+                                                                <span className={`font-semibold ${(t.isVerified || pathologistReview.isReviewed) ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                                                    {(t.isVerified || pathologistReview.isReviewed) ? 'Verified / Approved' : (pathologistReview.reviewStatus || 'Pending Review')}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {pathologistReview.remarks && !isRichTextEmpty(pathologistReview.remarks) ? (
+                                                            <div className="mt-3 pt-2 border-t border-slate-200">
+                                                                <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                                                    Reviewer Comments &amp; Clinical Interpretation:
+                                                                </div>
+                                                                {/* <div
+                                                                    className="text-slate-700 text-xs sm:text-sm leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                                                                    dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(pathologistReview.remarks) }}
+                                                                /> */}
+                                                            </div>
+                                                        ) : !(t.isVerified || pathologistReview.isReviewed) ? (
+                                                            <p className="text-xs text-amber-700 italic mt-1 flex items-center gap-1.5">
+                                                                <Clock size={12} />
+                                                                <span>* This report is currently pending review and verification by a consultant pathologist.</span>
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
+                                                </td>
+                                            </tr>
 
                                             {/* ===================== SIGNATURES & FOOTER (every page) ===================== */}
                                             <tr>
@@ -647,8 +652,10 @@ export const ReportPreview: React.FC = () => {
                     })}
                 </div>
             ) : (
-                <div className="max-w-4xl mx-auto bg-white shadow-lg overflow-hidden">
-                    <InvoicePrint billing={billing} />
+                <div className="max-w-4xl mx-auto py-6 px-4">
+                    <div className="max-w-[154mm] mx-auto bg-white shadow-xl rounded-2xl p-4 sm:p-6 border border-slate-200 overflow-hidden">
+                        <InvoicePrint billing={billing} />
+                    </div>
                 </div>
             )}
         </div>

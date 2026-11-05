@@ -75,29 +75,44 @@ export class ReportsService {
         const nullBillingReportIds = pagedGroup.filter(g => !g.billingId).map(g => g.primaryReportId);
 
         const whereConditions: any[] = [];
-        if (pagedBillingIds.length > 0) {
-            whereConditions.push({ labResult: { billingId: In(pagedBillingIds) } });
-        }
-        if (nullBillingReportIds.length > 0) {
-            whereConditions.push({ id: In(nullBillingReportIds) });
+        const reportQb = this.databaseService.repoReport().createQueryBuilder('report')
+            .leftJoinAndSelect('report.patient', 'patient')
+            .leftJoinAndSelect('report.labResult', 'labResult')
+            .leftJoinAndSelect('labResult.test', 'test')
+            .leftJoinAndSelect('labResult.sample', 'sample')
+            .leftJoinAndSelect('labResult.performedBy', 'performedBy')
+            .leftJoinAndSelect('labResult.verifiedBy', 'verifiedBy')
+            .leftJoinAndSelect('labResult.billing', 'billing')
+            .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor');
+
+        if (pagedBillingIds.length > 0 && nullBillingReportIds.length > 0) {
+            reportQb.where('(labResult.billingId IN (:...pagedBillingIds) OR report.id IN (:...nullBillingReportIds))', {
+                pagedBillingIds,
+                nullBillingReportIds
+            });
+        } else if (pagedBillingIds.length > 0) {
+            reportQb.where('labResult.billingId IN (:...pagedBillingIds)', { pagedBillingIds });
+        } else if (nullBillingReportIds.length > 0) {
+            reportQb.where('report.id IN (:...nullBillingReportIds)', { nullBillingReportIds });
+        } else {
+            reportQb.where('report.patientId IN (:...pagedPatientIds)', { pagedPatientIds });
         }
 
-        const allReports = await this.databaseService.repoReport().find({
-            where: whereConditions.length > 0 ? whereConditions : { patientId: In(pagedPatientIds) },
-            relations: {
-                patient: true,
-                labResult: {
+        const allReports = await reportQb.orderBy('report.createdAt', 'DESC').getMany();
+
+        // Also retrieve all lab_results for paged bills so all tests for a visit appear in the listing
+        let allBillingLabResults: any[] = [];
+        if (pagedBillingIds.length > 0) {
+            allBillingLabResults = await this.databaseService.repoLabResult().find({
+                where: { billingId: In(pagedBillingIds) },
+                relations: {
                     test: true,
                     sample: true,
                     performedBy: true,
                     verifiedBy: true,
-                    billing: {
-                        referredByDoctor: true,
-                    }
                 }
-            },
-            order: { createdAt: 'DESC' }
-        });
+            });
+        }
 
         const data = pagedGroup.map((groupItem) => {
             const groupReports = allReports.filter(r => {
@@ -137,6 +152,37 @@ export class ReportsService {
                     status: r.status,
                     labResultStatus: r.labResult?.status,
                 }));
+
+            // Merge any lab results for this billing that don't yet have an explicit report entry
+            if (groupItem.billingId) {
+                const groupBillingLrs = allBillingLabResults.filter(lr => lr.billingId === groupItem.billingId);
+                for (const lr of groupBillingLrs) {
+                    if (lr.test && !tests.some(t => t.testId === lr.test.id)) {
+                        tests.push({
+                            reportId: primaryReport?.id || '',
+                            testId: lr.test.id,
+                            testName: lr.test.name,
+                            department: lr.test.department,
+                            sampleBarcode: lr.sample?.barcode || '',
+                            sampleCollectedAt: lr.sample?.collectedAt,
+                            performedBy: lr.performedBy ? {
+                                id: lr.performedBy.id,
+                                firstName: lr.performedBy.firstName,
+                                lastName: lr.performedBy.lastName,
+                            } : null,
+                            verifiedBy: lr.verifiedBy ? {
+                                id: lr.verifiedBy.id,
+                                firstName: lr.verifiedBy.firstName,
+                                lastName: lr.verifiedBy.lastName,
+                            } : null,
+                            isDelivered: false,
+                            isVerified: lr.status === LabResultStatus.VERIFIED,
+                            status: lr.status === LabResultStatus.VERIFIED ? ReportStatus.FINALIZED : ReportStatus.UNDER_REVIEW,
+                            labResultStatus: lr.status,
+                        });
+                    }
+                }
+            }
 
             const allDelivered = groupReports.length > 0 && groupReports.every(r => r.isDelivered);
             const isFullyVerified = groupReports.length > 0 && groupReports.every(r => r.labResult?.status === LabResultStatus.VERIFIED);
@@ -201,9 +247,10 @@ export class ReportsService {
 
         const billingId = report.labResult?.billingId;
         if (billingId) {
-            const siblings = await this.databaseService.repoReport().find({
-                where: { labResult: { billingId } }
-            });
+            const siblings = await this.databaseService.repoReport().createQueryBuilder('report')
+                .leftJoin('report.labResult', 'labResult')
+                .where('labResult.billingId = :billingId', { billingId })
+                .getMany();
             for (const s of siblings) {
                 await this.databaseService.repoReport().update(s.id, {
                     isDelivered: true,
@@ -261,9 +308,10 @@ export class ReportsService {
 
         const billingId = report.labResult?.billingId;
         if (billingId) {
-            const siblings = await this.databaseService.repoReport().find({
-                where: { labResult: { billingId } }
-            });
+            const siblings = await this.databaseService.repoReport().createQueryBuilder('report')
+                .leftJoin('report.labResult', 'labResult')
+                .where('labResult.billingId = :billingId', { billingId })
+                .getMany();
             for (const s of siblings) {
                 await this.databaseService.repoReport().update(s.id, {
                     status: ReportStatus.PUBLISHED,
@@ -305,37 +353,75 @@ export class ReportsService {
 
         if (!report) throw new NotFoundException('Report not found');
 
-        const billingId = report.labResult?.billingId;
+        let billingId = report.labResult?.billingId;
         const patientId = report.patientId;
 
+        // Fallback: If billingId wasn't populated on labResult, lookup via labResultId
+        if (!billingId && report.labResultId) {
+            const directLr = await this.databaseService.repoLabResult().findOne({
+                where: { id: report.labResultId },
+                relations: { billing: true }
+            });
+            if (directLr?.billingId) {
+                billingId = directLr.billingId;
+            }
+        }
+
+        // Query sibling reports using QueryBuilder to ensure robust PostgreSQL relation queries
         let siblingReports: Report[] = [];
         if (billingId) {
-            siblingReports = await this.databaseService.repoReport().find({
-                where: {
-                    labResult: { billingId }
-                },
+            siblingReports = await this.databaseService.repoReport().createQueryBuilder('report')
+                .leftJoinAndSelect('report.patient', 'patient')
+                .leftJoinAndSelect('report.labResult', 'labResult')
+                .leftJoinAndSelect('labResult.test', 'test')
+                .leftJoinAndSelect('labResult.sample', 'sample')
+                .leftJoinAndSelect('labResult.performedBy', 'performedBy')
+                .leftJoinAndSelect('labResult.verifiedBy', 'verifiedBy')
+                .leftJoinAndSelect('labResult.billing', 'billing')
+                .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
+                .leftJoinAndSelect('labResult.parameterResults', 'parameterResults')
+                .leftJoinAndSelect('parameterResults.testParameter', 'testParameter')
+                .where('labResult.billingId = :billingId', { billingId })
+                .orderBy('report.createdAt', 'ASC')
+                .getMany();
+        } else if (patientId) {
+            siblingReports = await this.databaseService.repoReport().createQueryBuilder('report')
+                .leftJoinAndSelect('report.patient', 'patient')
+                .leftJoinAndSelect('report.labResult', 'labResult')
+                .leftJoinAndSelect('labResult.test', 'test')
+                .leftJoinAndSelect('labResult.sample', 'sample')
+                .leftJoinAndSelect('labResult.performedBy', 'performedBy')
+                .leftJoinAndSelect('labResult.verifiedBy', 'verifiedBy')
+                .leftJoinAndSelect('labResult.billing', 'billing')
+                .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
+                .leftJoinAndSelect('labResult.parameterResults', 'parameterResults')
+                .leftJoinAndSelect('parameterResults.testParameter', 'testParameter')
+                .where('report.patientId = :patientId', { patientId })
+                .andWhere('DATE(report.createdAt) = DATE(:repDate)', { repDate: report.createdAt })
+                .orderBy('report.createdAt', 'ASC')
+                .getMany();
+        }
+
+        if (!siblingReports.some(r => r.id === report.id)) {
+            siblingReports.unshift(report);
+        }
+
+        // Retrieve all lab_results for this billing to ensure any test in this bill/visit is included
+        let allLabResults: any[] = [];
+        if (billingId) {
+            allLabResults = await this.databaseService.repoLabResult().find({
+                where: { billingId },
                 relations: {
-                    patient: true,
-                    labResult: {
-                        test: true,
-                        sample: true,
-                        performedBy: true,
-                        verifiedBy: true,
-                        billing: {
-                            referredByDoctor: true,
-                            items: { test: true }
-                        },
-                        parameterResults: {
-                            testParameter: true
-                        }
+                    test: true,
+                    sample: true,
+                    performedBy: true,
+                    verifiedBy: true,
+                    parameterResults: {
+                        testParameter: true
                     }
                 },
                 order: { createdAt: 'ASC' }
             });
-        }
-
-        if (!siblingReports || siblingReports.length === 0) {
-            siblingReports = [report];
         }
 
         let billing = report.labResult?.billing;
@@ -350,8 +436,12 @@ export class ReportsService {
             }) || undefined;
         }
 
-        const tests = siblingReports.map((rep) => {
+        const testsMap = new Map<string, any>();
+
+        // 1. Process reports
+        for (const rep of siblingReports) {
             const lr = rep.labResult;
+            const key = lr?.id || rep.id;
             let parsedReportData: any = null;
             try {
                 if (rep.reportData) {
@@ -361,14 +451,23 @@ export class ReportsService {
                 // Ignore parse errors
             }
 
-            const parameterResults = (parsedReportData?.parameterResults && parsedReportData.parameterResults.length > 0)
+            const rawParams = (parsedReportData?.parameterResults && parsedReportData.parameterResults.length > 0)
                 ? parsedReportData.parameterResults
                 : (lr?.parameterResults || []);
 
+            const parameterResults = rawParams.map((pr: any) => ({
+                snapshotParameterName: pr.snapshotParameterName || pr.testParameter?.name || pr.name || '',
+                resultValue: pr.resultValue ?? '',
+                snapshotUnit: pr.snapshotUnit || pr.testParameter?.unit || pr.unit || '',
+                snapshotReferenceValue: pr.snapshotReferenceValue || pr.testParameter?.referenceValue || pr.referenceRange || '',
+                displayOrder: pr.snapshotDisplayOrder ?? pr.testParameter?.displayOrder ?? 0,
+            })).sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
             const remarks = parsedReportData?.remarks || lr?.remarks || '';
 
-            return {
+            testsMap.set(key, {
                 reportId: rep.id,
+                labResultId: lr?.id,
                 testId: lr?.test?.id,
                 testName: lr?.test?.name || 'Unknown Test',
                 testCode: lr?.test?.id ? `TEST-${lr.test.id}` : '',
@@ -377,8 +476,8 @@ export class ReportsService {
                 sampleBarcode: lr?.sample?.barcode || '',
                 sampleCollectedAt: lr?.sample?.collectedAt || rep.createdAt,
                 status: rep.status,
-                labResultStatus: lr?.status,
-                isVerified: lr?.status === LabResultStatus.VERIFIED,
+                labResultStatus: lr?.status || (rep.status === ReportStatus.FINALIZED || rep.status === ReportStatus.PUBLISHED ? LabResultStatus.VERIFIED : LabResultStatus.COMPLETED),
+                isVerified: lr?.status === LabResultStatus.VERIFIED || rep.status === ReportStatus.FINALIZED || rep.status === ReportStatus.PUBLISHED,
                 parameterResults,
                 remarks,
                 performedBy: lr?.performedBy ? {
@@ -393,18 +492,94 @@ export class ReportsService {
                     lastName: lr.verifiedBy.lastName,
                 } : null,
                 verifiedAt: lr?.verifiedAt
-            };
-        });
+            });
+        }
 
-        const verifiedDoctor = siblingReports.map(r => r.labResult?.verifiedBy).find(Boolean);
-        const latestVerifiedAt = siblingReports
-            .map(r => r.labResult?.verifiedAt)
+        // 2. Process all lab results for the bill to include any test not yet finalized into reports
+        for (const lr of allLabResults) {
+            const alreadyMapped = Array.from(testsMap.values()).some(
+                t => t.labResultId === lr.id || (t.testId && t.testId === lr.test?.id)
+            );
+            if (!alreadyMapped) {
+                const rawParams = lr.parameterResults || [];
+                const parameterResults = rawParams.map((pr: any) => ({
+                    snapshotParameterName: pr.snapshotParameterName || pr.testParameter?.name || pr.name || '',
+                    resultValue: pr.resultValue ?? '',
+                    snapshotUnit: pr.snapshotUnit || pr.testParameter?.unit || pr.unit || '',
+                    snapshotReferenceValue: pr.snapshotReferenceValue || pr.testParameter?.referenceValue || pr.referenceRange || '',
+                    displayOrder: pr.snapshotDisplayOrder ?? pr.testParameter?.displayOrder ?? 0,
+                })).sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+                const isVerified = lr.status === LabResultStatus.VERIFIED;
+
+                // Auto-finalize into reports table if verified so future queries find it immediately
+                let createdReportId = '';
+                if (isVerified) {
+                    try {
+                        const snap = JSON.stringify({
+                            parameterResults: lr.parameterResults,
+                            remarks: lr.remarks
+                        });
+                        const newRep = await this.databaseService.repoReport().save(
+                            this.databaseService.repoReport().create({
+                                patientId: lr.patientId || patientId,
+                                labResultId: lr.id,
+                                reportData: snap,
+                                status: ReportStatus.FINALIZED
+                            })
+                        );
+                        createdReportId = newRep.id;
+                    } catch {
+                        // ignore if already created or constraint
+                    }
+                }
+
+                testsMap.set(lr.id, {
+                    reportId: createdReportId || report.id,
+                    labResultId: lr.id,
+                    testId: lr.test?.id,
+                    testName: lr.test?.name || 'Unknown Test',
+                    testCode: lr.test?.id ? `TEST-${lr.test.id}` : '',
+                    department: lr.test?.department,
+                    sampleType: lr.test?.sampleType,
+                    sampleBarcode: lr.sample?.barcode || '',
+                    sampleCollectedAt: lr.sample?.collectedAt || lr.createdAt,
+                    status: isVerified ? ReportStatus.FINALIZED : ReportStatus.UNDER_REVIEW,
+                    labResultStatus: lr.status,
+                    isVerified: isVerified,
+                    parameterResults,
+                    remarks: lr.remarks || '',
+                    performedBy: lr.performedBy ? {
+                        id: lr.performedBy.id,
+                        firstName: lr.performedBy.firstName,
+                        lastName: lr.performedBy.lastName,
+                    } : null,
+                    performedAt: lr.performedAt,
+                    verifiedBy: lr.verifiedBy ? {
+                        id: lr.verifiedBy.id,
+                        firstName: lr.verifiedBy.firstName,
+                        lastName: lr.verifiedBy.lastName,
+                    } : null,
+                    verifiedAt: lr.verifiedAt
+                });
+            }
+        }
+
+        const tests = Array.from(testsMap.values());
+
+        const verifiedDoctor = siblingReports.map(r => r.labResult?.verifiedBy).find(Boolean) ||
+            allLabResults.map(l => l.verifiedBy).find(Boolean);
+
+        const latestVerifiedAt = [
+            ...siblingReports.map(r => r.labResult?.verifiedAt),
+            ...allLabResults.map(l => l.verifiedAt)
+        ]
             .filter(Boolean)
             .sort()
             .pop();
 
-        const allVerified = siblingReports.length > 0 && siblingReports.every(r => r.labResult?.status === LabResultStatus.VERIFIED);
-        const anyVerified = siblingReports.some(r => r.labResult?.status === LabResultStatus.VERIFIED);
+        const allVerified = tests.length > 0 && tests.every(t => t.isVerified);
+        const anyVerified = tests.some(t => t.isVerified);
 
         const allReviewRemarks = tests
             .map(t => t.remarks)

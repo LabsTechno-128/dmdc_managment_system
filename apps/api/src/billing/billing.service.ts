@@ -1113,4 +1113,255 @@ export class BillingService {
             order: { createdAt: 'DESC' }
         });
     }
+
+    async searchForLabel(query: string, user?: any): Promise<any> {
+        if (!query || typeof query !== 'string' || !query.trim()) {
+            throw new BadRequestException('Please provide a Patient ID or Bill ID');
+        }
+
+        const raw = query.trim();
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        // 1. Check exact match by Bill Number
+        let exactBill = await this.databaseService.repoBilling()
+            .createQueryBuilder('billing')
+            .leftJoinAndSelect('billing.patient', 'patient')
+            .leftJoinAndSelect('billing.items', 'item')
+            .leftJoinAndSelect('item.test', 'test')
+            .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
+            .where('billing.billNumber ILIKE :num', { num: raw })
+            .getOne();
+
+        if (!exactBill && UUID_REGEX.test(raw)) {
+            exactBill = await this.databaseService.repoBilling()
+                .createQueryBuilder('billing')
+                .leftJoinAndSelect('billing.patient', 'patient')
+                .leftJoinAndSelect('billing.items', 'item')
+                .leftJoinAndSelect('item.test', 'test')
+                .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
+                .where('billing.id = :id', { id: raw })
+                .getOne();
+        }
+
+        if (exactBill && exactBill.patient) {
+            const allBills = await this.databaseService.repoBilling()
+                .createQueryBuilder('b')
+                .leftJoinAndSelect('b.items', 'item')
+                .leftJoinAndSelect('item.test', 'test')
+                .where('b.patientId = :patientId', { patientId: exactBill.patient.id })
+                .orderBy('b.createdAt', 'DESC')
+                .getMany();
+
+            return {
+                found: true,
+                exact: true,
+                matchedBy: 'bill',
+                patient: {
+                    id: exactBill.patient.id,
+                    patientId: exactBill.patient.patientId,
+                    name: exactBill.patient.name,
+                    gender: exactBill.patient.gender,
+                    age: exactBill.patient.age,
+                    phone: exactBill.patient.phone,
+                    address: exactBill.patient.address,
+                    bloodGroup: exactBill.patient.bloodGroup,
+                    dateOfBirth: exactBill.patient.dateOfBirth,
+                    emergencyContactPhone: exactBill.patient.emergencyContactPhone,
+                },
+                bill: {
+                    id: exactBill.id,
+                    billNumber: exactBill.billNumber,
+                    createdAt: exactBill.createdAt,
+                    billingType: exactBill.billingType,
+                    totalAmount: exactBill.totalAmount,
+                    paidAmount: exactBill.paidAmount,
+                    dueAmount: exactBill.dueAmount,
+                    paymentStatus: exactBill.paymentStatus,
+                    referredBy: exactBill.referredBy || (exactBill.referredByDoctor ? `Dr. ${exactBill.referredByDoctor.firstName} ${exactBill.referredByDoctor.lastName}` : null),
+                    tests: (exactBill.items || []).map((it: any) => ({
+                        id: it.id,
+                        name: it.test?.name || it.description || 'Test',
+                        code: it.test?.code || '',
+                        category: it.test?.category || '',
+                        price: it.price,
+                    })),
+                },
+                allBills: allBills.map((b: any) => ({
+                    id: b.id,
+                    billNumber: b.billNumber,
+                    createdAt: b.createdAt,
+                    billingType: b.billingType,
+                    totalAmount: b.totalAmount,
+                    paidAmount: b.paidAmount,
+                    dueAmount: b.dueAmount,
+                    tests: (b.items || []).map((it: any) => ({
+                        id: it.id,
+                        name: it.test?.name || it.description || 'Test',
+                        code: it.test?.code || '',
+                    })),
+                })),
+            };
+        }
+
+        // 2. Check exact match by Patient ID or UUID
+        let patientQuery = this.databaseService.repoPatients()
+            .createQueryBuilder('patient');
+
+        let exactPatient: any = null;
+        if (UUID_REGEX.test(raw)) {
+            exactPatient = await patientQuery.where('patient.id = :id', { id: raw }).getOne();
+        } else {
+            exactPatient = await patientQuery.where('patient.patientId ILIKE :pid', { pid: raw }).getOne();
+
+            if (!exactPatient && /^\d+$/.test(raw)) {
+                const paddedId = `DMDCPTN-${raw.padStart(7, '0')}`;
+                exactPatient = await this.databaseService.repoPatients()
+                    .createQueryBuilder('patient')
+                    .where('patient.patientId ILIKE :pid', { pid: paddedId })
+                    .getOne();
+            }
+        }
+
+        if (exactPatient) {
+            const patientBills = await this.databaseService.repoBilling()
+                .createQueryBuilder('billing')
+                .leftJoinAndSelect('billing.items', 'item')
+                .leftJoinAndSelect('item.test', 'test')
+                .leftJoinAndSelect('billing.referredByDoctor', 'referredByDoctor')
+                .where('billing.patientId = :patientId', { patientId: exactPatient.id })
+                .orderBy('billing.createdAt', 'DESC')
+                .getMany();
+
+            const latestBill = patientBills[0] || null;
+
+            return {
+                found: true,
+                exact: true,
+                matchedBy: 'patient',
+                patient: {
+                    id: exactPatient.id,
+                    patientId: exactPatient.patientId,
+                    name: exactPatient.name,
+                    gender: exactPatient.gender,
+                    age: exactPatient.age,
+                    phone: exactPatient.phone,
+                    address: exactPatient.address,
+                    bloodGroup: exactPatient.bloodGroup,
+                    dateOfBirth: exactPatient.dateOfBirth,
+                    emergencyContactPhone: exactPatient.emergencyContactPhone,
+                },
+                bill: latestBill ? {
+                    id: latestBill.id,
+                    billNumber: latestBill.billNumber,
+                    createdAt: latestBill.createdAt,
+                    billingType: latestBill.billingType,
+                    totalAmount: latestBill.totalAmount,
+                    paidAmount: latestBill.paidAmount,
+                    dueAmount: latestBill.dueAmount,
+                    paymentStatus: latestBill.paymentStatus,
+                    referredBy: latestBill.referredBy || (latestBill.referredByDoctor ? `Dr. ${latestBill.referredByDoctor.firstName} ${latestBill.referredByDoctor.lastName}` : null),
+                    tests: (latestBill.items || []).map((it: any) => ({
+                        id: it.id,
+                        name: it.test?.name || it.description || 'Test',
+                        code: it.test?.code || '',
+                        category: it.test?.category || '',
+                        price: it.price,
+                    })),
+                } : null,
+                allBills: patientBills.map((b: any) => ({
+                    id: b.id,
+                    billNumber: b.billNumber,
+                    createdAt: b.createdAt,
+                    billingType: b.billingType,
+                    totalAmount: b.totalAmount,
+                    paidAmount: b.paidAmount,
+                    dueAmount: b.dueAmount,
+                    tests: (b.items || []).map((it: any) => ({
+                        id: it.id,
+                        name: it.test?.name || it.description || 'Test',
+                        code: it.test?.code || '',
+                    })),
+                })),
+            };
+        }
+
+        // 3. Partial search across bills and patients
+        const billsMatching = await this.databaseService.repoBilling()
+            .createQueryBuilder('billing')
+            .leftJoinAndSelect('billing.patient', 'patient')
+            .where('billing.billNumber ILIKE :q', { q: `%${raw}%` })
+            .orWhere('patient.patientId ILIKE :q', { q: `%${raw}%` })
+            .orWhere('patient.phone ILIKE :q', { q: `%${raw}%` })
+            .orWhere('patient.name ILIKE :q', { q: `%${raw}%` })
+            .orderBy('billing.createdAt', 'DESC')
+            .take(10)
+            .getMany();
+
+        const patientsMatching = await this.databaseService.repoPatients()
+            .createQueryBuilder('patient')
+            .leftJoinAndSelect('patient.billings', 'billing')
+            .where('patient.patientId ILIKE :q', { q: `%${raw}%` })
+            .orWhere('patient.phone ILIKE :q', { q: `%${raw}%` })
+            .orWhere('patient.name ILIKE :q', { q: `%${raw}%` })
+            .orderBy('patient.createdAt', 'DESC')
+            .take(10)
+            .getMany();
+
+        const candidateMap = new Map<string, any>();
+
+        for (const b of billsMatching) {
+            if (b.patient && !candidateMap.has(b.patient.id)) {
+                candidateMap.set(b.patient.id, {
+                    patientId: b.patient.patientId,
+                    name: b.patient.name,
+                    phone: b.patient.phone,
+                    gender: b.patient.gender,
+                    age: b.patient.age,
+                    latestBillNumber: b.billNumber,
+                    billId: b.id,
+                    internalPatientId: b.patient.id,
+                });
+            }
+        }
+
+        for (const p of patientsMatching) {
+            if (!candidateMap.has(p.id)) {
+                const latest = (p.billings || []).sort(
+                    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                )[0];
+                candidateMap.set(p.id, {
+                    patientId: p.patientId,
+                    name: p.name,
+                    phone: p.phone,
+                    gender: p.gender,
+                    age: p.age,
+                    latestBillNumber: latest?.billNumber || 'N/A',
+                    billId: latest?.id || null,
+                    internalPatientId: p.id,
+                });
+            }
+        }
+
+        const matches = Array.from(candidateMap.values());
+
+        if (matches.length === 1) {
+            const single = matches[0];
+            return this.searchForLabel(single.latestBillNumber !== 'N/A' ? single.latestBillNumber : single.patientId, user);
+        }
+
+        if (matches.length > 1) {
+            return {
+                found: true,
+                exact: false,
+                matches,
+                message: `Found ${matches.length} matching records. Please select one.`,
+            };
+        }
+
+        return {
+            found: false,
+            exact: false,
+            message: `No patient or bill found matching "${raw}".`,
+        };
+    }
 }

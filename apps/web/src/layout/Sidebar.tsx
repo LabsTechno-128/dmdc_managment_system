@@ -21,6 +21,7 @@ import {
     ChevronRight,
     Globe,
     X,
+    Tag,
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/authStore';
@@ -54,13 +55,14 @@ const ITEMS: NavItem[] = [
     {
         label: 'Patients & Billing',
         icon: Users,
-        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.XRAY_REPORT, UserRole.USG_REPORT],
+        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.XRAY_REPORT, UserRole.USG_REPORT, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION],
         children: [
             { label: 'Appointments', path: '/appointments', icon: CalendarClock, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.XRAY_REPORT, UserRole.USG_REPORT, UserRole.RECEPTIONIST] },
             { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN] },
+            { label: 'Print Label', path: '/print-label', icon: Tag, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION] },
         ]
     },
     {

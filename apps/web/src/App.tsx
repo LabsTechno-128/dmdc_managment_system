@@ -65,6 +65,7 @@ import LabTechnicianDashboard from './pages/LabTechnician';
 import { PathologistDashboard } from './pages/Pathologist';
 import { ReportPreview } from './pages/Reports';
 import { LandingPageManagement } from './pages/LandingPage/LandingPageManagement';
+import { PrintLabel } from './pages/PrintLabel';
 
 const queryClient = new QueryClient();
 
@@ -186,6 +187,11 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'receptionist', 'lab_technician']} />}>
               <Route path="/reports" element={<ReportsList />} />
               <Route path="/reports/:id/preview" element={<ReportPreview />} />
+            </Route>
+
+            {/* Print Label Route */}
+            <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'receptionist', 'lab_technician', 'sample_collection', 'doctor']} />}>
+              <Route path="/print-label" element={<PrintLabel />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -30,6 +30,22 @@ export class BillingController {
         return this.billingService.findAll({ page, limit, search }, req?.user);
     }
 
+    @Get('label-search')
+    @Roles(
+        UserRole.SUPER_ADMIN,
+        UserRole.ADMIN,
+        UserRole.RECEPTIONIST,
+        UserRole.LAB_TECHNICIAN,
+        UserRole.SAMPLE_COLLECTION,
+        UserRole.DOCTOR,
+        UserRole.USG_REPORT,
+        UserRole.XRAY_REPORT,
+        UserRole.USER
+    )
+    searchForLabel(@Query('query') query: string, @Req() req?: any) {
+        return this.billingService.searchForLabel(query, req?.user);
+    }
+
     @Get(':id')
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.DOCTOR, UserRole.USER)
     findOne(@Param('id') id: string, @Req() req?: any) {

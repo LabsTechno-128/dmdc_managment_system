@@ -11,10 +11,13 @@ import {
     RotateCcw,
     CheckCircle2,
     Copy,
-    ListFilter
+    ListFilter,
+    QrCode
 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { api } from '../../lib/api';
+import { LabelPrint } from './LabelPrint';
+import { SampleQrMatrixSvg } from '../SampleCollection/components/SampleBarcodeComponents';
 
 interface TestItem {
     id: string;
@@ -72,6 +75,7 @@ export function PrintLabel() {
     const [multipleMatches, setMultipleMatches] = useState<SearchCandidate[]>([]);
     const [copies, setCopies] = useState<number>(1);
     const [includeTestsOnSticker, setIncludeTestsOnSticker] = useState<boolean>(false);
+    const [includeQrCode, setIncludeQrCode] = useState<boolean>(true);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const printAreaRef = useRef<HTMLDivElement>(null);
@@ -153,59 +157,18 @@ export function PrintLabel() {
         searchInputRef.current?.focus();
     };
 
+    // Print handler using standard react-to-print (as in InvoiceDetailsModal and OdpForm)
     const handlePrint = useReactToPrint({
         contentRef: printAreaRef,
-        pageStyle: `
-            @page {
-                size: 75mm 50mm;
-                margin: 0;
-            }
-            @media print {
-                html, body {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: #ffffff !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-                body * {
-                    visibility: hidden;
-                }
-                #label-print-container, #label-print-container * {
-                    visibility: visible;
-                }
-                #label-print-container {
-                    position: absolute !important;
-                    left: 0 !important;
-                    top: 0 !important;
-                    width: 75mm !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }
-                .label-sticker-page {
-                    width: 75mm !important;
-                    height: 50mm !important;
-                    max-width: 75mm !important;
-                    max-height: 50mm !important;
-                    box-sizing: border-box !important;
-                    padding: 4mm 5mm !important;
-                    page-break-after: always !important;
-                    break-after: page !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: space-between !important;
-                    background: #ffffff !important;
-                    color: #000000 !important;
-                    font-family: Arial, Helvetica, sans-serif !important;
-                    overflow: hidden !important;
-                }
-                .label-sticker-page:last-child {
-                    page-break-after: avoid !important;
-                    break-after: avoid !important;
-                }
-            }
-        `,
+        documentTitle: `Label-${patient?.patientId || 'Print'}-${selectedBill?.billNumber || ''}`,
     });
+
+    const triggerPrint = () => {
+        if (!patient) return;
+        setTimeout(() => {
+            handlePrint();
+        }, 80);
+    };
 
     const formatAge = (age: any) => {
         if (age === null || age === undefined || age === '') return 'N/A';
@@ -221,8 +184,6 @@ export function PrintLabel() {
         return gender;
     };
 
-    const copiesList = Array.from({ length: Math.max(1, copies) }, (_, i) => i);
-
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-12">
             {/* Page Title & Breadcrumb */}
@@ -233,7 +194,7 @@ export function PrintLabel() {
                         Print Label
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        Search by Patient ID or Bill ID to preview and print 75mm × 50mm barcode/sticker labels.
+                        Search by Patient ID or Bill ID to preview and print standard 75mm × 50mm barcode/sticker labels.
                     </p>
                 </div>
 
@@ -241,7 +202,7 @@ export function PrintLabel() {
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm w-fit"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm w-fit cursor-pointer"
                     >
                         <RotateCcw className="w-4 h-4 text-slate-500" />
                         New Search
@@ -276,7 +237,7 @@ export function PrintLabel() {
                             <button
                                 type="button"
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-28 text-slate-400 hover:text-slate-600 p-1"
+                                className="absolute right-28 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                                 title="Clear input"
                             >
                                 <X className="w-4 h-4" />
@@ -286,7 +247,7 @@ export function PrintLabel() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="absolute right-1.5 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 transition shadow-sm flex items-center gap-1.5"
+                            className="absolute right-1.5 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 transition shadow-sm flex items-center gap-1.5 cursor-pointer"
                         >
                             {isLoading ? (
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -358,7 +319,7 @@ export function PrintLabel() {
                                 <button
                                     type="button"
                                     onClick={() => handleSelectCandidate(candidate)}
-                                    className="px-4 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition shrink-0"
+                                    className="px-4 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition shrink-0 cursor-pointer"
                                 >
                                     Select & Preview
                                 </button>
@@ -398,51 +359,62 @@ export function PrintLabel() {
                                 {/* Actual Label Card - Styled to closely replicate physical thermal label sticker */}
                                 <div
                                     id="screen-label-card"
-                                    className="w-[340px] h-[226px] bg-slate-100/90 rounded-[22px] border-2 border-slate-300 p-5 shadow-sm flex flex-col justify-between text-slate-900 font-sans select-none relative overflow-hidden transition-all hover:border-indigo-400 hover:shadow-md"
+                                    className="w-[340px] h-[226px] bg-slate-100/90 rounded-[22px] border-2 border-slate-300 p-4 shadow-sm flex flex-col justify-between text-slate-900 font-sans select-none relative overflow-hidden transition-all hover:border-indigo-400 hover:shadow-md"
                                 >
-                                    {/* Line 1: Name */}
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-base tracking-tight text-slate-900">Name:</span>
-                                        <span className="font-bold text-base text-slate-900 uppercase truncate">
-                                            {patient.name || 'N/A'}
-                                        </span>
-                                    </div>
+                                    <div className="flex items-start justify-between gap-3 w-full">
+                                        <div className="flex-1 min-w-0 space-y-2.5">
+                                            {/* Line 1: Name */}
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="font-bold text-sm tracking-tight text-slate-900">Name:</span>
+                                                <span className="font-bold text-sm text-slate-900 uppercase truncate">
+                                                    {patient.name || 'N/A'}
+                                                </span>
+                                            </div>
 
-                                    {/* Line 2: Sex, Age, Phone */}
-                                    <div className="flex items-baseline justify-between text-sm font-semibold text-slate-800">
-                                        <div className="flex items-baseline gap-1">
-                                            <span>Sex:</span>
-                                            <span className="font-bold">{formatGender(patient.gender)}</span>
-                                        </div>
-                                        <div className="flex items-baseline gap-1">
-                                            <span>Age:</span>
-                                            <span className="font-bold">{formatAge(patient.age)}</span>
-                                        </div>
-                                        <div className="flex items-baseline gap-1">
-                                            <span>Phone:</span>
-                                            <span className="font-bold">{patient.phone || 'N/A'}</span>
-                                        </div>
-                                    </div>
+                                            {/* Line 2: Sex, Age, Phone */}
+                                            <div className="flex items-baseline justify-between text-xs font-bold text-slate-800">
+                                                <div className="flex items-baseline gap-1">
+                                                    <span>Sex:</span>
+                                                    <span>{formatGender(patient.gender)}</span>
+                                                </div>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span>Age:</span>
+                                                    <span>{formatAge(patient.age)}</span>
+                                                </div>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span>Phone:</span>
+                                                    <span>{patient.phone || 'N/A'}</span>
+                                                </div>
+                                            </div>
 
-                                    {/* Line 3: PTN ID */}
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-sm text-slate-900">PTN ID:</span>
-                                        <span className="font-mono font-bold text-sm tracking-wide text-slate-900">
-                                            {patient.patientId || 'N/A'}
-                                        </span>
-                                    </div>
+                                            {/* Line 3: PTN ID */}
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="font-bold text-xs text-slate-900">PTN ID:</span>
+                                                <span className="font-mono font-bold text-xs tracking-wide text-slate-900">
+                                                    {patient.patientId || 'N/A'}
+                                                </span>
+                                            </div>
 
-                                    {/* Line 4: BILL ID */}
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-sm text-slate-900">BILL ID:</span>
-                                        <span className="font-mono font-bold text-sm tracking-wide text-slate-900">
-                                            {selectedBill?.billNumber || 'N/A'}
-                                        </span>
+                                            {/* Line 4: BILL ID */}
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="font-bold text-xs text-slate-900">BILL ID:</span>
+                                                <span className="font-mono font-bold text-xs tracking-wide text-slate-900">
+                                                    {selectedBill?.billNumber || 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* QR Code on right side */}
+                                        {includeQrCode && selectedBill?.billNumber && (
+                                            <div className="shrink-0 flex items-center justify-center p-1 bg-white rounded-lg border border-slate-200">
+                                                <SampleQrMatrixSvg value={selectedBill.billNumber} size={54} />
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Optional compact tests footer if enabled */}
                                     {includeTestsOnSticker && selectedBill?.tests && selectedBill.tests.length > 0 && (
-                                        <div className="pt-1 border-t border-slate-300 text-[10px] text-slate-700 truncate font-medium">
+                                        <div className="pt-1.5 border-t border-slate-300 text-[10px] text-slate-700 truncate font-semibold">
                                             <span className="font-bold">Tests: </span>
                                             {selectedBill.tests.map((t) => t.name).join(', ')}
                                         </div>
@@ -461,8 +433,32 @@ export function PrintLabel() {
                                 Ey info fill up hoye gele PRINT button a click korle print hobe
                             </p>
 
+                            {/* Label Configuration Options */}
+                            <div className="w-full mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600">
+                                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeQrCode}
+                                        onChange={(e) => setIncludeQrCode(e.target.checked)}
+                                        className="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                                    />
+                                    <QrCode className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Include Scannable QR Code</span>
+                                </label>
+
+                                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeTestsOnSticker}
+                                        onChange={(e) => setIncludeTestsOnSticker(e.target.checked)}
+                                        className="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                                    />
+                                    <span>Include Test Names Footer</span>
+                                </label>
+                            </div>
+
                             {/* Print Options & Primary Print Button */}
-                            <div className="w-full mt-6 pt-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="w-full mt-4 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <label htmlFor="copies-input" className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
                                         <Copy className="w-4 h-4 text-slate-500" />
@@ -472,7 +468,7 @@ export function PrintLabel() {
                                         <button
                                             type="button"
                                             onClick={() => setCopies((c) => Math.max(1, c - 1))}
-                                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 font-bold"
+                                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
                                         >
                                             -
                                         </button>
@@ -482,7 +478,7 @@ export function PrintLabel() {
                                         <button
                                             type="button"
                                             onClick={() => setCopies((c) => Math.min(10, c + 1))}
-                                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 font-bold"
+                                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
                                         >
                                             +
                                         </button>
@@ -492,8 +488,8 @@ export function PrintLabel() {
                                 <div className="flex items-center gap-3 w-full sm:w-auto">
                                     <button
                                         type="button"
-                                        onClick={() => handlePrint()}
-                                        className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-base font-semibold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
+                                        onClick={triggerPrint}
+                                        className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-base font-semibold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         <Printer className="w-5 h-5" />
                                         <span>Print Label ({copies})</span>
@@ -570,7 +566,7 @@ export function PrintLabel() {
                                             id="bill-select"
                                             value={selectedBill?.id || ''}
                                             onChange={(e) => handleBillChange(e.target.value)}
-                                            className="w-full py-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full py-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-sm font-mono font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                                         >
                                             {allBills.map((b) => (
                                                 <option key={b.id} value={b.id}>
@@ -609,15 +605,6 @@ export function PrintLabel() {
                                                     <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                                         Included Tests ({selectedBill.tests.length})
                                                     </span>
-                                                    <label className="text-xs text-indigo-600 font-medium cursor-pointer flex items-center gap-1.5 select-none">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={includeTestsOnSticker}
-                                                            onChange={(e) => setIncludeTestsOnSticker(e.target.checked)}
-                                                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        Include on label
-                                                    </label>
                                                 </div>
 
                                                 <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 rounded-lg border border-slate-200">
@@ -645,92 +632,21 @@ export function PrintLabel() {
                 </div>
             )}
 
-            {/* Hidden Printable Area (Visible strictly on @media print) */}
-            <div className="hidden">
-                <div id="label-print-container" ref={printAreaRef}>
-                    {patient &&
-                        copiesList.map((copyIdx) => (
-                            <div
-                                key={copyIdx}
-                                className="label-sticker-page"
-                                style={{
-                                    width: '75mm',
-                                    height: '50mm',
-                                    boxSizing: 'border-box',
-                                    padding: '4mm 5mm',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    fontFamily: 'Arial, sans-serif',
-                                    color: '#000000',
-                                    backgroundColor: '#ffffff',
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                {/* Row 1: Name */}
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                                    <span style={{ fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>Name:</span>
-                                    <span style={{ fontWeight: 'bold', fontSize: '12pt', textTransform: 'uppercase', color: '#000000', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {patient.name}
-                                    </span>
-                                </div>
-
-                                {/* Row 2: Sex, Age, Phone */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '9pt', fontWeight: 'bold', color: '#000000' }}>
-                                    <div>
-                                        <span>Sex: </span>
-                                        <span>{formatGender(patient.gender)}</span>
-                                    </div>
-                                    <div>
-                                        <span>Age: </span>
-                                        <span>{formatAge(patient.age)}</span>
-                                    </div>
-                                    <div>
-                                        <span>Phone: </span>
-                                        <span>{patient.phone || 'N/A'}</span>
-                                    </div>
-                                </div>
-
-                                {/* Row 3: PTN ID */}
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                                    <span style={{ fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>PTN ID:</span>
-                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '10pt', letterSpacing: '0.5px', color: '#000000' }}>
-                                        {patient.patientId}
-                                    </span>
-                                </div>
-
-                                {/* Row 4: BILL ID */}
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                                    <span style={{ fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>BILL ID:</span>
-                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '10pt', letterSpacing: '0.5px', color: '#000000' }}>
-                                        {selectedBill?.billNumber || 'N/A'}
-                                    </span>
-                                </div>
-
-                                {/* Optional Tests Line if enabled */}
-                                {includeTestsOnSticker && selectedBill?.tests && selectedBill.tests.length > 0 && (
-                                    <div
-                                        style={{
-                                            fontSize: '7pt',
-                                            fontWeight: '600',
-                                            color: '#111111',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            borderTop: '0.5px solid #666666',
-                                            paddingTop: '1mm',
-                                        }}
-                                    >
-                                        Tests: {selectedBill.tests.map((t) => t.name).join(', ')}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                </div>
+            {/* Dedicated Print Template Mounted in DOM (Active and Ready for react-to-print) */}
+            <div style={{ position: 'fixed', left: '-99999px', top: '-99999px', opacity: 0, pointerEvents: 'none' }}>
+                {patient && (
+                    <LabelPrint
+                        ref={printAreaRef}
+                        patient={patient}
+                        selectedBill={selectedBill}
+                        copies={copies}
+                        includeTestsOnSticker={includeTestsOnSticker}
+                        includeQrCode={includeQrCode}
+                    />
+                )}
             </div>
         </div>
     );
 }
 
 export default PrintLabel;
-

@@ -125,7 +125,9 @@
   #financial-report-print,
   #financial-report-print *,
   #print-report-invoice,
-  #print-report-invoice * {
+  #print-report-invoice *,
+  #label-print-root,
+  #label-print-root * {
     visibility: visible !important;
   }
 

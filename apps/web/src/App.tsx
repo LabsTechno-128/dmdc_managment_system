@@ -179,7 +179,7 @@ function App() {
             </Route>
 
             {/* Pathologist Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'lab_technician']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['doctor', 'super_admin', 'admin', 'lab_technician', 'xray_report', 'usg_report']} />}>
               <Route path="/pathologist" element={<PathologistDashboard />} />
             </Route>
 

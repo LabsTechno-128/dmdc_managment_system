@@ -71,7 +71,7 @@ export class LabResultController {
     }
 
     @Get('pending-review')
-    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.XRAY_REPORT, UserRole.USG_REPORT)
     async getPendingReview() {
         return this.labResultService.getPendingReview();
     }

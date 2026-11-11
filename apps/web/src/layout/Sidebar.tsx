@@ -61,14 +61,14 @@ const ITEMS: NavItem[] = [
             { label: "Patient's List", path: '/patients', icon: Users, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
             { label: "Patient's Serial for Test", path: '/test-counter', icon: Activity, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.XRAY_REPORT, UserRole.USG_REPORT, UserRole.RECEPTIONIST] },
             { label: "Patient's Billing", path: '/billing', icon: Receipt, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
-            { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN] },
+            { label: "Patient's Reports", path: '/reports', icon: ClipboardList, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN, UserRole.XRAY_REPORT, UserRole.USG_REPORT] },
             { label: 'Print Label', path: '/print-label', icon: Tag, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION] },
         ]
     },
     {
         label: 'Medical & Laboratory',
         icon: Stethoscope,
-        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION, UserRole.DOCTOR],
+        role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST, UserRole.LAB_TECHNICIAN, UserRole.SAMPLE_COLLECTION, UserRole.DOCTOR, UserRole.XRAY_REPORT, UserRole.USG_REPORT],
         children: [
             { label: "Doctor's List", path: '/doctors', icon: Stethoscope, role: [UserRole.SUPER_ADMIN] },
             { label: "Doctor's Fee", path: '/doctors-fee', icon: CreditCard, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.RECEPTIONIST] },
@@ -77,7 +77,7 @@ const ITEMS: NavItem[] = [
             { label: 'Sample Collection', path: '/sample-collection', icon: FlaskConical, role: [UserRole.SUPER_ADMIN, UserRole.SAMPLE_COLLECTION] },
             { label: 'Lab Technician Workspace', path: '/lab-technician', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.LAB_TECHNICIAN] },
             { label: 'Re-agents & Sample Pots', path: '/reagents', icon: FlaskConical, role: [UserRole.LAB_TECHNICIAN] },
-            { label: 'Pathologist Dashboard', path: '/pathologist', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN] },
+            { label: 'Reporting Dashboard', path: '/pathologist', icon: Stethoscope, role: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.LAB_TECHNICIAN, UserRole.XRAY_REPORT, UserRole.USG_REPORT] },
         ]
     },
     {

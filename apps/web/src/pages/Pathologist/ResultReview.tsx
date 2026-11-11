@@ -14,7 +14,10 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
     const handleVerify = async () => {
         setProcessing(true);
         try {
-            await api.post(`/lab-result/${result.sampleId}/verify`, { remarks: remarks || undefined });
+            await api.post(`/lab-result/${result.sampleId}/verify`, {
+                remarks: remarks || undefined,
+                report: result.report || undefined,
+            });
             // Automatically finalize report after verify (business logic option)
             // But let's keep it separate or do it in the same action to save clicks
             await api.post(`/reports/finalize/${result.id}`);
@@ -152,20 +155,38 @@ export const ResultReview: React.FC<{ result: any, onClose: () => void }> = ({ r
                 </div>
             </div>
 
-            {result.remarks && !isRichTextEmpty(result.remarks) && (
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-100 text-sm">
-                    <h3 className="font-semibold text-blue-800 mb-2">Technician Remarks</h3>
-                    <div
-                        className="text-blue-900 prose prose-sm max-w-none [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-blue-200 [&_th]:p-2 [&_td]:border [&_td]:border-blue-200 [&_td]:p-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                        dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(result.remarks) }}
-                    />
+            {(result.report || result.remarks) && !isRichTextEmpty(result.report || result.remarks) && (
+                <div className="bg-blue-50/70 p-4 rounded-lg border border-blue-200 text-sm space-y-3">
+                    <div>
+                        <h3 className="font-bold text-blue-900 mb-1 flex items-center justify-between">
+                            <span>Laboratory Report / Findings (from Technologist)</span>
+                            {result.performedBy && (
+                                <span className="text-xs font-medium text-blue-700">
+                                    Reported by: {result.performedBy.firstName} {result.performedBy.lastName}
+                                </span>
+                            )}
+                        </h3>
+                        <div
+                            className="text-slate-800 bg-white p-3 rounded border border-blue-100 prose prose-sm max-w-none [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                            dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(result.report || result.remarks) }}
+                        />
+                    </div>
+                    {result.report && result.remarks && !isRichTextEmpty(result.remarks) && (
+                        <div>
+                            <h4 className="text-xs font-semibold text-blue-800 mb-1">Additional Technician Notes</h4>
+                            <div
+                                className="text-slate-700 bg-white p-2.5 rounded border border-blue-100 text-xs"
+                                dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(result.remarks) }}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
 
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200 space-y-4">
                 <div>
-                    <label htmlFor="reviewer-remarks-editor" className="block text-sm font-medium text-slate-700 mb-2">
-                        Reviewer Remarks (Optional if Verifying, Required if Rejecting)
+                    <label htmlFor="reviewer-remarks-editor" className="block text-sm font-semibold text-slate-800 mb-2">
+                        Reviewer Comments &amp; Clinical Interpretation (Optional if Verifying, Required if Rejecting)
                     </label>
                     <RichTextEditor
                         id="reviewer-remarks-editor"

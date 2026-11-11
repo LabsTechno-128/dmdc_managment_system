@@ -70,6 +70,9 @@ export class LabResult {
     @Column({ type: 'text', nullable: true })
     remarks?: string;
 
+    @Column({ type: 'text', nullable: true })
+    report?: string;
+
     @Column({ nullable: true })
     performedById?: string;
 

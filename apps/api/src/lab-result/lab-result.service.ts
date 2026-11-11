@@ -134,7 +134,14 @@ export class LabResultService implements OnModuleInit {
     }
 
     // resultData is expected to be an array: { testParameterId: string, resultValue: string }[]
-    async upsertResult(sampleId: string, resultData: any[], status: LabResultStatus, remarks: string, performedById: string) {
+    async upsertResult(
+        sampleId: string,
+        resultData: any[],
+        status: LabResultStatus,
+        remarks: string,
+        performedById: string,
+        report?: string
+    ) {
         const sample = await this.databaseService.repoSampleCollection().findOne({
             where: { id: sampleId }
         });
@@ -171,6 +178,11 @@ export class LabResultService implements OnModuleInit {
             }
         }
 
+        const sanitizedReport = report !== undefined
+            ? sanitizeRichTextHtml(report)
+            : (remarks ? sanitizeRichTextHtml(remarks) : '');
+        const sanitizedRemarks = remarks !== undefined ? sanitizeRichTextHtml(remarks) : '';
+
         if (!labResult) {
             labResult = this.databaseService.repoLabResult().create({
                 billingId: sample.billingId,
@@ -178,14 +190,22 @@ export class LabResultService implements OnModuleInit {
                 sampleId: sample.id,
                 patientId: sample.patientId,
                 status,
-                remarks: remarks !== undefined ? sanitizeRichTextHtml(remarks) : '',
+                report: sanitizedReport,
+                remarks: sanitizedRemarks,
                 performedById,
                 performedAt: new Date()
             });
             labResult = await this.databaseService.repoLabResult().save(labResult);
         } else {
             labResult.status = status;
-            if (remarks !== undefined) labResult.remarks = sanitizeRichTextHtml(remarks);
+            if (report !== undefined) {
+                labResult.report = sanitizeRichTextHtml(report);
+            } else if (!labResult.report && remarks) {
+                labResult.report = sanitizeRichTextHtml(remarks);
+            }
+            if (remarks !== undefined) {
+                labResult.remarks = sanitizeRichTextHtml(remarks);
+            }
             labResult.performedById = performedById;
             labResult.performedAt = new Date();
             labResult = await this.databaseService.repoLabResult().save(labResult);
@@ -246,7 +266,7 @@ export class LabResultService implements OnModuleInit {
         });
     }
 
-    async verifyResult(sampleId: string, verifiedById: string, remarks?: string) {
+    async verifyResult(sampleId: string, verifiedById: string, remarks?: string, report?: string) {
         const result = await this.databaseService.repoLabResult().findOne({
             where: { sampleId }
         });
@@ -259,7 +279,18 @@ export class LabResultService implements OnModuleInit {
         result.status = LabResultStatus.VERIFIED;
         result.verifiedById = verifiedById;
         result.verifiedAt = new Date();
-        if (remarks && remarks.trim()) {
+
+        // Preserve technician report: if technician report was previously stored in remarks, migrate it to report
+        if (!result.report && result.remarks) {
+            result.report = result.remarks;
+        }
+
+        if (report !== undefined && report.trim()) {
+            result.report = sanitizeRichTextHtml(report);
+        }
+
+        // Save reviewer's remarks / clinical interpretation without overwriting technician report
+        if (remarks !== undefined && remarks.trim()) {
             result.remarks = sanitizeRichTextHtml(remarks);
         }
 

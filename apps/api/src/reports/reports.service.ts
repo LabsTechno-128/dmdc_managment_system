@@ -284,7 +284,8 @@ export class ReportsService {
 
         const reportDataSnapshot = JSON.stringify({
             parameterResults: labResult.parameterResults,
-            remarks: labResult.remarks
+            report: labResult.report || '',
+            remarks: labResult.remarks || ''
         });
 
         if (!report) {
@@ -463,6 +464,7 @@ export class ReportsService {
                 displayOrder: pr.snapshotDisplayOrder ?? pr.testParameter?.displayOrder ?? 0,
             })).sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
+            const reportText = parsedReportData?.report || lr?.report || '';
             const remarks = parsedReportData?.remarks || lr?.remarks || '';
 
             testsMap.set(key, {
@@ -479,6 +481,7 @@ export class ReportsService {
                 labResultStatus: lr?.status || (rep.status === ReportStatus.FINALIZED || rep.status === ReportStatus.PUBLISHED ? LabResultStatus.VERIFIED : LabResultStatus.COMPLETED),
                 isVerified: lr?.status === LabResultStatus.VERIFIED || rep.status === ReportStatus.FINALIZED || rep.status === ReportStatus.PUBLISHED,
                 parameterResults,
+                report: reportText,
                 remarks,
                 performedBy: lr?.performedBy ? {
                     id: lr.performedBy.id,
@@ -518,7 +521,8 @@ export class ReportsService {
                     try {
                         const snap = JSON.stringify({
                             parameterResults: lr.parameterResults,
-                            remarks: lr.remarks
+                            report: lr.report || '',
+                            remarks: lr.remarks || ''
                         });
                         const newRep = await this.databaseService.repoReport().save(
                             this.databaseService.repoReport().create({
@@ -548,6 +552,7 @@ export class ReportsService {
                     labResultStatus: lr.status,
                     isVerified: isVerified,
                     parameterResults,
+                    report: lr.report || '',
                     remarks: lr.remarks || '',
                     performedBy: lr.performedBy ? {
                         id: lr.performedBy.id,

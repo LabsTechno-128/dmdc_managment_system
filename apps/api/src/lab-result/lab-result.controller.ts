@@ -34,15 +34,16 @@ export class LabResultController {
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async saveDraft(
         @Param('sampleId') sampleId: string,
-        @Body() body: { resultData: any, remarks: string },
+        @Body() body: { resultData: any, remarks?: string, report?: string },
         @Req() req: any
     ) {
         return this.labResultService.upsertResult(
             sampleId,
             body.resultData,
             LabResultStatus.IN_PROGRESS,
-            body.remarks,
-            req.user.id
+            body.remarks || '',
+            req.user.id,
+            body.report
         );
     }
 
@@ -50,15 +51,16 @@ export class LabResultController {
     @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.LAB_TECHNICIAN, UserRole.USG_REPORT, UserRole.XRAY_REPORT, UserRole.RECEPTIONIST)
     async submitResult(
         @Param('sampleId') sampleId: string,
-        @Body() body: { resultData: any, remarks: string },
+        @Body() body: { resultData: any, remarks?: string, report?: string },
         @Req() req: any
     ) {
         return this.labResultService.upsertResult(
             sampleId,
             body.resultData,
             LabResultStatus.COMPLETED,
-            body.remarks,
-            req.user.id
+            body.remarks || '',
+            req.user.id,
+            body.report
         );
     }
 
@@ -78,10 +80,10 @@ export class LabResultController {
     @Roles(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.ADMIN, UserRole.LAB_TECHNICIAN)
     async verifyResult(
         @Param('sampleId') sampleId: string,
-        @Body() body: { remarks?: string },
+        @Body() body: { remarks?: string, report?: string },
         @Req() req: any
     ) {
-        return this.labResultService.verifyResult(sampleId, req.user.id, body?.remarks);
+        return this.labResultService.verifyResult(sampleId, req.user.id, body?.remarks, body?.report);
     }
 
     @Post(':sampleId/reject')

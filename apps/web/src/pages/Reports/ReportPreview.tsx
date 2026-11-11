@@ -287,8 +287,8 @@ export const ReportPreview: React.FC = () => {
                 </button>
                 <div className="flex flex-wrap items-center gap-2">
                     <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${report.status === 'PUBLISHED'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-yellow-100 text-yellow-700'
                         }`}>
                         {report.status}
                     </span>
@@ -304,8 +304,8 @@ export const ReportPreview: React.FC = () => {
                     <button
                         onClick={() => setViewMode('REPORT')}
                         className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${viewMode === 'REPORT'
-                                ? 'bg-blue-600 text-white shadow-xs'
-                                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                             }`}
                     >
                         View Report ({testsList.length} {testsList.length === 1 ? 'Test' : 'Tests'})
@@ -327,8 +327,8 @@ export const ReportPreview: React.FC = () => {
                             <button
                                 onClick={() => setViewMode('INVOICE')}
                                 className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${viewMode === 'INVOICE'
-                                        ? 'bg-blue-600 text-white shadow-xs'
-                                        : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                                    ? 'bg-blue-600 text-white shadow-xs'
+                                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                                     }`}
                             >
                                 View Invoice
@@ -433,8 +433,10 @@ export const ReportPreview: React.FC = () => {
                     </style>
 
                     {testsList.map((t: any, testIdx: number) => {
-                        const params = t.parameterResults || [];
-                        const testRemarks = t.remarks || (testIdx === 0 ? remarks : '') || '';
+                        // const params = t.parameterResults || [];
+                        const testReport = t.report || (!t.isVerified ? (t.remarks || (testIdx === 0 ? remarks : '')) : '') || '';
+                        const reviewRemarks = (t.isVerified ? t.remarks : '') || pathologistReview.remarks || '';
+                        const hasSeparateReviewRemarks = reviewRemarks && (!testReport || reviewRemarks.trim() !== testReport.trim());
                         const isLastPage = testIdx === totalPages - 1;
                         // When printing a single test, only that page is printed and it is the last printed page
                         const isSkippedInPrint = singlePrintIdx !== null && singlePrintIdx !== testIdx;
@@ -485,15 +487,15 @@ export const ReportPreview: React.FC = () => {
                                                             {t.testName}
                                                         </h2>
                                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${t.isVerified
-                                                                ? 'bg-emerald-100 text-emerald-800'
-                                                                : 'bg-amber-100 text-amber-800'
+                                                            ? 'bg-emerald-100 text-emerald-800'
+                                                            : 'bg-amber-100 text-amber-800'
                                                             }`}>
                                                             {t.isVerified ? 'Verified' : 'Pending Review'}
                                                         </span>
                                                     </div>
 
                                                     {/* Test Results Table */}
-                                                    <div className="mb-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs print:shadow-none print:border-slate-300 print:rounded-none">
+                                                    {/* <div className="mb-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs print:shadow-none print:border-slate-300 print:rounded-none">
                                                         <table className="report-inner-table w-full text-left border-collapse min-w-0 max-[999px]:min-w-[650px] print:min-w-0">
                                                             <thead className="bg-slate-100/90 text-slate-800 border-b-2 border-slate-300 print:bg-slate-100">
                                                                 <tr>
@@ -530,17 +532,17 @@ export const ReportPreview: React.FC = () => {
                                                                 )}
                                                             </tbody>
                                                         </table>
-                                                    </div>
+                                                    </div> */}
 
-                                                    {/* Remarks / Report Section */}
-                                                    {testRemarks && !isRichTextEmpty(testRemarks) && (
+                                                    {/* Laboratory Report / Findings Section (Technician) */}
+                                                    {testReport && !isRichTextEmpty(testReport) && (
                                                         <div className="mb-4 p-4 bg-slate-50/80 rounded-xl border border-slate-200 print:border-slate-300 print:bg-transparent text-xs sm:text-sm print-avoid-break">
                                                             <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200/80 pb-1.5 flex items-center justify-between">
-                                                                <span>Remarks / Report:</span>
+                                                                <span>Laboratory Report / Findings:</span>
                                                             </div>
                                                             <div
                                                                 className="text-slate-800 leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                                                                dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(testRemarks) }}
+                                                                dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(testReport) }}
                                                             />
                                                         </div>
                                                     )}
@@ -558,8 +560,8 @@ export const ReportPreview: React.FC = () => {
                                                                 </span>
                                                                 <span
                                                                     className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${(t.isVerified || pathologistReview.isReviewed)
-                                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                                                            : 'bg-amber-50 text-amber-700 border-amber-300'
+                                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                                                        : 'bg-amber-50 text-amber-700 border-amber-300'
                                                                         }`}
                                                                 >
                                                                     {(t.isVerified || pathologistReview.isReviewed) ? 'Verified / Approved' : (pathologistReview.reviewStatus || 'Pending Review')}
@@ -587,15 +589,15 @@ export const ReportPreview: React.FC = () => {
                                                             </div>
                                                         </div>
 
-                                                        {pathologistReview.remarks && !isRichTextEmpty(pathologistReview.remarks) ? (
+                                                        {hasSeparateReviewRemarks && !isRichTextEmpty(reviewRemarks) ? (
                                                             <div className="mt-3 pt-2 border-t border-slate-200">
                                                                 <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                                                                     Reviewer Comments &amp; Clinical Interpretation:
                                                                 </div>
-                                                                {/* <div
+                                                                <div
                                                                     className="text-slate-700 text-xs sm:text-sm leading-relaxed [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-1.5 [&_td]:border [&_td]:border-slate-300 [&_td]:p-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                                                                    dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(pathologistReview.remarks) }}
-                                                                /> */}
+                                                                    dangerouslySetInnerHTML={{ __html: normalizeInitialContentToHtml(reviewRemarks) }}
+                                                                />
                                                             </div>
                                                         ) : !(t.isVerified || pathologistReview.isReviewed) ? (
                                                             <p className="text-xs text-amber-700 italic mt-1 flex items-center gap-1.5">

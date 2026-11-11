@@ -62,6 +62,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
                 // Ignore if table not yet created
             }
 
+            // Ensure report column exists in lab_results for separate technician report
+            try {
+                await this.dataSource.query(`ALTER TABLE lab_results ADD COLUMN IF NOT EXISTS report text;`);
+            } catch {
+                // Ignore if table not yet created
+            }
+
             return;
         }
 

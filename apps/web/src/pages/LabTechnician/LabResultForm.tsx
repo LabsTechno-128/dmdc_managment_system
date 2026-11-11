@@ -30,7 +30,8 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
         : {};
 
     const [formData, setFormData] = useState<Record<string, string>>(initialMap);
-    const [remarks, setRemarks] = useState(initialData?.remarks || '');
+    const [report, setReport] = useState(initialData?.report || initialData?.remarks || '');
+    const [remarks, setRemarks] = useState(initialData?.report ? (initialData?.remarks || '') : '');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -65,7 +66,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
         setSaving(true);
         setError('');
         try {
-            await api.post(`/lab-result/${sampleId}/draft`, { resultData: preparePayload(), remarks });
+            await api.post(`/lab-result/${sampleId}/draft`, { resultData: preparePayload(), report, remarks });
             onSuccess();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to save draft');
@@ -78,7 +79,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
         setSaving(true);
         setError('');
         try {
-            await api.post(`/lab-result/${sampleId}/submit`, { resultData: preparePayload(), remarks });
+            await api.post(`/lab-result/${sampleId}/submit`, { resultData: preparePayload(), report, remarks });
             onSuccess();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to submit result');
@@ -103,7 +104,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1">✕</button>
                 </div>
 
-                <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+                <div className="  overflow-y-auto flex-1">
                     {error && (
                         <div className="mb-4 p-3 bg-red-50 text-red-600 rounded text-sm border border-red-200">
                             {error}
@@ -111,8 +112,9 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                     )}
 
                     {fields.length === 0 ? (
-                        <div className="text-center p-6 sm:p-8 text-slate-500 text-sm">
-                            No specific parameters configured for this test. Please enter the result in the remarks box below.
+                        <div className="text-center   text-slate-500 text-sm">
+                            {/* No specific parameters configured for this test. Please enter the result in the remarks box below. */}
+
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -121,7 +123,7 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                                     <label className="text-sm font-medium text-slate-700">
                                         {f.name} {f.isRequired && <span className="text-red-500">*</span>}
                                     </label>
-                                    <div className="sm:col-span-2 flex items-center gap-2">
+                                    <div className="sm:col-span-2 flex items-center gap-2 pt-1">
                                         {f.dataType === 'SELECT' || f.dataType === 'POSITIVE_NEGATIVE' ? (
                                             <select
                                                 value={formData[f.id] || ''}
@@ -155,17 +157,38 @@ const LabResultForm: React.FC<LabResultFormProps> = ({ sampleId, testId, testNam
                         </div>
                     )}
 
-                    <div className="mt-6 border-t pt-4">
-                        <label htmlFor="lab-result-remarks-editor" className="block text-sm font-medium text-slate-700 mb-2">
-                            Remarks / Report
+                    <div className=" pt-3 ">
+                        <label htmlFor="lab-result-report-editor" className="block text-sm font-semibold text-slate-800 mb-1">
+                            Laboratory Report / Findings
                         </label>
+                        <p className="text-xs text-slate-500 mb-2">
+                            Enter the laboratory test report, findings, impressions, or detailed descriptive results.
+                        </p>
+                        <RichTextEditor
+                            id="lab-result-report-editor"
+                            value={report}
+                            onChange={(html) => setReport(html)}
+                            placeholder="Type the laboratory test report or findings here..."
+                            minHeight={180}
+                            maxHeight={350}
+                            enableAI={true}
+                        />
+                    </div>
+
+                    <div className="mt-6 border-t pt-4">
+                        <label htmlFor="lab-result-remarks-editor" className="block text-sm font-semibold text-slate-700 mb-1">
+                            Technician Remarks / Notes <span className="text-xs text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mb-2">
+                            Additional observations or technical notes for the reviewer.
+                        </p>
                         <RichTextEditor
                             id="lab-result-remarks-editor"
                             value={remarks}
                             onChange={(html) => setRemarks(html)}
-                            placeholder="Type the report or any additional notes here..."
-                            minHeight={200}
-                            maxHeight={380}
+                            placeholder="Type additional technician remarks or notes here..."
+                            minHeight={120}
+                            maxHeight={250}
                             enableAI={true}
                         />
                     </div>
